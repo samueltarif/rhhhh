@@ -82,7 +82,16 @@ export default defineEventHandler(async (event) => {
       faltas: h.faltas,
       horas_trabalhadas: h.horas_trabalhadas,
       data_pagamento: h.data_pagamento,
-      observacoes: h.observacoes
+      observacoes: h.observacoes,
+      // ✅ CAMPOS CRÍTICOS PARA EXIBIR BENEFÍCIOS E DESCONTOS
+      beneficios: h.beneficios || [],
+      descontos_personalizados: h.descontos_personalizados || [],
+      // Campos adicionais para cálculos
+      base_inss: h.base_inss,
+      aliquota_inss: h.aliquota_inss,
+      base_irrf: h.base_irrf,
+      aliquota_irrf: h.aliquota_irrf,
+      faixa_irrf: h.faixa_irrf
     })) || []
 
     return holeriteFormatados

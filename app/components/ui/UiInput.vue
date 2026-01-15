@@ -17,15 +17,18 @@
           icon ? 'pl-12' : '',
           showPasswordToggle ? 'pr-14' : '',
           disabled ? 'border-gray-100 bg-gray-50 text-gray-500' : 'border-gray-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-100',
-          error ? 'border-red-300' : ''
+          error ? 'border-red-300' : '',
+          uppercase ? 'uppercase' : ''
         ]"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+        :style="uppercase ? 'text-transform: uppercase;' : ''"
+        @input="handleInput"
       />
       <button
         v-if="showPasswordToggle && type === 'password'"
         type="button"
-        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 transition-colors"
         @click="passwordVisible = !passwordVisible"
+        tabindex="-1"
       >
         <svg v-if="!passwordVisible" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -53,16 +56,18 @@ interface Props {
   hint?: string
   error?: string
   showPasswordToggle?: boolean
+  uppercase?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   disabled: false,
   required: false,
-  showPasswordToggle: false
+  showPasswordToggle: false,
+  uppercase: true // Por padrão, todos os inputs serão em maiúsculas
 })
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
@@ -73,4 +78,15 @@ const computedType = computed(() => {
   if (props.type === 'password' && passwordVisible.value) return 'text'
   return props.type
 })
-</script>
+
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  let value = target.value
+  
+  // Aplicar maiúsculas se habilitado e não for campo de senha
+  if (props.uppercase && props.type !== 'password') {
+    value = value.toUpperCase()
+  }
+  
+  emit('update:modelValue', value)
+}</script>

@@ -221,84 +221,123 @@ export default defineEventHandler(async (event) => {
         // Processar benefícios
         if (funcionario.beneficios) {
           console.log(`   🎁 Processando benefícios para ${funcionario.nome_completo}`)
+          console.log(`   📋 Benefícios recebidos:`, JSON.stringify(funcionario.beneficios, null, 2))
           
           // Vale Transporte
           if (funcionario.beneficios.vale_transporte?.ativo) {
             const vt = funcionario.beneficios.vale_transporte
-            const valorMensal = vt.valor_mensal || (vt.valor || 0) * 22
-            totalBeneficios += valorMensal
+            console.log(`   🚌 Vale Transporte ativo:`, vt)
             
-            let desconto = 0
-            if (vt.tipo_desconto === 'percentual') {
-              desconto = salarioBase * (vt.percentual_desconto || 0) / 100
-            } else if (vt.tipo_desconto === 'valor_fixo') {
-              desconto = vt.valor_desconto || 0
+            // Calcular valor mensal
+            let valorMensal = 0
+            if (vt.valor_total) {
+              // Formato antigo (Silvana)
+              valorMensal = vt.valor_total
+            } else if (vt.valor) {
+              // Formato novo - valor diário * 22 dias
+              valorMensal = parseFloat(vt.valor) * 22
             }
             
-            detalheBeneficios.push({
-              tipo: 'Vale Transporte',
-              valor: valorMensal,
-              desconto: desconto
-            })
-            
-            totalDescontosPersonalizados += desconto
-            console.log(`      🚌 Vale Transporte: +R$ ${valorMensal.toFixed(2)} / -R$ ${desconto.toFixed(2)}`)
+            if (valorMensal > 0) {
+              totalBeneficios += valorMensal
+              
+              // Calcular desconto
+              let desconto = 0
+              if (vt.tipo_desconto === 'percentual') {
+                const percentual = parseFloat(vt.percentual_desconto) || 0
+                desconto = salarioBase * (percentual / 100)
+              } else if (vt.tipo_desconto === 'valor_fixo') {
+                desconto = parseFloat(vt.valor_desconto) || 0
+              }
+              
+              detalheBeneficios.push({
+                tipo: 'Vale Transporte',
+                valor: valorMensal,
+                desconto: desconto
+              })
+              
+              totalDescontosPersonalizados += desconto
+              console.log(`      🚌 Vale Transporte: +R$ ${valorMensal.toFixed(2)} / -R$ ${desconto.toFixed(2)}`)
+            }
           }
           
           // Vale Refeição
           if (funcionario.beneficios.vale_refeicao?.ativo) {
             const vr = funcionario.beneficios.vale_refeicao
-            const valorMensal = vr.valor_mensal || (vr.valor || 0) * 22
-            totalBeneficios += valorMensal
+            console.log(`   🍽️ Vale Refeição ativo:`, vr)
             
-            let desconto = 0
-            if (vr.tipo_desconto === 'percentual') {
-              desconto = salarioBase * (vr.percentual_desconto || 0) / 100
-            } else if (vr.tipo_desconto === 'valor_fixo') {
-              desconto = vr.valor_desconto || 0
+            // Calcular valor mensal
+            let valorMensal = 0
+            if (vr.valor_mensal) {
+              valorMensal = parseFloat(vr.valor_mensal)
+            } else if (vr.valor) {
+              // Valor diário * 22 dias
+              valorMensal = parseFloat(vr.valor) * 22
             }
             
-            detalheBeneficios.push({
-              tipo: 'Vale Refeição',
-              valor: valorMensal,
-              desconto: desconto
-            })
-            
-            totalDescontosPersonalizados += desconto
-            console.log(`      🍽️ Vale Refeição: +R$ ${valorMensal.toFixed(2)} / -R$ ${desconto.toFixed(2)}`)
+            if (valorMensal > 0) {
+              totalBeneficios += valorMensal
+              
+              // Calcular desconto
+              let desconto = 0
+              if (vr.tipo_desconto === 'percentual') {
+                const percentual = parseFloat(vr.percentual_desconto) || 0
+                desconto = salarioBase * (percentual / 100)
+              } else if (vr.tipo_desconto === 'valor_fixo') {
+                desconto = parseFloat(vr.valor_desconto) || 0
+              }
+              // Se tipo_desconto for 'sem_desconto', desconto fica 0
+              
+              detalheBeneficios.push({
+                tipo: 'Vale Refeição',
+                valor: valorMensal,
+                desconto: desconto
+              })
+              
+              totalDescontosPersonalizados += desconto
+              console.log(`      🍽️ Vale Refeição: +R$ ${valorMensal.toFixed(2)} / -R$ ${desconto.toFixed(2)}`)
+            }
           }
           
           // Plano de Saúde
           if (funcionario.beneficios.plano_saude?.ativo) {
             const ps = funcionario.beneficios.plano_saude
-            const valorEmpresa = ps.valor_empresa || 0
-            const descontoFuncionario = ps.valor_funcionario || 0
+            console.log(`   🏥 Plano de Saúde ativo:`, ps)
             
-            totalBeneficios += valorEmpresa
-            totalDescontosPersonalizados += descontoFuncionario
+            const valorEmpresa = parseFloat(ps.valor_empresa) || 0
+            const descontoFuncionario = parseFloat(ps.valor_funcionario) || 0
             
-            detalheBeneficios.push({
-              tipo: 'Plano de Saúde',
-              valor: valorEmpresa,
-              desconto: descontoFuncionario
-            })
-            
-            console.log(`      🏥 Plano de Saúde: +R$ ${valorEmpresa.toFixed(2)} / -R$ ${descontoFuncionario.toFixed(2)}`)
+            if (valorEmpresa > 0 || descontoFuncionario > 0) {
+              totalBeneficios += valorEmpresa
+              totalDescontosPersonalizados += descontoFuncionario
+              
+              detalheBeneficios.push({
+                tipo: 'Plano de Saúde',
+                valor: valorEmpresa,
+                desconto: descontoFuncionario
+              })
+              
+              console.log(`      🏥 Plano de Saúde: +R$ ${valorEmpresa.toFixed(2)} / -R$ ${descontoFuncionario.toFixed(2)}`)
+            }
           }
           
           // Plano Odontológico
           if (funcionario.beneficios.plano_odonto?.ativo) {
             const po = funcionario.beneficios.plano_odonto
-            const descontoFuncionario = po.valor_funcionario || 0
+            console.log(`   🦷 Plano Odontológico ativo:`, po)
             
-            totalDescontosPersonalizados += descontoFuncionario
+            const descontoFuncionario = parseFloat(po.valor_funcionario) || 0
             
-            detalheDescontos.push({
-              tipo: 'Plano Odontológico',
-              valor: descontoFuncionario
-            })
-            
-            console.log(`      🦷 Plano Odontológico: -R$ ${descontoFuncionario.toFixed(2)}`)
+            if (descontoFuncionario > 0) {
+              totalDescontosPersonalizados += descontoFuncionario
+              
+              detalheDescontos.push({
+                tipo: 'Plano Odontológico',
+                valor: descontoFuncionario
+              })
+              
+              console.log(`      🦷 Plano Odontológico: -R$ ${descontoFuncionario.toFixed(2)}`)
+            }
           }
         }
         
@@ -310,9 +349,9 @@ export default defineEventHandler(async (event) => {
             let valorDesconto = 0
             
             if (desconto.tipo === 'percentual') {
-              valorDesconto = salarioBase * (desconto.percentual || 0) / 100
+              valorDesconto = salarioBase * (parseFloat(desconto.percentual) || 0) / 100
             } else if (desconto.tipo === 'valor_fixo') {
-              valorDesconto = desconto.valor || 0
+              valorDesconto = parseFloat(desconto.valor) || 0
             }
             
             if (valorDesconto > 0) {
@@ -330,6 +369,8 @@ export default defineEventHandler(async (event) => {
         
         console.log(`   💰 Total Benefícios: R$ ${totalBeneficios.toFixed(2)}`)
         console.log(`   📉 Total Descontos Personalizados: R$ ${totalDescontosPersonalizados.toFixed(2)}`)
+        console.log(`   🎁 Detalhe Benefícios:`, detalheBeneficios)
+        console.log(`   📉 Detalhe Descontos:`, detalheDescontos)
         
         // Calcular totais finais
         const totalProventos = salarioBase + totalBeneficios

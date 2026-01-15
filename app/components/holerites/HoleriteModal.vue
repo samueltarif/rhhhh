@@ -21,6 +21,19 @@
           <span class="text-gray-600">Salário Base</span>
           <span class="font-semibold">{{ formatarMoeda(holerite.salario_base) }}</span>
         </div>
+        
+        <!-- Benefícios -->
+        <div v-if="holerite.beneficios && holerite.beneficios.length > 0">
+          <div 
+            v-for="beneficio in holerite.beneficios" 
+            :key="beneficio.tipo"
+            class="flex justify-between py-2 border-b border-gray-100"
+          >
+            <span class="text-gray-600">{{ beneficio.tipo }}</span>
+            <span class="font-semibold text-green-600">+ {{ formatarMoeda(beneficio.valor) }}</span>
+          </div>
+        </div>
+        
         <div v-if="holerite.bonus" class="flex justify-between py-2 border-b border-gray-100">
           <span class="text-gray-600">Bônus</span>
           <span class="font-semibold">{{ formatarMoeda(holerite.bonus) }}</span>
@@ -32,7 +45,7 @@
       </div>
       <div class="flex justify-between py-2 mt-2 bg-green-50 px-3 rounded-lg">
         <span class="font-bold text-green-700">Total Proventos</span>
-        <span class="font-bold text-green-700">{{ formatarMoeda(calcularTotalProventos()) }}</span>
+        <span class="font-bold text-green-700">{{ formatarMoeda(holerite.total_proventos) }}</span>
       </div>
     </div>
 
@@ -48,6 +61,32 @@
           <span class="text-gray-600">IRRF</span>
           <span class="font-semibold text-red-600">- {{ formatarMoeda(holerite.irrf) }}</span>
         </div>
+        
+        <!-- Descontos de Benefícios -->
+        <div v-if="holerite.beneficios && holerite.beneficios.length > 0">
+          <div 
+            v-for="beneficio in holerite.beneficios" 
+            :key="beneficio.tipo"
+            v-if="beneficio.desconto > 0"
+            class="flex justify-between py-2 border-b border-gray-100"
+          >
+            <span class="text-gray-600">{{ beneficio.tipo }} (Desconto)</span>
+            <span class="font-semibold text-red-600">- {{ formatarMoeda(beneficio.desconto) }}</span>
+          </div>
+        </div>
+        
+        <!-- Descontos Personalizados -->
+        <div v-if="holerite.descontos_personalizados && holerite.descontos_personalizados.length > 0">
+          <div 
+            v-for="desconto in holerite.descontos_personalizados" 
+            :key="desconto.tipo"
+            class="flex justify-between py-2 border-b border-gray-100"
+          >
+            <span class="text-gray-600">{{ desconto.tipo }}</span>
+            <span class="font-semibold text-red-600">- {{ formatarMoeda(desconto.valor) }}</span>
+          </div>
+        </div>
+        
         <div v-if="holerite.vale_transporte" class="flex justify-between py-2 border-b border-gray-100">
           <span class="text-gray-600">Vale Transporte</span>
           <span class="font-semibold text-red-600">- {{ formatarMoeda(holerite.vale_transporte) }}</span>
@@ -55,7 +94,7 @@
       </div>
       <div class="flex justify-between py-2 mt-2 bg-red-50 px-3 rounded-lg">
         <span class="font-bold text-red-700">Total Descontos</span>
-        <span class="font-bold text-red-700">- {{ formatarMoeda(calcularTotalDescontos()) }}</span>
+        <span class="font-bold text-red-700">- {{ formatarMoeda(holerite.total_descontos) }}</span>
       </div>
     </div>
 
@@ -108,21 +147,6 @@ const formatarPeriodo = (inicio: string | undefined, fim: string | undefined) =>
   const dataInicio = new Date(inicio).toLocaleDateString('pt-BR')
   const dataFim = new Date(fim).toLocaleDateString('pt-BR')
   return `${dataInicio} - ${dataFim}`
-}
-
-const calcularTotalProventos = () => {
-  let total = props.holerite.salario_base || 0
-  if (props.holerite.bonus) total += props.holerite.bonus
-  if (props.holerite.horas_extras) total += props.holerite.horas_extras
-  return total
-}
-
-const calcularTotalDescontos = () => {
-  let total = 0
-  if (props.holerite.inss) total += props.holerite.inss
-  if (props.holerite.irrf) total += props.holerite.irrf
-  if (props.holerite.vale_transporte) total += props.holerite.vale_transporte
-  return total
 }
 
 const baixarHTML = async () => {

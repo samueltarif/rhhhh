@@ -76,6 +76,7 @@
           <UiInput 
             v-model="form.email_pessoal" 
             type="email" 
+            :uppercase="false"
             label="Email Pessoal" 
             placeholder="email@pessoal.com"
           />
@@ -159,6 +160,7 @@
           <UiInput 
             v-model="form.email_login" 
             type="email" 
+            :uppercase="false"
             label="Email de Login"
             required
             placeholder="email@empresa.com"
@@ -169,6 +171,7 @@
             type="password" 
             label="Senha"
             required
+            show-password-toggle
             placeholder="••••••••"
           />
           
@@ -202,6 +205,7 @@
           <UiInput 
             v-model="form.salario_base" 
             type="number" 
+            :uppercase="false"
             step="0.01"
             label="Salário Base (R$)"
             placeholder="0,00"
@@ -216,6 +220,7 @@
           <UiInput 
             v-model="form.numero_dependentes" 
             type="number" 
+            :uppercase="false"
             min="0"
             step="1"
             label="Número de Dependentes (IRRF)"

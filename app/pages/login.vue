@@ -22,6 +22,7 @@
           <UiInput
             v-model="email"
             type="email"
+            :uppercase="false"
             label="📧 Email"
             placeholder="Digite seu email"
             required
