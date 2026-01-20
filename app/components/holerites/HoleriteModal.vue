@@ -63,17 +63,16 @@
         </div>
         
         <!-- Descontos de Benefícios -->
-        <div v-if="holerite.beneficios && holerite.beneficios.length > 0">
+        <template v-if="holerite.beneficios && holerite.beneficios.length > 0">
           <div 
-            v-for="beneficio in holerite.beneficios" 
+            v-for="beneficio in holerite.beneficios.filter((b: any) => b.desconto && b.desconto > 0)" 
             :key="beneficio.tipo"
-            v-if="beneficio.desconto > 0"
             class="flex justify-between py-2 border-b border-gray-100"
           >
             <span class="text-gray-600">{{ beneficio.tipo }} (Desconto)</span>
             <span class="font-semibold text-red-600">- {{ formatarMoeda(beneficio.desconto) }}</span>
           </div>
-        </div>
+        </template>
         
         <!-- Descontos Personalizados -->
         <div v-if="holerite.descontos_personalizados && holerite.descontos_personalizados.length > 0">
@@ -90,6 +89,12 @@
         <div v-if="holerite.vale_transporte" class="flex justify-between py-2 border-b border-gray-100">
           <span class="text-gray-600">Vale Transporte</span>
           <span class="font-semibold text-red-600">- {{ formatarMoeda(holerite.vale_transporte) }}</span>
+        </div>
+        
+        <!-- Adiantamento -->
+        <div v-if="holerite.adiantamento && holerite.adiantamento > 0" class="flex justify-between py-2 border-b border-gray-100 bg-yellow-50">
+          <span class="text-gray-600 font-semibold">💰 Adiantamento Pago</span>
+          <span class="font-semibold text-red-600">- {{ formatarMoeda(holerite.adiantamento) }}</span>
         </div>
       </div>
       <div class="flex justify-between py-2 mt-2 bg-red-50 px-3 rounded-lg">

@@ -18,9 +18,9 @@
           showPasswordToggle ? 'pr-14' : '',
           disabled ? 'border-gray-100 bg-gray-50 text-gray-500' : 'border-gray-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-100',
           error ? 'border-red-300' : '',
-          uppercase ? 'uppercase' : ''
+          (uppercase && type !== 'password' && type !== 'email') ? 'uppercase' : ''
         ]"
-        :style="uppercase ? 'text-transform: uppercase;' : ''"
+        :style="(uppercase && type !== 'password' && type !== 'email') ? 'text-transform: uppercase;' : ''"
         @input="handleInput"
       />
       <button
@@ -68,7 +68,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | number]
 }>()
 
 const id = computed(() => `input-${Math.random().toString(36).substr(2, 9)}`)
@@ -83,10 +83,22 @@ const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   let value = target.value
   
-  // Aplicar maiúsculas se habilitado e não for campo de senha
-  if (props.uppercase && props.type !== 'password') {
+  // Aplicar maiúsculas apenas se habilitado E não for campo de senha ou email
+  if (props.uppercase && props.type !== 'password' && props.type !== 'email') {
     value = value.toUpperCase()
   }
   
-  emit('update:modelValue', value)
+  // Converter para número se for input numérico
+  if (props.type === 'number') {
+    const numValue = parseFloat(value)
+    if (!isNaN(numValue)) {
+      emit('update:modelValue', numValue)
+    } else if (value === '') {
+      emit('update:modelValue', '')
+    } else {
+      emit('update:modelValue', value)
+    }
+  } else {
+    emit('update:modelValue', value)
+  }
 }</script>

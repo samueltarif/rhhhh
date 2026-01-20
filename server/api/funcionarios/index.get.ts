@@ -11,7 +11,9 @@ export default defineEventHandler(async (event) => {
         *,
         departamentos:departamento_id(nome),
         cargos:cargo_id(nome),
-        jornadas:jornada_trabalho_id(nome)
+        jornadas:jornada_trabalho_id(nome),
+        responsavel_direto:responsavel_id(nome_completo),
+        responsavel_cadastro:responsavel_cadastro_id(nome_completo, email_login)
       `)
       .order('nome_completo')
 
@@ -25,7 +27,10 @@ export default defineEventHandler(async (event) => {
       ...f,
       departamento: f.departamentos?.nome || 'Não definido',
       cargo: f.cargos?.nome || 'Não definido',
-      jornada: f.jornadas?.nome || 'Não definida'
+      jornada: f.jornadas?.nome || 'Não definida',
+      responsavel_direto_nome: f.responsavel_direto?.nome_completo || 'Não definido',
+      responsavel_cadastro_nome: f.responsavel_cadastro?.nome_completo || 'Sistema',
+      responsavel_cadastro_email: f.responsavel_cadastro?.email_login || ''
     })) || []
 
     return funcionariosFormatados

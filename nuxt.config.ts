@@ -41,15 +41,24 @@ export default defineNuxtConfig({
   
   app: {
     head: {
-      title: 'Sistema RH Qualitec - Gestão de Colaboradores',
+      title: 'Sistema Corporativo - Qualitec Instrumentos',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Sistema de RH para gestão de colaboradores, holerites e folha de pagamento da Qualitec' },
-        { name: 'robots', content: 'noindex, nofollow' } // Privacidade para sistema interno
+        { name: 'description', content: 'Sistema Interno de Gestão de Recursos Humanos - Qualitec Instrumentos. Instrumentação Industrial, Criogenia, Óleo & Gás.' },
+        { name: 'robots', content: 'noindex, nofollow' }, // Privacidade para sistema interno
+        { name: 'author', content: 'Qualitec Instrumentos Ltda' },
+        { name: 'company', content: 'Qualitec Instrumentos' },
+        { name: 'theme-color', content: '#1e40af' },
+        { property: 'og:title', content: 'Sistema Corporativo - Qualitec Instrumentos' },
+        { property: 'og:description', content: 'Sistema Interno de RH - Instrumentação Industrial' },
+        { property: 'og:type', content: 'website' },
+        { name: 'application-name', content: 'Qualitec RH' }
       ],
       link: [
-        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' }
       ]
     }
   },

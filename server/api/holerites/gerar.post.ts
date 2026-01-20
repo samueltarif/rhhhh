@@ -1,22 +1,154 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 
+// ========================================
+// FUNÇÕES AUXILIARES PARA CÁLCULO DE IRRF
+// Lei 15.270/2025 - Tabelas Oficiais 2026
+// ========================================
+
+/**
+ * Arredonda valor monetário para 2 casas decimais
+ */
+function round2(valor: number): number {
+  return Math.round(valor * 100) / 100
+}
+
+/**
+ * Aplica tabela progressiva mensal oficial 2026
+ * Fonte: Receita Federal - Tabela Progressiva Mensal
+ */
+function aplicarTabelaProgressivaMensal(baseIRRF: number): number {
+  if (baseIRRF <= 2428.80) {
+    return 0
+  } else if (baseIRRF <= 3051.00) {
+    return (baseIRRF * 0.075) - 182.16
+  } else if (baseIRRF <= 4052.00) {
+    return (baseIRRF * 0.15) - 394.16
+  } else if (baseIRRF <= 5050.00) {
+    return (baseIRRF * 0.225) - 675.49
+  } else {
+    return (baseIRRF * 0.275) - 896.00
+  }
+}
+
+/**
+ * Normaliza e valida número de dependentes
+ */
+function normalizarDependentes(dependentes: any): number {
+  if (dependentes === null || dependentes === undefined || dependentes === '') {
+    return 0
+  }
+  
+  const num = Number(dependentes)
+  if (isNaN(num) || num < 0) {
+    console.warn(`⚠️ Número de dependentes inválido: ${dependentes}, usando 0`)
+    return 0
+  }
+  
+  return Math.floor(num) // Garantir que seja inteiro
+}
+
+/**
+ * Normaliza e valida pensão alimentícia
+ */
+function normalizarPensao(pensao: any): number {
+  if (pensao === null || pensao === undefined || pensao === '') {
+    return 0
+  }
+  
+  const num = Number(pensao)
+  if (isNaN(num) || num < 0) {
+    console.warn(`⚠️ Pensão alimentícia inválida: ${pensao}, usando 0`)
+    return 0
+  }
+  
+  return round2(num)
+}
+
+/**
+ * Normaliza e valida gastos com saúde
+ */
+/**
+ * Calcula redutor conforme Lei 15.270/2025
+ * Art. 1º - Redução do imposto sobre a renda
+ */
+function calcularRedutorLei15270(baseIRRF: number): number {
+  if (baseIRRF <= 5000.00) {
+    // Até R$ 5.000: redutor igual ao imposto calculado pela tabela para zerar
+    const impostoTabela = aplicarTabelaProgressivaMensal(baseIRRF)
+    return impostoTabela
+  } else if (baseIRRF <= 7350.00) {
+    // Entre R$ 5.000,01 e R$ 7.350: fórmula linear decrescente
+    return 978.62 - (0.133145 * baseIRRF)
+  } else {
+    // Acima de R$ 7.350: sem redutor
+    return 0
+  }
+}
+
+/**
+ * Calcula base IRRF com todas as deduções legais
+ */
+function calcularBaseIRRF(
+  salarioBruto: number, 
+  inss: number, 
+  dependentes: number, 
+  pensao: number, 
+  gastosSaude: number
+): { baseIRRF: number, deducoesAplicadas: any } {
+  
+  const deducaoDependentes = dependentes * 189.59
+  
+  // Base inicial sem saúde
+  let base = salarioBruto - inss - deducaoDependentes - pensao
+  
+  // Aplicar dedução de saúde (sem limite legal em 2026)
+  base = base - gastosSaude
+  
+  // Garantir que a base nunca seja negativa
+  const baseIRRF = Math.max(0, base)
+  
+  const deducoesAplicadas = {
+    salarioBruto: round2(salarioBruto),
+    inss: round2(inss),
+    dependentes: {
+      quantidade: dependentes,
+      valorUnitario: 189.59,
+      totalDeduzido: round2(deducaoDependentes)
+    },
+    pensaoAlimenticia: round2(pensao),
+    gastosSaude: round2(gastosSaude),
+    baseCalculada: round2(base),
+    baseIRRF: round2(baseIRRF),
+    baseNegativaAjustada: base < 0
+  }
+  
+  if (base < 0) {
+    console.warn(`⚠️ Base IRRF seria negativa (R$ ${base.toFixed(2)}), ajustada para R$ 0,00`)
+  }
+  
+  return { baseIRRF: round2(baseIRRF), deducoesAplicadas }
+}
+
 export default defineEventHandler(async (event) => {
   try {
     const supabase = serverSupabaseServiceRole(event)
     const body = await readBody(event)
     
-    // Parâmetros opcionais
     const { 
       periodo_inicio, 
       periodo_fim, 
-      funcionario_ids, // Se vazio, gera para todos
-      recriar = false // Se true, recria holerites mesmo que já existam
+      funcionario_ids,
+      tipo = 'mensal',
+      recriar = false
     } = body
+
+    console.log(`🎯 Tipo de geração: ${tipo}`)
+    console.log(`📅 Período: ${periodo_inicio} a ${periodo_fim}`)
 
     // Buscar funcionários ativos
     let query = supabase
       .from('funcionarios')
-      .select('id, nome_completo, salario_base, empresa_id, cargo_id, departamento_id, numero_dependentes, beneficios, descontos_personalizados')
+      .select('id, nome_completo, salario_base, numero_dependentes, pensao_alimenticia, tipo_contrato')
       .eq('status', 'ativo')
 
     if (funcionario_ids && funcionario_ids.length > 0) {
@@ -35,16 +167,11 @@ export default defineEventHandler(async (event) => {
     }
 
     console.log('👥 Funcionários encontrados:', funcionarios.length)
-    console.log('💰 Salários:', funcionarios.map((f: any) => ({ nome: f.nome_completo, salario: f.salario_base })))
 
-    // Definir período se não foi fornecido
     const hoje = new Date()
     const inicio = periodo_inicio || `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`
     const fim = periodo_fim || `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-15`
 
-    console.log('📅 Período:', { inicio, fim })
-
-    // Gerar holerites para cada funcionário
     const holeritesCriados = []
     const erros = []
 
@@ -52,7 +179,7 @@ export default defineEventHandler(async (event) => {
       try {
         console.log(`\n🔄 Processando funcionário: ${(func as any).nome_completo}`)
         
-        // Verificar se já existe holerite para este período
+        // Verificar se já existe holerite
         const { data: existente } = await supabase
           .from('holerites')
           .select('id')
@@ -70,7 +197,6 @@ export default defineEventHandler(async (event) => {
           continue
         }
         
-        // Se recriar = true e existe, excluir o antigo
         if (existente && recriar) {
           console.log(`🔄 Recriando holerite para ${(func as any).nome_completo}`)
           await supabase
@@ -79,345 +205,285 @@ export default defineEventHandler(async (event) => {
             .eq('id', (existente as any).id)
         }
 
-        // Calcular valores
         const salarioBase = (func as any).salario_base || 0
+        const isAdiantamento = tipo === 'adiantamento'
         
-        // Cálculo CORRETO do INSS 2024 (tabela progressiva)
-        const baseINSS = salarioBase
-        let inss = 0
-        let aliquotaEfetiva = 0
-        
-        if (baseINSS <= 1412.00) {
-          inss = baseINSS * 0.075
-          aliquotaEfetiva = 7.5
-        } else if (baseINSS <= 2666.68) {
-          inss = 1412.00 * 0.075
-          inss += (baseINSS - 1412.00) * 0.09
-          aliquotaEfetiva = (inss / baseINSS) * 100
-        } else if (baseINSS <= 4000.03) {
-          inss = 1412.00 * 0.075
-          inss += (2666.68 - 1412.00) * 0.09
-          inss += (baseINSS - 2666.68) * 0.12
-          aliquotaEfetiva = (inss / baseINSS) * 100
-        } else {
-          inss = 1412.00 * 0.075
-          inss += (2666.68 - 1412.00) * 0.09
-          inss += (4000.03 - 2666.68) * 0.12
-          inss += (baseINSS - 4000.03) * 0.14
-          aliquotaEfetiva = (inss / baseINSS) * 100
+        if (isAdiantamento) {
+          // ========================================
+          // ADIANTAMENTO: 40% DO SALÁRIO BRUTO (SEM DESCONTOS)
+          // ========================================
+          const valorAdiantamento = salarioBase * 0.40
           
-          if (inss > 908.85) {
-            inss = 908.85
-            aliquotaEfetiva = (inss / baseINSS) * 100
+          console.log(`💰 ADIANTAMENTO: 40% de R$ ${salarioBase.toFixed(2)} = R$ ${valorAdiantamento.toFixed(2)}`)
+          
+          const dadosAdiantamento = {
+            funcionario_id: (func as any).id,
+            periodo_inicio: inicio,
+            periodo_fim: fim,
+            data_pagamento: fim,
+            salario_base: valorAdiantamento,
+            
+            // Todos os outros campos zerados
+            bonus: 0,
+            horas_extras: 0,
+            adicional_noturno: 0,
+            adicional_periculosidade: 0,
+            adicional_insalubridade: 0,
+            comissoes: 0,
+            inss: 0,
+            base_inss: 0,
+            aliquota_inss: 0,
+            irrf: 0,
+            base_irrf: 0,
+            aliquota_irrf: 0,
+            vale_transporte: 0,
+            cesta_basica_desconto: 0,
+            plano_saude: 0,
+            plano_odontologico: 0,
+            adiantamento: 0,
+            faltas: 0,
+            outros_descontos: 0,
+            
+            beneficios: [],
+            descontos_personalizados: [],
+            
+            status: 'gerado',
+            observacoes: `Adiantamento salarial (40%) - Salário base: R$ ${salarioBase.toFixed(2)}`
           }
-        }
-        
-        inss = Math.round(inss * 100) / 100
-        aliquotaEfetiva = Math.round(aliquotaEfetiva * 100) / 100
-        
-        // ========================================
-        // CÁLCULO OFICIAL DE IRRF - BRASIL 2026
-        // ========================================
-        const numeroDependentes = (func as any).numero_dependentes || 0
-        const deducaoDependentes = numeroDependentes * 189.59
-        const baseIRRF = salarioBase - inss - deducaoDependentes
-        
-        console.log(`   💰 Base IRRF: R$ ${baseIRRF.toFixed(2)} (Bruto: ${salarioBase} - INSS: ${inss} - Dep: ${deducaoDependentes})`)
-        console.log(`   👨‍👩‍👧‍👦 Dependentes: ${numeroDependentes}`)
-        
-        let irrf = 0
-        let aliquotaIRRF = 0
-        let faixaIRRF = 'Isento'
-        
-        // ========================================
-        // REGRA 1: ISENÇÃO CLT até R$ 5.000,00 (Base IRRF)
-        // ========================================
-        if (baseIRRF <= 5000.00) {
-          irrf = 0
-          aliquotaIRRF = 0
-          faixaIRRF = 'Isento CLT (até R$ 5.000,00)'
-          console.log(`   ✅ ISENTO CLT - Base IRRF: R$ ${baseIRRF.toFixed(2)} ≤ R$ 5.000,00`)
-        }
-        // ========================================
-        // REGRA 2: FAIXA DE TRANSIÇÃO COM REDUTOR (R$ 5.000,01 a R$ 7.350,00)
-        // ========================================
-        else if (baseIRRF <= 7350.00) {
-          // Calcular IR pela tabela progressiva normal
-          let irrfTabela = 0
-          let aliquotaTabelaNominal = 0
-          
-          if (baseIRRF <= 2259.20) {
-            irrfTabela = 0
-            aliquotaTabelaNominal = 0
-          } else if (baseIRRF <= 2826.65) {
-            irrfTabela = (baseIRRF * 0.075) - 169.44
-            aliquotaTabelaNominal = 7.5
-          } else if (baseIRRF <= 3751.05) {
-            irrfTabela = (baseIRRF * 0.15) - 381.44
-            aliquotaTabelaNominal = 15
-          } else if (baseIRRF <= 4664.68) {
-            irrfTabela = (baseIRRF * 0.225) - 662.77
-            aliquotaTabelaNominal = 22.5
-          } else {
-            irrfTabela = (baseIRRF * 0.275) - 896.00
-            aliquotaTabelaNominal = 27.5
-          }
-          
-          // Aplicar redutor progressivo baseado na isenção CLT
-          const fatorReducao = (baseIRRF - 5000.00) / (7350.00 - 5000.00)
-          irrf = irrfTabela * fatorReducao
-          aliquotaIRRF = baseIRRF > 0 ? (irrf / baseIRRF) * 100 : 0
-          faixaIRRF = `Transição c/ Redutor (${(fatorReducao * 100).toFixed(1)}% do IR ${aliquotaTabelaNominal}%)`
-          
-          console.log(`   🟡 TRANSIÇÃO COM REDUTOR`)
-          console.log(`      Base IRRF: R$ ${baseIRRF.toFixed(2)}`)
-          console.log(`      IR Tabela (${aliquotaTabelaNominal}%): R$ ${irrfTabela.toFixed(2)}`)
-          console.log(`      Fator Redução: ${(fatorReducao * 100).toFixed(1)}%`)
-          console.log(`      IR Final: R$ ${irrf.toFixed(2)}`)
-        }
-        // ========================================
-        // REGRA 3: ACIMA DE R$ 7.350,00 - Tabela Progressiva Normal
-        // ========================================
-        else {
-          if (baseIRRF <= 2259.20) {
-            irrf = 0
-            aliquotaIRRF = 0
-            faixaIRRF = 'Isento'
-          } else if (baseIRRF <= 2826.65) {
-            irrf = (baseIRRF * 0.075) - 169.44
-            aliquotaIRRF = 7.5
-            faixaIRRF = '7,5%'
-          } else if (baseIRRF <= 3751.05) {
-            irrf = (baseIRRF * 0.15) - 381.44
-            aliquotaIRRF = 15
-            faixaIRRF = '15%'
-          } else if (baseIRRF <= 4664.68) {
-            irrf = (baseIRRF * 0.225) - 662.77
-            aliquotaIRRF = 22.5
-            faixaIRRF = '22,5%'
-          } else {
-            irrf = (baseIRRF * 0.275) - 896.00
-            aliquotaIRRF = 27.5
-            faixaIRRF = '27,5%'
-          }
-          
-          console.log(`   🔴 TABELA NORMAL - Faixa: ${faixaIRRF} | IRRF: R$ ${irrf.toFixed(2)}`)
-        }
-        
-        // Arredondar e garantir que não seja negativo
-        irrf = Math.max(0, Math.round(irrf * 100) / 100)
-        aliquotaIRRF = Math.round(aliquotaIRRF * 100) / 100
-        
-        // ========================================
-        // CÁLCULO DE BENEFÍCIOS E DESCONTOS
-        // ========================================
-        let totalBeneficios = 0
-        let totalDescontosPersonalizados = 0
-        let detalheBeneficios = []
-        let detalheDescontos = []
-        
-        const funcionario = func as any
-        
-        // Processar benefícios
-        if (funcionario.beneficios) {
-          console.log(`   🎁 Processando benefícios para ${funcionario.nome_completo}`)
-          console.log(`   📋 Benefícios recebidos:`, JSON.stringify(funcionario.beneficios, null, 2))
-          
-          // Vale Transporte
-          if (funcionario.beneficios.vale_transporte?.ativo) {
-            const vt = funcionario.beneficios.vale_transporte
-            console.log(`   🚌 Vale Transporte ativo:`, vt)
-            
-            // Calcular valor mensal
-            let valorMensal = 0
-            if (vt.valor_total) {
-              // Formato antigo (Silvana)
-              valorMensal = vt.valor_total
-            } else if (vt.valor) {
-              // Formato novo - valor diário * 22 dias
-              valorMensal = parseFloat(vt.valor) * 22
-            }
-            
-            if (valorMensal > 0) {
-              totalBeneficios += valorMensal
-              
-              // Calcular desconto
-              let desconto = 0
-              if (vt.tipo_desconto === 'percentual') {
-                const percentual = parseFloat(vt.percentual_desconto) || 0
-                desconto = salarioBase * (percentual / 100)
-              } else if (vt.tipo_desconto === 'valor_fixo') {
-                desconto = parseFloat(vt.valor_desconto) || 0
-              }
-              
-              detalheBeneficios.push({
-                tipo: 'Vale Transporte',
-                valor: valorMensal,
-                desconto: desconto
-              })
-              
-              totalDescontosPersonalizados += desconto
-              console.log(`      🚌 Vale Transporte: +R$ ${valorMensal.toFixed(2)} / -R$ ${desconto.toFixed(2)}`)
-            }
-          }
-          
-          // Vale Refeição
-          if (funcionario.beneficios.vale_refeicao?.ativo) {
-            const vr = funcionario.beneficios.vale_refeicao
-            console.log(`   🍽️ Vale Refeição ativo:`, vr)
-            
-            // Calcular valor mensal
-            let valorMensal = 0
-            if (vr.valor_mensal) {
-              valorMensal = parseFloat(vr.valor_mensal)
-            } else if (vr.valor) {
-              // Valor diário * 22 dias
-              valorMensal = parseFloat(vr.valor) * 22
-            }
-            
-            if (valorMensal > 0) {
-              totalBeneficios += valorMensal
-              
-              // Calcular desconto
-              let desconto = 0
-              if (vr.tipo_desconto === 'percentual') {
-                const percentual = parseFloat(vr.percentual_desconto) || 0
-                desconto = salarioBase * (percentual / 100)
-              } else if (vr.tipo_desconto === 'valor_fixo') {
-                desconto = parseFloat(vr.valor_desconto) || 0
-              }
-              // Se tipo_desconto for 'sem_desconto', desconto fica 0
-              
-              detalheBeneficios.push({
-                tipo: 'Vale Refeição',
-                valor: valorMensal,
-                desconto: desconto
-              })
-              
-              totalDescontosPersonalizados += desconto
-              console.log(`      🍽️ Vale Refeição: +R$ ${valorMensal.toFixed(2)} / -R$ ${desconto.toFixed(2)}`)
-            }
-          }
-          
-          // Plano de Saúde
-          if (funcionario.beneficios.plano_saude?.ativo) {
-            const ps = funcionario.beneficios.plano_saude
-            console.log(`   🏥 Plano de Saúde ativo:`, ps)
-            
-            const valorEmpresa = parseFloat(ps.valor_empresa) || 0
-            const descontoFuncionario = parseFloat(ps.valor_funcionario) || 0
-            
-            if (valorEmpresa > 0 || descontoFuncionario > 0) {
-              totalBeneficios += valorEmpresa
-              totalDescontosPersonalizados += descontoFuncionario
-              
-              detalheBeneficios.push({
-                tipo: 'Plano de Saúde',
-                valor: valorEmpresa,
-                desconto: descontoFuncionario
-              })
-              
-              console.log(`      🏥 Plano de Saúde: +R$ ${valorEmpresa.toFixed(2)} / -R$ ${descontoFuncionario.toFixed(2)}`)
-            }
-          }
-          
-          // Plano Odontológico
-          if (funcionario.beneficios.plano_odonto?.ativo) {
-            const po = funcionario.beneficios.plano_odonto
-            console.log(`   🦷 Plano Odontológico ativo:`, po)
-            
-            const descontoFuncionario = parseFloat(po.valor_funcionario) || 0
-            
-            if (descontoFuncionario > 0) {
-              totalDescontosPersonalizados += descontoFuncionario
-              
-              detalheDescontos.push({
-                tipo: 'Plano Odontológico',
-                valor: descontoFuncionario
-              })
-              
-              console.log(`      🦷 Plano Odontológico: -R$ ${descontoFuncionario.toFixed(2)}`)
-            }
-          }
-        }
-        
-        // Processar descontos personalizados
-        if (funcionario.descontos_personalizados && Array.isArray(funcionario.descontos_personalizados)) {
-          console.log(`   📉 Processando descontos personalizados`)
-          
-          funcionario.descontos_personalizados.forEach((desconto: any) => {
-            let valorDesconto = 0
-            
-            if (desconto.tipo === 'percentual') {
-              valorDesconto = salarioBase * (parseFloat(desconto.percentual) || 0) / 100
-            } else if (desconto.tipo === 'valor_fixo') {
-              valorDesconto = parseFloat(desconto.valor) || 0
-            }
-            
-            if (valorDesconto > 0) {
-              totalDescontosPersonalizados += valorDesconto
-              
-              detalheDescontos.push({
-                tipo: desconto.descricao || 'Desconto',
-                valor: valorDesconto
-              })
-              
-              console.log(`      📉 ${desconto.descricao}: -R$ ${valorDesconto.toFixed(2)}`)
-            }
-          })
-        }
-        
-        console.log(`   💰 Total Benefícios: R$ ${totalBeneficios.toFixed(2)}`)
-        console.log(`   📉 Total Descontos Personalizados: R$ ${totalDescontosPersonalizados.toFixed(2)}`)
-        console.log(`   🎁 Detalhe Benefícios:`, detalheBeneficios)
-        console.log(`   📉 Detalhe Descontos:`, detalheDescontos)
-        
-        // Calcular totais finais
-        const totalProventos = salarioBase + totalBeneficios
-        const totalDescontos = inss + irrf + totalDescontosPersonalizados
-        const salarioLiquido = totalProventos - totalDescontos
 
-        // Criar holerite
-        const { data: holerite, error: holeriteError } = await supabase
-          .from('holerites')
-          .insert({
+          const { data: holerite, error: holeriteError } = await supabase
+            .from('holerites')
+            .insert(dadosAdiantamento)
+            .select()
+            .single()
+
+          if (holeriteError) throw holeriteError
+
+          // Atualizar campos calculados
+          await supabase
+            .from('holerites')
+            .update({
+              total_proventos: valorAdiantamento,
+              total_descontos: 0,
+              salario_liquido: valorAdiantamento
+            })
+            .eq('id', (holerite as any).id)
+
+          console.log(`✅ Adiantamento criado: R$ ${valorAdiantamento.toFixed(2)}`)
+          
+          holeritesCriados.push({
+            funcionario: (func as any).nome_completo,
+            holerite_id: (holerite as any).id
+          })
+          
+        } else {
+          // ========================================
+          // FOLHA MENSAL: SALÁRIO BRUTO - TODOS OS DESCONTOS
+          // ========================================
+          
+          // Buscar adiantamentos do mês atual
+          const mesAno = inicio.substring(0, 7)
+          const { data: adiantamentos } = await supabase
+            .from('holerites')
+            .select('salario_base, observacoes')
+            .eq('funcionario_id', (func as any).id)
+            .gte('periodo_inicio', mesAno + '-01')
+            .lt('periodo_fim', mesAno + '-16')
+          
+          let totalAdiantamentos = 0
+          if (adiantamentos && adiantamentos.length > 0) {
+            totalAdiantamentos = adiantamentos.reduce((sum: number, h: any) => {
+              if (h.observacoes?.includes('Adiantamento')) {
+                return sum + (h.salario_base || 0)
+              }
+              return sum
+            }, 0)
+            console.log(`💸 Adiantamentos do mês: R$ ${totalAdiantamentos.toFixed(2)}`)
+          }
+          
+          // Calcular INSS (apenas para CLT)
+          let inss = 0
+          let aliquotaEfetiva = 0
+          
+          const tipoContrato = (func as any).tipo_contrato || 'CLT'
+          
+          if (tipoContrato === 'PJ') {
+            // Funcionários PJ não têm desconto de INSS
+            inss = 0
+            aliquotaEfetiva = 0
+            console.log(`💼 Funcionário PJ - Sem desconto de INSS`)
+          } else {
+            // Cálculo normal do INSS para CLT e outros contratos
+            if (salarioBase <= 1518.00) {
+              inss = salarioBase * 0.075
+              aliquotaEfetiva = 7.5
+            } else if (salarioBase <= 2793.88) {
+              inss = 1518.00 * 0.075 + (salarioBase - 1518.00) * 0.09
+              aliquotaEfetiva = (inss / salarioBase) * 100
+            } else if (salarioBase <= 4190.83) {
+              inss = 1518.00 * 0.075 + (2793.88 - 1518.00) * 0.09 + (salarioBase - 2793.88) * 0.12
+              aliquotaEfetiva = (inss / salarioBase) * 100
+            } else if (salarioBase <= 8157.41) {
+              inss = 1518.00 * 0.075 + (2793.88 - 1518.00) * 0.09 + (4190.83 - 2793.88) * 0.12 + (salarioBase - 4190.83) * 0.14
+              aliquotaEfetiva = (inss / salarioBase) * 100
+            } else {
+              inss = 1518.00 * 0.075 + (2793.88 - 1518.00) * 0.09 + (4190.83 - 2793.88) * 0.12 + (8157.41 - 4190.83) * 0.14
+              aliquotaEfetiva = (inss / salarioBase) * 100
+            }
+            
+            inss = Math.round(inss * 100) / 100
+            aliquotaEfetiva = Math.round(aliquotaEfetiva * 100) / 100
+          }
+          
+          // Calcular IRRF conforme Lei 15.270/2025 com todas as deduções (apenas para CLT)
+          let irrf = 0
+          let baseIRRF = 0
+          let aliquotaIRRF = 0
+          let deducoesAplicadas = null
+          
+          if (tipoContrato === 'PJ') {
+            // Funcionários PJ não têm desconto de IRRF
+            irrf = 0
+            baseIRRF = 0
+            aliquotaIRRF = 0
+            console.log(`💼 Funcionário PJ - Sem desconto de IRRF`)
+          } else {
+            // Cálculo normal do IRRF para CLT e outros contratos
+            const numeroDependentes = normalizarDependentes((func as any).numero_dependentes)
+            const pensaoAlimenticia = normalizarPensao((func as any).pensao_alimenticia)
+            
+            // Buscar gastos com saúde do funcionário (se disponível)
+            // Por enquanto, assumimos 0 pois não temos esses dados na consulta inicial
+            const gastosSaude = 0 // TODO: Buscar plano_saude + plano_odontologico do funcionário
+            
+            const calculoIRRF = calcularBaseIRRF(
+              salarioBase, 
+              inss, 
+              numeroDependentes, 
+              pensaoAlimenticia, 
+              gastosSaude
+            )
+            
+            baseIRRF = calculoIRRF.baseIRRF
+            deducoesAplicadas = calculoIRRF.deducoesAplicadas
+            
+            // Aplicar tabela progressiva mensal 2026 e redutor da Lei 15.270/2025
+            const irrfTabelaNormal = aplicarTabelaProgressivaMensal(baseIRRF)
+            const redutorLei15270 = calcularRedutorLei15270(baseIRRF)
+            irrf = Math.max(0, round2(irrfTabelaNormal - redutorLei15270))
+            aliquotaIRRF = baseIRRF > 0 ? round2((irrf / baseIRRF) * 100) : 0
+          }
+          
+          // Determinar faixa para logs
+          let faixaIRRF = ''
+          if (tipoContrato === 'PJ') {
+            faixaIRRF = 'pj_sem_irrf'
+          } else if (baseIRRF <= 5000.00) {
+            faixaIRRF = 'isencao'
+          } else if (baseIRRF <= 7350.00) {
+            faixaIRRF = 'reducao_gradual'
+          } else {
+            faixaIRRF = 'sem_reducao'
+          }
+          
+          console.log(`📊 CÁLCULOS MENSAIS:`)
+          console.log(`   Tipo Contrato: ${tipoContrato}`)
+          console.log(`   Salário Base: R$ ${salarioBase.toFixed(2)}`)
+          console.log(`   INSS: R$ ${inss.toFixed(2)} (${aliquotaEfetiva}%)`)
+          
+          if (tipoContrato !== 'PJ' && deducoesAplicadas) {
+            const numeroDependentes = normalizarDependentes((func as any).numero_dependentes)
+            const pensaoAlimenticia = normalizarPensao((func as any).pensao_alimenticia)
+            console.log(`   Dependentes: ${numeroDependentes} × R$ 189,59 = R$ ${deducoesAplicadas.dependentes.totalDeduzido.toFixed(2)}`)
+            console.log(`   Pensão Alimentícia: R$ ${pensaoAlimenticia.toFixed(2)}`)
+            console.log(`   Base IRRF: R$ ${baseIRRF.toFixed(2)}`)
+            if (deducoesAplicadas.baseNegativaAjustada) {
+              console.log(`   ⚠️ Base ajustada (era negativa): R$ ${deducoesAplicadas.baseCalculada.toFixed(2)} → R$ ${baseIRRF.toFixed(2)}`)
+            }
+            const irrfTabelaNormal = aplicarTabelaProgressivaMensal(baseIRRF)
+            const redutorLei15270 = calcularRedutorLei15270(baseIRRF)
+            console.log(`   IRRF Tabela Normal: R$ ${irrfTabelaNormal.toFixed(2)}`)
+            console.log(`   Redutor Lei 15.270: R$ ${redutorLei15270.toFixed(2)}`)
+          }
+          
+          console.log(`   IRRF Final: R$ ${irrf.toFixed(2)} (${aliquotaIRRF}%)`)
+          console.log(`   Faixa: ${faixaIRRF}`)
+          console.log(`   Adiantamentos: R$ ${totalAdiantamentos.toFixed(2)}`)
+          
+          if (tipoContrato === 'PJ') {
+            console.log(`   💼 PJ: Salário integral sem descontos obrigatórios`)
+          }
+          
+          const dadosMensal = {
             funcionario_id: (func as any).id,
             periodo_inicio: inicio,
             periodo_fim: fim,
             data_pagamento: fim,
             salario_base: salarioBase,
+            
+            bonus: 0,
+            horas_extras: 0,
+            adicional_noturno: 0,
+            adicional_periculosidade: 0,
+            adicional_insalubridade: 0,
+            comissoes: 0,
+            
             inss: inss,
-            base_inss: baseINSS,
+            base_inss: salarioBase,
             aliquota_inss: aliquotaEfetiva,
             irrf: irrf,
             base_irrf: baseIRRF,
             aliquota_irrf: aliquotaIRRF,
-            faixa_irrf: faixaIRRF,
-            total_proventos: totalProventos,
-            total_descontos: totalDescontos,
-            salario_liquido: salarioLiquido,
-            beneficios: detalheBeneficios,
-            descontos_personalizados: detalheDescontos,
+            vale_transporte: 0,
+            cesta_basica_desconto: 0,
+            plano_saude: 0,
+            plano_odontologico: 0,
+            adiantamento: totalAdiantamentos,
+            faltas: 0,
+            outros_descontos: 0,
+            
+            beneficios: [],
+            descontos_personalizados: [],
+            
             status: 'gerado',
-            observacoes: 'Holerite gerado automaticamente pelo sistema'
-          } as any)
-          .select()
-          .single()
+            observacoes: totalAdiantamentos > 0 
+              ? `Folha mensal - Desconto de adiantamento: R$ ${totalAdiantamentos.toFixed(2)}`
+              : 'Folha mensal'
+          }
 
-        if (holeriteError) throw holeriteError
+          const { data: holerite, error: holeriteError } = await supabase
+            .from('holerites')
+            .insert(dadosMensal)
+            .select()
+            .single()
 
-        console.log(`✅ Holerite criado com sucesso para ${(func as any).nome_completo}`)
-        console.log(`   💰 Salário Base: R$ ${salarioBase.toFixed(2)}`)
-        console.log(`   🎁 Benefícios: R$ ${totalBeneficios.toFixed(2)}`)
-        console.log(`   📊 Total Proventos: R$ ${totalProventos.toFixed(2)}`)
-        console.log(`   📉 INSS: R$ ${inss.toFixed(2)} | IRRF: R$ ${irrf.toFixed(2)} | Outros: R$ ${totalDescontosPersonalizados.toFixed(2)}`)
-        console.log(`   📊 Total Descontos: R$ ${totalDescontos.toFixed(2)}`)
-        console.log(`   💵 Salário Líquido: R$ ${salarioLiquido.toFixed(2)}`)
+          if (holeriteError) throw holeriteError
 
-        holeritesCriados.push({
-          funcionario: (func as any).nome_completo,
-          holerite_id: (holerite as any).id
-        })
+          // Calcular totais
+          const totalProventos = salarioBase
+          const totalDescontos = inss + irrf + totalAdiantamentos
+          const salarioLiquido = totalProventos - totalDescontos
+
+          // Atualizar campos calculados
+          await supabase
+            .from('holerites')
+            .update({
+              total_proventos: totalProventos,
+              total_descontos: totalDescontos,
+              salario_liquido: salarioLiquido
+            })
+            .eq('id', (holerite as any).id)
+
+          console.log(`✅ Folha mensal criada:`)
+          console.log(`   Proventos: R$ ${totalProventos.toFixed(2)}`)
+          console.log(`   Descontos: R$ ${totalDescontos.toFixed(2)}`)
+          console.log(`   Líquido: R$ ${salarioLiquido.toFixed(2)}`)
+          
+          holeritesCriados.push({
+            funcionario: (func as any).nome_completo,
+            holerite_id: (holerite as any).id
+          })
+        }
 
       } catch (error: any) {
         console.error(`❌ Erro ao gerar holerite para ${(func as any).nome_completo}:`, error.message)

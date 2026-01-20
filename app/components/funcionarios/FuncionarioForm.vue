@@ -6,7 +6,7 @@
         <button
           v-for="tab in tabs"
           :key="tab.id"
-          @click="abaAtiva = tab.id"
+          @click="() => { console.log('Clicou na aba:', tab.id); abaAtiva = tab.id }"
           :class="[
             'py-2 px-1 border-b-2 font-medium text-sm transition-colors',
             abaAtiva === tab.id
@@ -137,7 +137,7 @@
           />
           
           <UiSelect 
-            v-model="form.responsavel_direto" 
+            v-model="form.responsavel_id" 
             :options="responsavelOptions" 
             label="Responsável Direto" 
             placeholder="Selecione..."
@@ -146,8 +146,8 @@
         
         <div class="mt-4 p-4 bg-blue-50 rounded-xl">
           <p class="text-sm text-blue-700">
-            💡 <strong>Dica:</strong> O responsável direto é quem supervisiona este funcionário. 
-            Por padrão, sugerimos <strong>{{ nomeAdmin }}</strong> como responsável.
+            👩‍💼 <strong>Responsável Padrão:</strong> Silvana é automaticamente definida como responsável direto de todos os funcionários. 
+            Você pode alterar se necessário, mas por padrão ela supervisiona toda a equipe.
           </p>
         </div>
       </div>
@@ -264,13 +264,24 @@
       <div v-if="abaAtiva === 'beneficios'" class="space-y-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">🎁 Benefícios e Descontos</h3>
         
+        <!-- Aviso para funcionários PJ -->
+        <div v-if="form.tipo_contrato === 'PJ'" class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+          <div class="flex items-center gap-2 text-yellow-700">
+            <span class="text-xl">⚠️</span>
+            <div>
+              <h4 class="font-semibold">Funcionário PJ - Sem Descontos em Folha</h4>
+              <p class="text-sm">Funcionários PJ não podem ter descontos em folha de pagamento. Apenas benefícios sem desconto são permitidos.</p>
+            </div>
+          </div>
+        </div>
+        
         <!-- Benefícios Padrão -->
-        <div class="space-y-4">
+        <div v-if="form.beneficios" class="space-y-4">
           <h4 class="text-md font-semibold text-gray-700 mb-3">📋 Benefícios Padrão</h4>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Vale Transporte -->
-            <div class="p-4 border border-gray-200 rounded-xl">
+            <div v-if="form.beneficios.vale_transporte" class="p-4 border border-gray-200 rounded-xl">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   <span class="text-2xl">🚌</span>
@@ -291,82 +302,102 @@
                   placeholder="0,00"
                 />
                 
-                <UiSelect 
-                  v-model="form.beneficios.vale_transporte.tipo_desconto" 
-                  :options="tipoDescontoOptions" 
-                  label="Tipo de Desconto" 
-                />
+                <!-- Descontos apenas para CLT -->
+                <div v-if="form.tipo_contrato !== 'PJ'">
+                  <UiSelect 
+                    v-model="form.beneficios.vale_transporte.tipo_desconto" 
+                    :options="tipoDescontoOptions" 
+                    label="Tipo de Desconto" 
+                  />
+                  
+                  <UiInput 
+                    v-if="form.beneficios.vale_transporte.tipo_desconto === 'percentual'"
+                    v-model="form.beneficios.vale_transporte.percentual_desconto" 
+                    type="number" 
+                    step="0.01"
+                    label="% de Desconto" 
+                    placeholder="6.00"
+                  />
+                  
+                  <UiInput 
+                    v-if="form.beneficios.vale_transporte.tipo_desconto === 'valor_fixo'"
+                    v-model="form.beneficios.vale_transporte.valor_desconto" 
+                    type="number" 
+                    step="0.01"
+                    label="Valor do Desconto (R$)" 
+                    placeholder="0,00"
+                  />
+                </div>
                 
-                <UiInput 
-                  v-if="form.beneficios.vale_transporte.tipo_desconto === 'percentual'"
-                  v-model="form.beneficios.vale_transporte.percentual_desconto" 
-                  type="number" 
-                  step="0.01"
-                  label="% de Desconto" 
-                  placeholder="6.00"
-                />
-                
-                <UiInput 
-                  v-if="form.beneficios.vale_transporte.tipo_desconto === 'valor_fixo'"
-                  v-model="form.beneficios.vale_transporte.valor_desconto" 
-                  type="number" 
-                  step="0.01"
-                  label="Valor do Desconto (R$)" 
-                  placeholder="0,00"
-                />
+                <!-- Aviso para PJ -->
+                <div v-else class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-sm text-blue-700">
+                    💼 <strong>Funcionário PJ:</strong> Benefício sem desconto em folha
+                  </p>
+                </div>
               </div>
             </div>
 
-            <!-- Vale Refeição -->
-            <div class="p-4 border border-gray-200 rounded-xl">
+            <!-- Cesta Básica -->
+            <div v-if="form.beneficios.cesta_basica" class="p-4 border border-gray-200 rounded-xl">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl">🍽️</span>
-                  <h5 class="font-semibold text-gray-800">Vale Refeição</h5>
+                  <span class="text-2xl">🛒</span>
+                  <h5 class="font-semibold text-gray-800">Cesta Básica</h5>
                 </div>
                 <UiCheckbox 
-                  v-model="form.beneficios.vale_refeicao.ativo" 
+                  v-model="form.beneficios.cesta_basica.ativo" 
                   label=""
                 />
               </div>
               
-              <div v-if="form.beneficios.vale_refeicao.ativo" class="space-y-3">
+              <div v-if="form.beneficios.cesta_basica.ativo" class="space-y-3">
                 <UiInput 
-                  v-model="form.beneficios.vale_refeicao.valor" 
+                  v-model="form.beneficios.cesta_basica.valor" 
                   type="number" 
                   step="0.01"
                   label="Valor Diário (R$)" 
                   placeholder="0,00"
                 />
                 
-                <UiSelect 
-                  v-model="form.beneficios.vale_refeicao.tipo_desconto" 
-                  :options="tipoDescontoOptions" 
-                  label="Tipo de Desconto" 
-                />
+                <!-- Descontos apenas para CLT -->
+                <div v-if="form.tipo_contrato !== 'PJ'">
+                  <UiSelect 
+                    v-model="form.beneficios.cesta_basica.tipo_desconto" 
+                    :options="tipoDescontoOptions" 
+                    label="Tipo de Desconto" 
+                  />
+                  
+                  <UiInput 
+                    v-if="form.beneficios.cesta_basica.tipo_desconto === 'percentual'"
+                    v-model="form.beneficios.cesta_basica.percentual_desconto" 
+                    type="number" 
+                    step="0.01"
+                    label="% de Desconto" 
+                    placeholder="20.00"
+                  />
+                  
+                  <UiInput 
+                    v-if="form.beneficios.cesta_basica.tipo_desconto === 'valor_fixo'"
+                    v-model="form.beneficios.cesta_basica.valor_desconto" 
+                    type="number" 
+                    step="0.01"
+                    label="Valor do Desconto (R$)" 
+                    placeholder="0,00"
+                  />
+                </div>
                 
-                <UiInput 
-                  v-if="form.beneficios.vale_refeicao.tipo_desconto === 'percentual'"
-                  v-model="form.beneficios.vale_refeicao.percentual_desconto" 
-                  type="number" 
-                  step="0.01"
-                  label="% de Desconto" 
-                  placeholder="20.00"
-                />
-                
-                <UiInput 
-                  v-if="form.beneficios.vale_refeicao.tipo_desconto === 'valor_fixo'"
-                  v-model="form.beneficios.vale_refeicao.valor_desconto" 
-                  type="number" 
-                  step="0.01"
-                  label="Valor do Desconto (R$)" 
-                  placeholder="0,00"
-                />
+                <!-- Aviso para PJ -->
+                <div v-else class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-sm text-blue-700">
+                    💼 <strong>Funcionário PJ:</strong> Benefício sem desconto em folha
+                  </p>
+                </div>
               </div>
             </div>
 
             <!-- Plano de Saúde -->
-            <div class="p-4 border border-gray-200 rounded-xl">
+            <div v-if="form.beneficios.plano_saude" class="p-4 border border-gray-200 rounded-xl">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   <span class="text-2xl">🏥</span>
@@ -393,13 +424,23 @@
                   placeholder="0,00"
                 />
                 
-                <UiInput 
-                  v-model="form.beneficios.plano_saude.valor_funcionario" 
-                  type="number" 
-                  step="0.01"
-                  label="Valor Descontado do Funcionário (R$)" 
-                  placeholder="0,00"
-                />
+                <!-- Desconto apenas para CLT -->
+                <div v-if="form.tipo_contrato !== 'PJ'">
+                  <UiInput 
+                    v-model="form.beneficios.plano_saude.valor_funcionario" 
+                    type="number" 
+                    step="0.01"
+                    label="Valor Descontado do Funcionário (R$)" 
+                    placeholder="0,00"
+                  />
+                </div>
+                
+                <!-- Aviso para PJ -->
+                <div v-else class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-sm text-blue-700">
+                    💼 <strong>Funcionário PJ:</strong> Sem desconto em folha para plano de saúde
+                  </p>
+                </div>
                 
                 <UiInput 
                   v-model="form.beneficios.plano_saude.dependentes" 
@@ -411,7 +452,7 @@
             </div>
 
             <!-- Plano Odontológico -->
-            <div class="p-4 border border-gray-200 rounded-xl">
+            <div v-if="form.beneficios.plano_odonto" class="p-4 border border-gray-200 rounded-xl">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   <span class="text-2xl">🦷</span>
@@ -424,13 +465,23 @@
               </div>
               
               <div v-if="form.beneficios.plano_odonto.ativo" class="space-y-3">
-                <UiInput 
-                  v-model="form.beneficios.plano_odonto.valor_funcionario" 
-                  type="number" 
-                  step="0.01"
-                  label="Valor Descontado (R$)" 
-                  placeholder="0,00"
-                />
+                <!-- Desconto apenas para CLT -->
+                <div v-if="form.tipo_contrato !== 'PJ'">
+                  <UiInput 
+                    v-model="form.beneficios.plano_odonto.valor_funcionario" 
+                    type="number" 
+                    step="0.01"
+                    label="Valor Descontado (R$)" 
+                    placeholder="0,00"
+                  />
+                </div>
+                
+                <!-- Aviso para PJ -->
+                <div v-else class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-sm text-blue-700">
+                    💼 <strong>Funcionário PJ:</strong> Sem desconto em folha para plano odontológico
+                  </p>
+                </div>
                 
                 <UiInput 
                   v-model="form.beneficios.plano_odonto.dependentes" 
@@ -442,9 +493,142 @@
             </div>
           </div>
         </div>
+        
+        <!-- Mensagem de erro se benefícios não existirem -->
+        <div v-else class="p-4 bg-red-50 border border-red-200 rounded-xl">
+          <div class="flex items-center gap-2 text-red-700">
+            <span class="text-xl">⚠️</span>
+            <div>
+              <h4 class="font-semibold">Benefícios não inicializados</h4>
+              <p class="text-sm">Clique no botão abaixo para inicializar os benefícios.</p>
+              <button 
+                @click="inicializarBeneficios" 
+                class="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              >
+                🔧 Inicializar Benefícios
+              </button>
+            </div>
+          </div>
+        </div>
 
-        <!-- Descontos Personalizados -->
-        <div class="space-y-4">
+        <!-- Benefícios Personalizados -->
+        <div v-if="form.beneficios" class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-md font-semibold text-gray-700 mb-3">✨ Benefícios Personalizados</h4>
+            <UiButton 
+              variant="secondary" 
+              size="sm"
+              @click="adicionarBeneficioPersonalizado"
+            >
+              ➕ Adicionar Benefício
+            </UiButton>
+          </div>
+          
+          <div class="space-y-4">
+            <div 
+              v-for="(beneficio, index) in form.beneficios.personalizados" 
+              :key="index"
+              class="p-4 border border-gray-200 rounded-xl"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <UiInput 
+                    v-model="beneficio.icone" 
+                    label=""
+                    placeholder="🎯"
+                    class="w-12 text-center text-xl"
+                  />
+                  <UiInput 
+                    v-model="beneficio.nome" 
+                    label=""
+                    placeholder="Nome do benefício"
+                    class="font-semibold"
+                  />
+                </div>
+                <div class="flex items-center gap-2">
+                  <UiCheckbox 
+                    v-model="beneficio.ativo" 
+                    label=""
+                  />
+                  <UiButton 
+                    variant="danger" 
+                    size="sm" 
+                    @click="removerBeneficioPersonalizado(Number(index))"
+                  >
+                    🗑️
+                  </UiButton>
+                </div>
+              </div>
+              
+              <div v-if="beneficio.ativo" class="space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <UiInput 
+                    v-model="beneficio.valor" 
+                    type="number" 
+                    step="0.01"
+                    label="Valor do Benefício (R$)" 
+                    placeholder="0,00"
+                  />
+                  
+                  <UiSelect 
+                    v-model="beneficio.tipo_valor" 
+                    :options="tipoBeneficioOptions" 
+                    label="Tipo de Valor" 
+                  />
+                </div>
+                
+                <!-- Descontos apenas para CLT -->
+                <div v-if="form.tipo_contrato !== 'PJ'" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <UiSelect 
+                    v-model="beneficio.tipo_desconto" 
+                    :options="tipoDescontoOptions" 
+                    label="Tipo de Desconto" 
+                  />
+                  
+                  <UiInput 
+                    v-if="beneficio.tipo_desconto === 'percentual'"
+                    v-model="beneficio.percentual_desconto" 
+                    type="number" 
+                    step="0.01"
+                    label="% de Desconto" 
+                    placeholder="0,00"
+                  />
+                  
+                  <UiInput 
+                    v-if="beneficio.tipo_desconto === 'valor_fixo'"
+                    v-model="beneficio.valor_desconto" 
+                    type="number" 
+                    step="0.01"
+                    label="Valor do Desconto (R$)" 
+                    placeholder="0,00"
+                  />
+                </div>
+                
+                <!-- Aviso para PJ -->
+                <div v-else class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-sm text-blue-700">
+                    💼 <strong>Funcionário PJ:</strong> Benefício sem desconto em folha
+                  </p>
+                </div>
+                
+                <UiInput 
+                  v-model="beneficio.descricao" 
+                  label="Descrição (opcional)" 
+                  placeholder="Ex: Auxílio creche, seguro de vida, etc."
+                />
+              </div>
+            </div>
+            
+            <div v-if="!form.beneficios.personalizados || form.beneficios.personalizados.length === 0" class="p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
+              <span class="text-2xl">✨</span>
+              <p class="mt-2">Nenhum benefício personalizado adicionado</p>
+              <p class="text-sm">Clique em "Adicionar Benefício" para criar um novo</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descontos Personalizados - Apenas para CLT -->
+        <div v-if="form.descontos_personalizados && form.tipo_contrato !== 'PJ'" class="space-y-4">
           <div class="flex items-center justify-between">
             <h4 class="text-md font-semibold text-gray-700">📉 Descontos Personalizados</h4>
             <UiButton 
@@ -520,6 +704,40 @@
                 />
               </div>
             </div>
+            
+            <div v-if="form.descontos_personalizados.length === 0" class="p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
+              <span class="text-2xl">📝</span>
+              <p class="mt-2">Nenhum desconto personalizado adicionado</p>
+              <p class="text-sm">Clique em "Adicionar Desconto" para criar um novo</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Aviso para funcionários PJ sobre descontos -->
+        <div v-else-if="form.tipo_contrato === 'PJ'" class="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+          <div class="flex items-center gap-2 text-gray-600">
+            <span class="text-xl">💼</span>
+            <div>
+              <h4 class="font-semibold">Funcionário PJ - Descontos Não Aplicáveis</h4>
+              <p class="text-sm">Funcionários PJ não podem ter descontos personalizados em folha de pagamento.</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mensagem de erro se descontos não existirem -->
+        <div v-else class="p-4 bg-orange-50 border border-orange-200 rounded-xl">
+          <div class="flex items-center gap-2 text-orange-700">
+            <span class="text-xl">⚠️</span>
+            <div>
+              <h4 class="font-semibold">Descontos personalizados não inicializados</h4>
+              <p class="text-sm">Clique no botão abaixo para inicializar os descontos.</p>
+              <button 
+                @click="inicializarBeneficios" 
+                class="mt-2 px-3 py-1 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"
+              >
+                🔧 Inicializar Descontos
+              </button>
+            </div>
           </div>
         </div>
 
@@ -527,7 +745,19 @@
         <div class="p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
           <h4 class="text-lg font-bold text-gray-800 mb-4">📊 Resumo dos Benefícios</h4>
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div v-if="form.tipo_contrato === 'PJ'" class="text-center">
+            <div class="text-xl font-bold text-blue-600 mb-2">
+              R$ {{ calcularTotalBeneficios().toFixed(2).replace('.', ',') }}
+            </div>
+            <div class="text-sm text-gray-600 mb-4">Total de Benefícios (Sem Descontos)</div>
+            <div class="p-3 bg-blue-100 rounded-lg">
+              <p class="text-sm text-blue-700">
+                💼 <strong>Funcionário PJ:</strong> Recebe benefícios integralmente, sem descontos em folha
+              </p>
+            </div>
+          </div>
+          
+          <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
               <div class="text-xl font-bold text-green-600">
                 R$ {{ calcularTotalBeneficios().toFixed(2).replace('.', ',') }}
@@ -578,6 +808,7 @@
 </template>
 
 <script setup lang="ts">
+import { reactive, isReactive } from 'vue'
 interface Props {
   form: any
   isEditing: boolean
@@ -668,48 +899,16 @@ const planoSaudeOptions = [
   { value: 'coparticipacao', label: 'Coparticipação' }
 ]
 
-// Inicializar estrutura de benefícios se não existir
-if (!props.form.beneficios) {
-  props.form.beneficios = {
-    vale_transporte: {
-      ativo: false,
-      valor: 0,
-      valor_mensal: 0,
-      tipo_desconto: 'percentual',
-      percentual_desconto: 6,
-      valor_desconto: 0
-    },
-    vale_refeicao: {
-      ativo: false,
-      valor: 0,
-      valor_mensal: 0,
-      tipo_desconto: 'sem_desconto',
-      percentual_desconto: 0,
-      valor_desconto: 0
-    },
-    plano_saude: {
-      ativo: false,
-      plano: 'individual',
-      valor_empresa: 0,
-      valor_funcionario: 0,
-      dependentes: 0
-    },
-    plano_odonto: {
-      ativo: false,
-      valor_funcionario: 0,
-      dependentes: 0
-    }
-  }
-}
+const tipoBeneficioOptions = [
+  { value: 'diario', label: 'Valor Diário' },
+  { value: 'mensal', label: 'Valor Mensal' },
+  { value: 'fixo', label: 'Valor Fixo' }
+]
 
-if (!props.form.descontos_personalizados) {
-  props.form.descontos_personalizados = []
-}
-
-// Função para calcular valor diário do Vale Refeição
-const calcularValorDiarioVR = () => {
-  if (props.form.beneficios?.vale_refeicao?.valor_mensal) {
-    props.form.beneficios.vale_refeicao.valor = props.form.beneficios.vale_refeicao.valor_mensal / 22
+// Função para calcular valor diário da Cesta Básica
+const calcularValorDiarioCB = () => {
+  if (props.form.beneficios?.cesta_basica?.valor_mensal) {
+    props.form.beneficios.cesta_basica.valor = props.form.beneficios.cesta_basica.valor_mensal / 22
   }
 }
 
@@ -724,10 +923,107 @@ const { opcoesJornadas, carregarJornadas } = useJornadas()
 const { empresas, carregarEmpresas, obterOpcoesEmpresas } = useEmpresas()
 const { opcoesDepartamentos, carregarDepartamentos } = useDepartamentos()
 const { opcoesCargos, carregarCargos } = useCargos()
-const { nomeAdmin, buscarAdmin } = useAdmin()
+const { nomeAdmin, idAdmin, buscarAdmin } = useAdmin()
+
+// Função para inicializar benefícios de forma reativa
+const inicializarBeneficios = () => {
+  console.log('🔧 Inicializando benefícios...')
+  
+  if (!props.form.beneficios) {
+    console.log('📋 Criando estrutura de benefícios')
+    props.form.beneficios = reactive({
+      vale_transporte: {
+        ativo: false,
+        valor: 0,
+        valor_mensal: 0,
+        tipo_desconto: 'percentual',
+        percentual_desconto: 6,
+        valor_desconto: 0
+      },
+      cesta_basica: {
+        ativo: false,
+        valor: 0,
+        valor_mensal: 0,
+        tipo_desconto: 'sem_desconto',
+        percentual_desconto: 0,
+        valor_desconto: 0
+      },
+      plano_saude: {
+        ativo: false,
+        plano: 'individual',
+        valor_empresa: 0,
+        valor_funcionario: 0,
+        dependentes: 0
+      },
+      plano_odonto: {
+        ativo: false,
+        valor_funcionario: 0,
+        dependentes: 0
+      },
+      personalizados: []
+    })
+  }
+
+  // Garantir que benefícios personalizados existam e sejam reativos
+  if (!props.form.beneficios.personalizados) {
+    props.form.beneficios.personalizados = reactive([])
+  } else if (!isReactive(props.form.beneficios.personalizados)) {
+    // Se existir mas não for reativo, tornar reativo e converter tipos
+    console.log('🔄 Tornando benefícios personalizados reativos e convertendo tipos')
+    const beneficiosConvertidos = props.form.beneficios.personalizados.map((beneficio: any) => ({
+      ...beneficio,
+      valor: typeof beneficio.valor === 'string' ? parseFloat(beneficio.valor) || 0 : beneficio.valor,
+      percentual_desconto: typeof beneficio.percentual_desconto === 'string' ? parseFloat(beneficio.percentual_desconto) || 0 : beneficio.percentual_desconto,
+      valor_desconto: typeof beneficio.valor_desconto === 'string' ? parseFloat(beneficio.valor_desconto) || 0 : beneficio.valor_desconto
+    }))
+    props.form.beneficios.personalizados = reactive(beneficiosConvertidos)
+  } else {
+    // Se já for reativo, apenas converter tipos se necessário
+    props.form.beneficios.personalizados.forEach((beneficio: any) => {
+      if (typeof beneficio.valor === 'string') {
+        beneficio.valor = parseFloat(beneficio.valor) || 0
+      }
+      if (typeof beneficio.percentual_desconto === 'string') {
+        beneficio.percentual_desconto = parseFloat(beneficio.percentual_desconto) || 0
+      }
+      if (typeof beneficio.valor_desconto === 'string') {
+        beneficio.valor_desconto = parseFloat(beneficio.valor_desconto) || 0
+      }
+    })
+  }
+
+  if (!props.form.descontos_personalizados) {
+    console.log('📉 Criando array de descontos personalizados')
+    props.form.descontos_personalizados = reactive([])
+  } else if (!isReactive(props.form.descontos_personalizados)) {
+    // Se existir mas não for reativo, tornar reativo
+    console.log('🔄 Tornando descontos personalizados reativos')
+    props.form.descontos_personalizados = reactive([...props.form.descontos_personalizados])
+  }
+  
+  console.log('✅ Benefícios inicializados:', props.form.beneficios)
+}
+
+// Função para definir responsável padrão (Silvana - ID 1)
+const definirResponsavelPadrao = () => {
+  // Se não há responsável definido, definir Silvana (ID 1) como padrão
+  if (!props.form.responsavel_id) {
+    props.form.responsavel_id = 1
+    console.log('👩‍💼 Silvana definida como responsável padrão (ID: 1)')
+  }
+}
 
 // Carregar dados ao montar o componente
 onMounted(async () => {
+  console.log('🚀 Montando componente FuncionarioForm')
+  
+  // Inicializar benefícios primeiro
+  inicializarBeneficios()
+  
+  // Definir responsável padrão
+  definirResponsavelPadrao()
+  
+  // Carregar dados das APIs
   await Promise.all([
     carregarJornadas(),
     carregarEmpresas(),
@@ -735,6 +1031,81 @@ onMounted(async () => {
     carregarCargos(),
     buscarAdmin()
   ])
+  
+  console.log('✅ Componente montado com sucesso')
+})
+
+// Watch para garantir que benefícios estejam sempre inicializados
+watch(() => props.form, (novoForm) => {
+  if (novoForm && !novoForm.beneficios) {
+    console.log('⚠️ Benefícios não encontrados no watch, inicializando...')
+    inicializarBeneficios()
+  }
+}, { deep: true, immediate: true })
+
+// Watch específico para benefícios personalizados (debug e conversão)
+watch(() => props.form.beneficios?.personalizados, (novos, antigos) => {
+  if (novos && novos.length > 0) {
+    console.log('🔍 Benefícios personalizados alterados:', novos)
+    novos.forEach((beneficio: any, index: number) => {
+      // Garantir que valores sejam numéricos
+      garantirValoresNumericos(beneficio)
+      
+      console.log(`Benefício ${index}:`, {
+        nome: beneficio.nome,
+        tipo_valor: beneficio.tipo_valor,
+        valor: beneficio.valor,
+        valor_tipo: typeof beneficio.valor,
+        ativo: beneficio.ativo
+      })
+    })
+  }
+}, { deep: true })
+
+// Watch para limpar descontos quando mudar para PJ
+watch(() => props.form.tipo_contrato, (novoTipo, tipoAnterior) => {
+  if (novoTipo === 'PJ' && tipoAnterior !== 'PJ') {
+    console.log('🚫 Funcionário alterado para PJ - removendo descontos em folha')
+    
+    // Limpar descontos dos benefícios padrão
+    if (props.form.beneficios) {
+      if (props.form.beneficios.vale_transporte) {
+        props.form.beneficios.vale_transporte.tipo_desconto = 'sem_desconto'
+        props.form.beneficios.vale_transporte.percentual_desconto = 0
+        props.form.beneficios.vale_transporte.valor_desconto = 0
+      }
+      
+      if (props.form.beneficios.cesta_basica) {
+        props.form.beneficios.cesta_basica.tipo_desconto = 'sem_desconto'
+        props.form.beneficios.cesta_basica.percentual_desconto = 0
+        props.form.beneficios.cesta_basica.valor_desconto = 0
+      }
+      
+      if (props.form.beneficios.plano_saude) {
+        props.form.beneficios.plano_saude.valor_funcionario = 0
+      }
+      
+      if (props.form.beneficios.plano_odonto) {
+        props.form.beneficios.plano_odonto.valor_funcionario = 0
+      }
+      
+      // Limpar descontos dos benefícios personalizados
+      if (props.form.beneficios.personalizados) {
+        props.form.beneficios.personalizados.forEach((beneficio: any) => {
+          beneficio.tipo_desconto = 'sem_desconto'
+          beneficio.percentual_desconto = 0
+          beneficio.valor_desconto = 0
+        })
+      }
+    }
+    
+    // Limpar descontos personalizados
+    if (props.form.descontos_personalizados) {
+      props.form.descontos_personalizados.splice(0)
+    }
+    
+    console.log('✅ Descontos removidos para funcionário PJ')
+  }
 })
 
 // Recarregar dados sempre que o formulário for exibido (detectando mudanças no form)
@@ -757,11 +1128,32 @@ const departamentosOptions = computed(() => opcoesDepartamentos.value)
 // Opções de cargos vindas da API
 const cargosOptions = computed(() => opcoesCargos.value)
 
-// Opções de responsável direto (com admin em destaque)
-const responsavelOptions = computed(() => [
-  { value: nomeAdmin.value, label: `${nomeAdmin.value} (Admin) ⭐` },
-  // Outros responsáveis serão carregados da API
-])
+// Opções de responsável direto (Silvana como padrão)
+const responsavelOptions = computed(() => {
+  const options = []
+  
+  // Silvana sempre como primeira opção (ID 1)
+  options.push({ 
+    value: 1, 
+    label: 'Silvana (Responsável Padrão) ⭐' 
+  })
+  
+  // Adicionar admin se disponível e diferente de Silvana
+  if (idAdmin.value && nomeAdmin.value && idAdmin.value !== 1) {
+    options.push({ 
+      value: idAdmin.value, 
+      label: `${nomeAdmin.value} (Admin)` 
+    })
+  }
+  
+  // Opção para remover responsável (apenas se necessário)
+  options.push({ 
+    value: null, 
+    label: 'Nenhum responsável' 
+  })
+  
+  return options
+})
 
 // Opções de empresas vindas do banco de dados
 const empresasOptions = computed(() => obterOpcoesEmpresas.value)
@@ -787,6 +1179,44 @@ const removerDesconto = (index: number) => {
   }
 }
 
+// Funções para gerenciar benefícios personalizados
+const adicionarBeneficioPersonalizado = () => {
+  if (!props.form.beneficios.personalizados) {
+    props.form.beneficios.personalizados = reactive([])
+  }
+  
+  props.form.beneficios.personalizados.push({
+    icone: '🎯',
+    nome: '',
+    ativo: false,
+    valor: 0, // Garantir que seja número
+    tipo_valor: 'mensal',
+    tipo_desconto: 'sem_desconto',
+    percentual_desconto: 0, // Garantir que seja número
+    valor_desconto: 0, // Garantir que seja número
+    descricao: ''
+  })
+}
+
+const removerBeneficioPersonalizado = (index: number) => {
+  if (props.form.beneficios.personalizados) {
+    props.form.beneficios.personalizados.splice(index, 1)
+  }
+}
+
+// Função para garantir que valores sejam numéricos
+const garantirValoresNumericos = (beneficio: any) => {
+  if (typeof beneficio.valor === 'string') {
+    beneficio.valor = parseFloat(beneficio.valor) || 0
+  }
+  if (typeof beneficio.percentual_desconto === 'string') {
+    beneficio.percentual_desconto = parseFloat(beneficio.percentual_desconto) || 0
+  }
+  if (typeof beneficio.valor_desconto === 'string') {
+    beneficio.valor_desconto = parseFloat(beneficio.valor_desconto) || 0
+  }
+}
+
 // Funções para calcular totais
 const calcularTotalBeneficios = () => {
   let total = 0
@@ -798,16 +1228,32 @@ const calcularTotalBeneficios = () => {
     total += valorMensal
   }
   
-  // Vale Refeição - usar valor_mensal se existir, senão calcular
-  if (props.form.beneficios?.vale_refeicao?.ativo) {
-    const valorMensal = props.form.beneficios.vale_refeicao.valor_mensal || 
-                        (props.form.beneficios.vale_refeicao.valor || 0) * 22
+  // Cesta Básica - usar valor_mensal se existir, senão calcular
+  if (props.form.beneficios?.cesta_basica?.ativo) {
+    const valorMensal = props.form.beneficios.cesta_basica.valor_mensal || 
+                        (props.form.beneficios.cesta_basica.valor || 0) * 22
     total += valorMensal
   }
   
   // Plano de Saúde (valor pago pela empresa)
   if (props.form.beneficios?.plano_saude?.ativo) {
     total += props.form.beneficios.plano_saude.valor_empresa || 0
+  }
+  
+  // Benefícios Personalizados
+  if (props.form.beneficios?.personalizados) {
+    props.form.beneficios.personalizados.forEach((beneficio: any) => {
+      if (beneficio.ativo) {
+        let valorBeneficio = beneficio.valor || 0
+        
+        // Converter para valor mensal se necessário
+        if (beneficio.tipo_valor === 'diario') {
+          valorBeneficio = valorBeneficio * 22
+        }
+        
+        total += valorBeneficio
+      }
+    })
   }
   
   return total
@@ -817,7 +1263,12 @@ const calcularTotalDescontos = () => {
   let total = 0
   const salarioBase = parseFloat(props.form.salario_base) || 0
   
-  // Descontos dos benefícios
+  // Funcionários PJ não têm descontos em folha
+  if (props.form.tipo_contrato === 'PJ') {
+    return 0
+  }
+  
+  // Descontos dos benefícios padrão
   if (props.form.beneficios?.vale_transporte?.ativo) {
     const vt = props.form.beneficios.vale_transporte
     if (vt.tipo_desconto === 'percentual') {
@@ -827,12 +1278,12 @@ const calcularTotalDescontos = () => {
     }
   }
   
-  if (props.form.beneficios?.vale_refeicao?.ativo) {
-    const vr = props.form.beneficios.vale_refeicao
-    if (vr.tipo_desconto === 'percentual') {
-      total += salarioBase * (vr.percentual_desconto || 0) / 100
-    } else if (vr.tipo_desconto === 'valor_fixo') {
-      total += vr.valor_desconto || 0
+  if (props.form.beneficios?.cesta_basica?.ativo) {
+    const cb = props.form.beneficios.cesta_basica
+    if (cb.tipo_desconto === 'percentual') {
+      total += salarioBase * (cb.percentual_desconto || 0) / 100
+    } else if (cb.tipo_desconto === 'valor_fixo') {
+      total += cb.valor_desconto || 0
     }
   }
   
@@ -844,6 +1295,19 @@ const calcularTotalDescontos = () => {
   // Plano Odontológico
   if (props.form.beneficios?.plano_odonto?.ativo) {
     total += props.form.beneficios.plano_odonto.valor_funcionario || 0
+  }
+  
+  // Descontos dos benefícios personalizados
+  if (props.form.beneficios?.personalizados) {
+    props.form.beneficios.personalizados.forEach((beneficio: any) => {
+      if (beneficio.ativo) {
+        if (beneficio.tipo_desconto === 'percentual') {
+          total += salarioBase * (beneficio.percentual_desconto || 0) / 100
+        } else if (beneficio.tipo_desconto === 'valor_fixo') {
+          total += beneficio.valor_desconto || 0
+        }
+      }
+    })
   }
   
   // Descontos personalizados

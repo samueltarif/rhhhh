@@ -230,6 +230,155 @@
       </div>
     </div>
 
+    <!-- Aba: Itens Personalizados -->
+    <div v-if="abaAtiva === 'personalizados'" class="space-y-4">
+      <UiAlert variant="info" class="mb-4">
+        Adicione benefícios ou descontos personalizados que serão aplicados automaticamente nos holerites do funcionário durante o período definido.
+      </UiAlert>
+
+      <!-- Lista de itens existentes -->
+      <div v-if="itensPersonalizados.length > 0" class="space-y-3 mb-6">
+        <h4 class="font-semibold text-gray-700">Itens Ativos</h4>
+        <div 
+          v-for="item in itensPersonalizados" 
+          :key="item.id"
+          class="bg-white border rounded-lg p-4"
+        >
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span 
+                  :class="[
+                    'px-2 py-1 rounded text-xs font-semibold',
+                    item.tipo === 'beneficio' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  ]"
+                >
+                  {{ item.tipo === 'beneficio' ? '💰 Benefício' : '📉 Desconto' }}
+                </span>
+                <span 
+                  :class="[
+                    'px-2 py-1 rounded text-xs font-semibold',
+                    item.vigencia_tipo === 'unico' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                  ]"
+                >
+                  {{ item.vigencia_tipo === 'unico' ? '📅 Único' : '🔄 Recorrente' }}
+                </span>
+              </div>
+              <p class="font-semibold text-gray-900">{{ item.descricao }}</p>
+              <p class="text-lg font-bold" :class="item.tipo === 'beneficio' ? 'text-green-600' : 'text-red-600'">
+                {{ formatarMoeda(item.valor) }}
+              </p>
+              <p class="text-sm text-gray-500 mt-1">
+                Vigência: {{ formatarData(item.data_inicio) }} 
+                {{ item.data_fim ? `até ${formatarData(item.data_fim)}` : '(sem data fim)' }}
+              </p>
+              <p v-if="item.observacoes" class="text-sm text-gray-400 mt-1">
+                {{ item.observacoes }}
+              </p>
+            </div>
+            <button 
+              @click="removerItem(item.id)"
+              class="text-red-500 hover:text-red-700 p-2"
+              title="Remover item"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="text-center py-8 text-gray-500">
+        Nenhum item personalizado cadastrado
+      </div>
+
+      <!-- Botão para adicionar novo item -->
+      <UiButton 
+        v-if="!mostrarFormNovoItem"
+        @click="mostrarFormNovoItem = true"
+        variant="secondary"
+        class="w-full"
+      >
+        ➕ Adicionar Novo Item
+      </UiButton>
+
+      <!-- Formulário de novo item -->
+      <div v-if="mostrarFormNovoItem" class="bg-gray-50 rounded-lg p-4 space-y-4">
+        <h4 class="font-semibold text-gray-700">Novo Item Personalizado</h4>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+            <select 
+              v-model="novoItem.tipo"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="beneficio">💰 Benefício (Provento)</option>
+              <option value="desconto">📉 Desconto</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Vigência</label>
+            <select 
+              v-model="novoItem.vigencia_tipo"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="unico">📅 Único (apenas este mês)</option>
+              <option value="recorrente">🔄 Recorrente (vários meses)</option>
+            </select>
+          </div>
+        </div>
+
+        <UiInput 
+          v-model="novoItem.descricao"
+          label="Descrição"
+          placeholder="Ex: Bônus de produtividade, Desconto de uniforme..."
+        />
+
+        <UiInput 
+          v-model="novoItem.valor"
+          type="number"
+          label="Valor"
+          placeholder="0.00"
+          step="0.01"
+        />
+
+        <div class="grid grid-cols-2 gap-4">
+          <UiInput 
+            v-model="novoItem.data_inicio"
+            type="date"
+            label="Data Início"
+          />
+
+          <UiInput 
+            v-model="novoItem.data_fim"
+            type="date"
+            label="Data Fim (opcional)"
+            :disabled="novoItem.vigencia_tipo === 'unico'"
+          />
+        </div>
+
+        <UiInput 
+          v-model="novoItem.observacoes"
+          label="Observações (opcional)"
+          placeholder="Informações adicionais..."
+        />
+
+        <div class="flex gap-3">
+          <UiButton @click="adicionarItem" class="flex-1">
+            ✅ Adicionar
+          </UiButton>
+          <UiButton 
+            variant="secondary" 
+            @click="cancelarNovoItem"
+            class="flex-1"
+          >
+            ❌ Cancelar
+          </UiButton>
+        </div>
+      </div>
+    </div>
+
     <!-- Resumo -->
     <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
       <div class="space-y-2">
@@ -275,11 +424,14 @@ const abaAtiva = ref('basicos')
 const empresaInfo = ref<any>(null)
 const horasPadrao = ref<number>(0)
 const carregandoDados = ref(true)
+const itensPersonalizados = ref<any[]>([])
+const mostrarFormNovoItem = ref(false)
 
 const tabs = [
   { id: 'basicos', label: 'Dados Básicos', icon: '📋' },
   { id: 'proventos', label: 'Proventos', icon: '💰' },
-  { id: 'descontos', label: 'Descontos', icon: '📉' }
+  { id: 'descontos', label: 'Descontos', icon: '📉' },
+  { id: 'personalizados', label: 'Itens Personalizados', icon: '⚙️' }
 ]
 
 // Formulário
@@ -302,6 +454,17 @@ const form = ref({
   plano_odontologico: props.holerite.plano_odontologico || 0,
   adiantamento: props.holerite.adiantamento || 0,
   faltas: props.holerite.faltas || 0
+})
+
+// Formulário de novo item personalizado
+const novoItem = ref({
+  tipo: 'beneficio',
+  descricao: '',
+  valor: 0,
+  vigencia_tipo: 'unico',
+  data_inicio: '',
+  data_fim: '',
+  observacoes: ''
 })
 
 // Buscar informações da empresa e jornada do funcionário
@@ -349,10 +512,112 @@ const carregarDadosAdicionais = async () => {
         form.value.horas_trabalhadas = horasPadrao.value
       }
     }
+
+    // Buscar itens personalizados
+    await carregarItensPersonalizados(funcId)
   } catch (error) {
     console.error('Erro ao carregar dados adicionais:', error)
   } finally {
     carregandoDados.value = false
+  }
+}
+
+// Carregar itens personalizados do funcionário
+const carregarItensPersonalizados = async (funcId: number) => {
+  try {
+    const response: any = await $fetch(`/api/holerites/itens-personalizados/${funcId}`)
+    
+    if (response.warning) {
+      console.warn('⚠️', response.warning)
+    }
+    
+    itensPersonalizados.value = response.data || []
+  } catch (error: any) {
+    console.error('Erro ao carregar itens personalizados:', error)
+    itensPersonalizados.value = []
+    
+    // Mostrar mensagem amigável se a tabela não existe
+    if (error.message?.includes('PGRST205') || error.message?.includes('not exist')) {
+      console.error('❌ A tabela holerite_itens_personalizados não existe!')
+      console.error('📋 Execute o arquivo: EXECUTAR-ITENS-PERSONALIZADOS.sql no Supabase SQL Editor')
+    }
+  }
+}
+
+// Adicionar novo item personalizado
+const adicionarItem = async () => {
+  try {
+    const funcId = props.holerite.funcionario_id || props.holerite.funcionario?.id
+    
+    if (!novoItem.value.descricao || !novoItem.value.valor || !novoItem.value.data_inicio) {
+      alert('⚠️ Preencha todos os campos obrigatórios')
+      return
+    }
+
+    // Se for único, data_fim = data_inicio
+    const dataFim = novoItem.value.vigencia_tipo === 'unico' 
+      ? novoItem.value.data_inicio 
+      : novoItem.value.data_fim || null
+
+    await $fetch('/api/holerites/itens-personalizados', {
+      method: 'POST',
+      body: {
+        funcionario_id: funcId,
+        tipo: novoItem.value.tipo,
+        descricao: novoItem.value.descricao,
+        valor: Number(novoItem.value.valor),
+        vigencia_tipo: novoItem.value.vigencia_tipo,
+        data_inicio: novoItem.value.data_inicio,
+        data_fim: dataFim,
+        observacoes: novoItem.value.observacoes
+      }
+    })
+
+    // Recarregar lista
+    await carregarItensPersonalizados(funcId)
+    cancelarNovoItem()
+    alert('✅ Item adicionado com sucesso!')
+  } catch (error: any) {
+    console.error('Erro ao adicionar item:', error)
+    
+    // Mensagem específica se a tabela não existe
+    if (error.message?.includes('não existe') || error.message?.includes('EXECUTAR-ITENS-PERSONALIZADOS')) {
+      alert('❌ Erro: A tabela não existe no banco de dados.\n\n📋 Execute o arquivo EXECUTAR-ITENS-PERSONALIZADOS.sql no Supabase SQL Editor.\n\nVeja a documentação em: docs/CORRECAO-ITENS-PERSONALIZADOS.md')
+    } else {
+      alert('❌ Erro ao adicionar item: ' + error.message)
+    }
+  }
+}
+
+// Remover item personalizado
+const removerItem = async (itemId: number) => {
+  if (!confirm('Deseja realmente remover este item?')) return
+
+  try {
+    await $fetch(`/api/holerites/itens-personalizados/${itemId}`, {
+      method: 'DELETE'
+    })
+
+    const funcId = props.holerite.funcionario_id || props.holerite.funcionario?.id
+    await carregarItensPersonalizados(funcId)
+    alert('Item removido com sucesso!')
+  } catch (error) {
+    console.error('Erro ao remover item:', error)
+    alert('Erro ao remover item')
+  }
+}
+
+// Cancelar novo item
+const cancelarNovoItem = () => {
+  mostrarFormNovoItem.value = false
+  novoItem.value = {
+    tipo: 'beneficio',
+    descricao: '',
+    valor: 0,
+    vigencia_tipo: 'unico',
+    data_inicio: '',
+    data_fim: '',
+    observacoes: ''
   }
 }
 
@@ -397,6 +662,11 @@ const formatarMoeda = (valor: number) => {
 const formatarCNPJ = (cnpj: string) => {
   const numeros = cnpj.replace(/\D/g, '')
   return numeros.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+}
+
+const formatarData = (data: string) => {
+  if (!data) return ''
+  return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR')
 }
 
 // Salvar

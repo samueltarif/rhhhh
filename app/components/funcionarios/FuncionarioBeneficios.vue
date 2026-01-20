@@ -36,24 +36,24 @@
           </div>
         </div>
 
-        <!-- Vale Refeição -->
-        <div v-if="funcionario.beneficios?.vale_refeicao?.ativo" class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+        <!-- Cesta Básica -->
+        <div v-if="funcionario.beneficios?.cesta_basica?.ativo" class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
           <div class="flex items-center gap-3 mb-3">
-            <span class="text-2xl">🍽️</span>
+            <span class="text-2xl">🛒</span>
             <div>
-              <h5 class="font-semibold text-gray-800">Vale Refeição</h5>
-              <p class="text-sm text-gray-600">R$ {{ formatarMoeda(funcionario.beneficios.vale_refeicao.valor) }} por dia</p>
+              <h5 class="font-semibold text-gray-800">Cesta Básica</h5>
+              <p class="text-sm text-gray-600">R$ {{ formatarMoeda(funcionario.beneficios.cesta_basica.valor) }} por dia</p>
             </div>
           </div>
           
           <div class="text-sm space-y-1">
             <div class="flex justify-between">
               <span>Valor mensal:</span>
-              <span class="font-semibold">R$ {{ formatarMoeda(funcionario.beneficios.vale_refeicao.valor * 22) }}</span>
+              <span class="font-semibold">R$ {{ formatarMoeda(funcionario.beneficios.cesta_basica.valor * 22) }}</span>
             </div>
             <div class="flex justify-between text-red-600">
               <span>Desconto:</span>
-              <span class="font-semibold">R$ {{ formatarMoeda(calcularDescontoVR()) }}</span>
+              <span class="font-semibold">R$ {{ formatarMoeda(calcularDescontoCB()) }}</span>
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ const beneficiosAtivos = computed(() => {
   const ativos = []
   
   if (props.funcionario.beneficios?.vale_transporte?.ativo) ativos.push('Vale Transporte')
-  if (props.funcionario.beneficios?.vale_refeicao?.ativo) ativos.push('Vale Refeição')
+  if (props.funcionario.beneficios?.cesta_basica?.ativo) ativos.push('Cesta Básica')
   if (props.funcionario.beneficios?.plano_saude?.ativo) ativos.push('Plano de Saúde')
   if (props.funcionario.beneficios?.plano_odonto?.ativo) ativos.push('Plano Odontológico')
   
@@ -231,16 +231,16 @@ const calcularDescontoVT = (): number => {
   return 0
 }
 
-const calcularDescontoVR = (): number => {
-  const vr = props.funcionario.beneficios?.vale_refeicao
-  if (!vr?.ativo) return 0
+const calcularDescontoCB = (): number => {
+  const cb = props.funcionario.beneficios?.cesta_basica
+  if (!cb?.ativo) return 0
   
   const salarioBase = parseFloat(props.funcionario.salario_base) || 0
   
-  if (vr.tipo_desconto === 'percentual') {
-    return salarioBase * (vr.percentual_desconto || 0) / 100
-  } else if (vr.tipo_desconto === 'valor_fixo') {
-    return vr.valor_desconto || 0
+  if (cb.tipo_desconto === 'percentual') {
+    return salarioBase * (cb.percentual_desconto || 0) / 100
+  } else if (cb.tipo_desconto === 'valor_fixo') {
+    return cb.valor_desconto || 0
   }
   
   return 0
@@ -254,9 +254,9 @@ const calcularTotalBeneficios = (): number => {
     total += (props.funcionario.beneficios.vale_transporte.valor || 0) * 22
   }
   
-  // Vale Refeição (22 dias úteis)
-  if (props.funcionario.beneficios?.vale_refeicao?.ativo) {
-    total += (props.funcionario.beneficios.vale_refeicao.valor || 0) * 22
+  // Cesta Básica (22 dias úteis)
+  if (props.funcionario.beneficios?.cesta_basica?.ativo) {
+    total += (props.funcionario.beneficios.cesta_basica.valor || 0) * 22
   }
   
   // Plano de Saúde (valor pago pela empresa)
@@ -273,7 +273,7 @@ const calcularTotalDescontos = (): number => {
   
   // Descontos dos benefícios
   total += calcularDescontoVT()
-  total += calcularDescontoVR()
+  total += calcularDescontoCB()
   
   // Plano de Saúde
   if (props.funcionario.beneficios?.plano_saude?.ativo) {

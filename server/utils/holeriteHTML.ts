@@ -35,16 +35,36 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
   const inss = Number(holerite.inss) || 0
   const irrf = Number(holerite.irrf) || 0
   const valeTransporte = Number(holerite.vale_transporte) || 0
-  const valeRefeicao = Number(holerite.vale_refeicao_desconto) || 0
+  const cestaBasica = Number(holerite.cesta_basica_desconto) || 0
   const planoSaude = Number(holerite.plano_saude) || 0
   const planoOdonto = Number(holerite.plano_odontologico) || 0
   const adiantamento = Number(holerite.adiantamento) || 0
   const faltas = Number(holerite.faltas) || 0
+  const pensaoAlimenticia = Number(funcionario.pensao_alimenticia) || 0
+  
+  // Itens personalizados (benefícios e descontos)
+  const beneficiosPersonalizados = holerite.beneficios || []
+  const descontosPersonalizados = holerite.descontos_personalizados || []
+  
+  // Calcular totais de itens personalizados
+  let totalBeneficiosPersonalizados = 0
+  beneficiosPersonalizados.forEach((b: any) => {
+    if (b.valor > 0) {
+      totalBeneficiosPersonalizados += Number(b.valor) || 0
+    }
+  })
+  
+  let totalDescontosPersonalizados = 0
+  descontosPersonalizados.forEach((d: any) => {
+    totalDescontosPersonalizados += Number(d.valor) || 0
+  })
   
   const totalVencimentos = salarioBase + bonus + horasExtras + adicionalNoturno + 
-                          adicionalPericulosidade + adicionalInsalubridade + comissoes
-  const totalDescontos = inss + irrf + valeTransporte + valeRefeicao + 
-                        planoSaude + planoOdonto + adiantamento + faltas
+                          adicionalPericulosidade + adicionalInsalubridade + comissoes + 
+                          totalBeneficiosPersonalizados
+  const totalDescontos = inss + irrf + valeTransporte + cestaBasica + 
+                        planoSaude + planoOdonto + adiantamento + faltas + 
+                        pensaoAlimenticia + totalDescontosPersonalizados
   const valorLiquido = totalVencimentos - totalDescontos
   
   // Calcular FGTS (8% do salário base)
@@ -138,6 +158,24 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
         </tr>`
   }
   
+  // Adicionar benefícios personalizados
+  if (beneficiosPersonalizados && beneficiosPersonalizados.length > 0) {
+    let codigoBeneficio = 700
+    beneficiosPersonalizados.forEach((beneficio: any) => {
+      if (beneficio.valor > 0) {
+        linhasTabela += `
+        <tr>
+          <td>${codigoBeneficio}</td>
+          <td>${(beneficio.tipo || beneficio.descricao || 'BENEFÍCIO').toUpperCase()}</td>
+          <td class="text-center"></td>
+          <td class="text-right">${Number(beneficio.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td></td>
+        </tr>`
+        codigoBeneficio++
+      }
+    })
+  }
+  
   if (inss > 0) {
     linhasTabela += `
         <tr>
@@ -171,6 +209,17 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
         </tr>`
   }
   
+  if (pensaoAlimenticia > 0) {
+    linhasTabela += `
+        <tr>
+          <td>915</td>
+          <td>PENSÃO ALIMENTÍCIA</td>
+          <td class="text-center"></td>
+          <td></td>
+          <td class="text-right">${pensaoAlimenticia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>`
+  }
+  
   if (valeTransporte > 0) {
     linhasTabela += `
         <tr>
@@ -182,14 +231,14 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
         </tr>`
   }
   
-  if (valeRefeicao > 0) {
+  if (cestaBasica > 0) {
     linhasTabela += `
         <tr>
           <td>930</td>
-          <td>VALE REFEIÇÃO</td>
+          <td>CESTA BÁSICA</td>
           <td class="text-center"></td>
           <td></td>
-          <td class="text-right">${valeRefeicao.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="text-right">${cestaBasica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>`
   }
   
@@ -215,6 +264,17 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
         </tr>`
   }
   
+  if (pensaoAlimenticia > 0) {
+    linhasTabela += `
+        <tr>
+          <td>960</td>
+          <td>PENSÃO ALIMENTÍCIA</td>
+          <td class="text-center"></td>
+          <td></td>
+          <td class="text-right">${pensaoAlimenticia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>`
+  }
+  
   if (faltas > 0) {
     linhasTabela += `
         <tr>
@@ -224,6 +284,24 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
           <td></td>
           <td class="text-right">${faltas.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>`
+  }
+  
+  // Adicionar descontos personalizados
+  if (descontosPersonalizados && descontosPersonalizados.length > 0) {
+    let codigoDesconto = 970
+    descontosPersonalizados.forEach((desconto: any) => {
+      if (desconto.valor > 0) {
+        linhasTabela += `
+        <tr>
+          <td>${codigoDesconto}</td>
+          <td>${(desconto.tipo || desconto.descricao || 'DESCONTO').toUpperCase()}</td>
+          <td class="text-center"></td>
+          <td></td>
+          <td class="text-right">${Number(desconto.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>`
+        codigoDesconto++
+      }
+    })
   }
   
   // Gerar HTML completo

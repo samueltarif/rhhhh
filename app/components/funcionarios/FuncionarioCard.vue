@@ -3,11 +3,11 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <!-- Avatar -->
-        <div class="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center">
-          <span class="text-primary-700 font-bold text-2xl">
-            {{ funcionario.nome_completo.charAt(0) }}
-          </span>
-        </div>
+        <UiAvatar 
+          :name="funcionario.nome_completo" 
+          :avatar-type="funcionario.avatar"
+          size="lg"
+        />
         
         <!-- Informações -->
         <div>
@@ -16,6 +16,23 @@
           <p class="text-gray-500">{{ funcionario.email_login }}</p>
           <p class="text-sm text-gray-400">CPF: {{ funcionario.cpf }}</p>
           <p class="text-sm text-gray-400">Admissão: {{ formatarData(funcionario.data_admissao) }}</p>
+          
+          <!-- Responsável pelo Cadastro -->
+          <div class="mt-1 p-2 bg-blue-50 rounded-lg border border-blue-200">
+            <p class="text-sm text-blue-700">
+              👤 <strong>Cadastrado por:</strong> {{ funcionario.responsavel_cadastro_nome }}
+              <span v-if="funcionario.responsavel_cadastro_email" class="text-blue-600">
+                ({{ funcionario.responsavel_cadastro_email }})
+              </span>
+            </p>
+          </div>
+          
+          <!-- Salário Bruto -->
+          <div class="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
+            <p class="text-lg font-bold text-green-700">
+              💰 Salário: {{ formatarMoeda(funcionario.salario_base) }}
+            </p>
+          </div>
           
           <!-- Badges -->
           <div class="flex gap-2 mt-2">
@@ -76,6 +93,11 @@ interface Props {
     email_login: string
     telefone: string
     data_admissao: string
+    salario_base: number
+    avatar?: string
+    responsavel_cadastro_nome?: string
+    responsavel_cadastro_email?: string
+    responsavel_direto_nome?: string
   }
 }
 
@@ -122,5 +144,13 @@ const enviarCredenciais = async () => {
 const formatarData = (data: string) => {
   if (!data) return ''
   return new Date(data).toLocaleDateString('pt-BR')
+}
+
+const formatarMoeda = (valor: number) => {
+  if (!valor) return 'R$ 0,00'
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(valor)
 }
 </script>

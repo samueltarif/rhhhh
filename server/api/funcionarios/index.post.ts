@@ -1,18 +1,57 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   // Usar Service Role para bypass RLS
   const supabase = serverSupabaseServiceRole(event)
+  
+  // Obter usuário logado para registrar como responsável pelo cadastro
+  const user = await serverSupabaseUser(event)
+  
   const body = await readBody(event)
 
   try {
     console.log('📝 Criando funcionário:', body.nome_completo)
     console.log('📧 Email fornecido:', body.email_login)
+    console.log('👤 Usuário logado:', user?.email)
+
+    // Buscar ID do usuário logado
+    let responsavelCadastroId = null
+    if (user?.email) {
+      const { data: usuarioLogado } = await supabase
+        .from('funcionarios')
+        .select('id, nome_completo')
+        .eq('email_login', user.email)
+        .single()
+      
+      if (usuarioLogado) {
+        responsavelCadastroId = usuarioLogado.id
+        console.log('✅ Responsável pelo cadastro:', usuarioLogado.nome_completo, '(ID:', usuarioLogado.id, ')')
+      }
+    }
 
     // Função para converter strings vazias em null
     const cleanValue = (value: any) => {
       if (value === '' || value === undefined) return null
       return value
+    }
+
+    // Função para converter responsável_id se for string
+    const processResponsavelId = (value: any) => {
+      if (!value || value === '' || value === undefined) return null
+      
+      // Se for string (nome), tentar buscar o ID
+      if (typeof value === 'string' && isNaN(Number(value))) {
+        console.log('⚠️ responsavel_id é string:', value, '- convertendo para null')
+        return null // Por enquanto, vamos deixar null se for string
+      }
+      
+      // Se for número ou string numérica, converter para número
+      const numericValue = Number(value)
+      if (!isNaN(numericValue)) {
+        return numericValue
+      }
+      
+      return null
     }
 
     // Gerar email temporário APENAS se não fornecido
@@ -43,7 +82,8 @@ export default defineEventHandler(async (event) => {
       departamento_id: cleanValue(body.departamento_id),
       cargo_id: cleanValue(body.cargo_id),
       jornada_trabalho_id: cleanValue(body.jornada_trabalho_id),
-      responsavel_id: cleanValue(body.responsavel_id),
+      responsavel_id: processResponsavelId(body.responsavel_id),
+      responsavel_cadastro_id: responsavelCadastroId, // NOVO CAMPO
       tipo_contrato: cleanValue(body.tipo_contrato),
       data_admissao: cleanValue(body.data_admissao),
       matricula: cleanValue(body.matricula),
@@ -78,6 +118,7 @@ export default defineEventHandler(async (event) => {
     }
 
     console.log('✅ Funcionário criado:', (funcionario as any).id)
+    console.log('👤 Cadastrado por:', responsavelCadastroId ? `ID ${responsavelCadastroId}` : 'Sistema')
 
     return {
       success: true,

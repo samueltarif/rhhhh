@@ -1,9 +1,14 @@
 <template>
   <div>
     <UiPageHeader title="Empresas" description="Gerencie todas as empresas do sistema">
-      <UiButton size="lg" icon="➕" @click="abrirModal()">
-        Nova Empresa
-      </UiButton>
+      <div class="flex gap-3">
+        <UiButton variant="ghost" icon="📊" @click="modalTabelasAberto = true">
+          Ver Tabelas INSS/IRRF
+        </UiButton>
+        <UiButton size="lg" icon="➕" @click="abrirModal()">
+          Nova Empresa
+        </UiButton>
+      </div>
     </UiPageHeader>
 
     <!-- Lista de Empresas -->
@@ -48,7 +53,7 @@
     <UiModal 
       v-model="modalAberto" 
       :title="empresaEditando ? 'Editar Empresa' : 'Nova Empresa'"
-      max-width="max-w-2xl"
+      max-width="max-w-4xl"
     >
       <form @submit.prevent="salvarEmpresaForm" class="space-y-6">
         <!-- Dados da Empresa -->
@@ -110,13 +115,15 @@
           </div>
         </div>
 
-        <!-- Configurações Iniciais -->
+        <!-- Configurações de Holerites -->
         <div>
-          <h3 class="text-lg font-bold text-gray-800 mb-4">⚙️ Configurações Iniciais</h3>
+          <h3 class="text-lg font-bold text-gray-800 mb-4">📄 Configurações de Holerites</h3>
           <div class="space-y-4">
             <UiCheckbox v-model="form.mostrar_logo" label="Mostrar logo nos holerites" />
             <UiCheckbox v-model="form.mostrar_endereco" label="Mostrar endereço nos holerites" />
             <UiCheckbox v-model="form.mostrar_cnpj" label="Mostrar CNPJ nos holerites" />
+            <UiCheckbox v-model="form.mostrar_detalhes_inss" label="Mostrar detalhamento do cálculo de INSS" />
+            <UiCheckbox v-model="form.mostrar_detalhes_irrf" label="Mostrar detalhamento do cálculo de IRRF" />
           </div>
         </div>
 
@@ -126,6 +133,69 @@
           <UiButton type="submit" icon="💾">Salvar Empresa</UiButton>
         </div>
       </form>
+    </UiModal>
+
+    <!-- Modal de Tabelas INSS/IRRF -->
+    <UiModal 
+      v-model="modalTabelasAberto" 
+      title="📊 Tabelas de INSS e IRRF (2026)"
+      max-width="max-w-4xl"
+    >
+      <div class="space-y-6">
+        <UiAlert variant="info">
+          As tabelas de INSS e IRRF são atualizadas anualmente pelo governo. 
+          O sistema permite atualização fácil sem necessidade de alteração no código.
+        </UiAlert>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Tabela INSS -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-800 mb-4">INSS - Tabela Progressiva</h3>
+            <div class="border rounded-xl overflow-hidden">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-600">Faixa Salarial</th>
+                    <th class="px-4 py-3 text-right font-semibold text-gray-600">Alíquota</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y">
+                  <tr v-for="faixa in tabelaINSS" :key="faixa.id">
+                    <td class="px-4 py-3">{{ faixa.faixa }}</td>
+                    <td class="px-4 py-3 text-right font-semibold">{{ faixa.aliquota }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tabela IRRF -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-800 mb-4">IRRF - Tabela Progressiva</h3>
+            <div class="border rounded-xl overflow-hidden">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-600">Base de Cálculo</th>
+                    <th class="px-4 py-3 text-right font-semibold text-gray-600">Alíquota</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y">
+                  <tr v-for="faixa in tabelaIRRF" :key="faixa.id">
+                    <td class="px-4 py-3">{{ faixa.faixa }}</td>
+                    <td class="px-4 py-3 text-right font-semibold">{{ faixa.aliquota }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between pt-4 border-t">
+          <UiBadge variant="success">✓ Tabelas Atualizadas para 2026</UiBadge>
+          <UiButton variant="ghost" @click="modalTabelasAberto = false">Fechar</UiButton>
+        </div>
+      </div>
     </UiModal>
 
     <!-- Notificação -->
@@ -147,6 +217,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 const { empresas, loading, carregarEmpresas, salvarEmpresa, deletarEmpresa } = useEmpresas()
 
 const modalAberto = ref(false)
+const modalTabelasAberto = ref(false)
 const empresaEditando = ref<any>(null)
 const mostrarNotificacao = ref(false)
 const notificacao = ref({
@@ -187,8 +258,27 @@ const form = ref({
   logo_url: '',
   mostrar_logo: true,
   mostrar_endereco: true,
-  mostrar_cnpj: true
+  mostrar_cnpj: true,
+  mostrar_detalhes_inss: false,
+  mostrar_detalhes_irrf: false
 })
+
+// Tabelas INSS e IRRF
+const tabelaINSS = [
+  { id: 1, faixa: 'Até R$ 1.518,00', aliquota: 7.5 },
+  { id: 2, faixa: 'R$ 1.518,01 a R$ 2.793,88', aliquota: 9 },
+  { id: 3, faixa: 'R$ 2.793,89 a R$ 4.190,83', aliquota: 12 },
+  { id: 4, faixa: 'R$ 4.190,84 a R$ 8.157,41', aliquota: 14 },
+]
+
+const tabelaIRRF = [
+  { id: 1, faixa: 'Até R$ 2.428,80', aliquota: 'Isento' },
+  { id: 2, faixa: 'R$ 2.428,81 a R$ 3.051,00', aliquota: '7,5%' },
+  { id: 3, faixa: 'R$ 3.051,01 a R$ 4.052,00', aliquota: '15%' },
+  { id: 4, faixa: 'R$ 4.052,01 a R$ 5.050,00', aliquota: '22,5%' },
+  { id: 5, faixa: 'Acima de R$ 5.050,00', aliquota: '27,5%' },
+  { id: 6, faixa: 'Lei 15.270/2025', aliquota: 'Redução até R$ 7.350' },
+]
 
 // Carregar empresas ao montar o componente
 onMounted(() => {
@@ -242,7 +332,7 @@ const abrirModal = (empresa?: any) => {
       // Informações cadastrais
       situacao_cadastral: '', atividade_principal: '', natureza_juridica: '', porte: '', capital_social: '', data_abertura: '',
       // Sistema
-      logo_url: '', mostrar_logo: true, mostrar_endereco: true, mostrar_cnpj: true
+      logo_url: '', mostrar_logo: true, mostrar_endereco: true, mostrar_cnpj: true, mostrar_detalhes_inss: false, mostrar_detalhes_irrf: false
     }
   }
   modalAberto.value = true

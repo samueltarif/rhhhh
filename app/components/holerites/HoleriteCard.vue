@@ -131,8 +131,9 @@ const { formatarData } = useHolerites()
 
 // Verificar se o holerite está disponível
 const isDisponivel = computed(() => {
-  if (!props.holerite?.dataDisponibilizacao) return true
-  return new Date() >= props.holerite.dataDisponibilizacao
+  // Se o holerite está visível no perfil do funcionário, sempre está disponível
+  // A lógica de disponibilização já foi feita pelo admin
+  return true
 })
 
 // Função para formatar moeda

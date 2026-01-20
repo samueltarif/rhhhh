@@ -19,25 +19,62 @@ export default defineEventHandler(async (event) => {
   console.log('📦 Dados recebidos:', JSON.stringify(body, null, 2))
 
   try {
+    // Primeiro, verificar se o usuário é admin
+    const userResponse = await fetch(
+      `${supabaseUrl}/rest/v1/funcionarios?id=eq.${userId}&select=tipo_acesso`,
+      {
+        headers: {
+          'apikey': serviceRoleKey,
+          'Authorization': `Bearer ${serviceRoleKey}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    if (!userResponse.ok) {
+      throw new Error('Erro ao verificar permissões do usuário')
+    }
+
+    const userData = await userResponse.json()
+    const isAdmin = userData[0]?.tipo_acesso === 'admin'
+
+    console.log('👤 Tipo de usuário:', isAdmin ? 'Admin' : 'Funcionário')
+
     // Campos que o funcionário pode atualizar
     const camposPermitidos: any = {
       telefone: body.telefone,
-      endereco: body.endereco,
       email_pessoal: body.email_pessoal,
-      numero_dependentes: body.numero_dependentes,
+      pis_pasep: body.pis_pasep,
       banco: body.banco,
       agencia: body.agencia,
       conta: body.conta,
-      tipo_conta: body.tipo_conta
+      tipo_conta: body.tipo_conta,
+      forma_pagamento: body.forma_pagamento,
+      chave_pix: body.chave_pix,
+      avatar: body.avatar, // Todos podem alterar avatar
+      
+      // Campos que podem ser editados apenas uma vez (verificação no frontend)
+      data_nascimento: body.data_nascimento,
+      sexo: body.sexo,
+      rg: body.rg
     }
 
-    // Se for admin, pode atualizar dados profissionais também
-    if (body.cargo_id !== undefined) camposPermitidos.cargo_id = body.cargo_id
-    if (body.departamento_id !== undefined) camposPermitidos.departamento_id = body.departamento_id
-    if (body.data_admissao !== undefined) camposPermitidos.data_admissao = body.data_admissao
-    if (body.tipo_contrato !== undefined) camposPermitidos.tipo_contrato = body.tipo_contrato
-    if (body.carga_horaria !== undefined) camposPermitidos.carga_horaria = body.carga_horaria
-    if (body.empresa_id !== undefined) camposPermitidos.empresa_id = body.empresa_id
+    // Se for admin, pode atualizar dados profissionais e pensão alimentícia também
+    if (isAdmin) {
+      if (body.nome_completo !== undefined) camposPermitidos.nome_completo = body.nome_completo
+      if (body.cpf !== undefined) camposPermitidos.cpf = body.cpf
+      if (body.cargo_id !== undefined) camposPermitidos.cargo_id = body.cargo_id
+      if (body.departamento_id !== undefined) camposPermitidos.departamento_id = body.departamento_id
+      if (body.data_admissao !== undefined) camposPermitidos.data_admissao = body.data_admissao
+      if (body.tipo_contrato !== undefined) camposPermitidos.tipo_contrato = body.tipo_contrato
+      if (body.empresa_id !== undefined) camposPermitidos.empresa_id = body.empresa_id
+      if (body.pensao_alimenticia !== undefined) camposPermitidos.pensao_alimenticia = body.pensao_alimenticia
+    } else {
+      // Se não for admin e tentar atualizar pensão alimentícia, ignorar silenciosamente
+      if (body.pensao_alimenticia !== undefined) {
+        console.log('⚠️ Funcionário tentou atualizar pensão alimentícia - IGNORADO')
+      }
+    }
 
     // Remover campos undefined
     const chavesPermitidas = Object.keys(camposPermitidos)

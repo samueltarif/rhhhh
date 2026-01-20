@@ -1,10 +1,6 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Meus Holerites</h1>
-      <p class="text-gray-600">Visualize e baixe seus contracheques</p>
-    </div>
+
 
     <!-- Filtros -->
     <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
@@ -98,6 +94,11 @@ import HoleriteModal from '~/components/holerites/HoleriteModal.vue'
 import HoleriteCard from '~/components/holerites/HoleriteCard.vue'
 
 const { user } = useAuth()
+
+// Redirecionar admin para página de gestão de holerites
+if (process.client && user.value?.tipo === 'admin') {
+  await navigateTo('/admin/holerites')
+}
 const { 
   formatarData, 
   calcularDataDisponibilizacaoHolerite20,

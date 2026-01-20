@@ -7,6 +7,7 @@ export interface User {
   cargo?: string
   departamento?: string
   foto?: string
+  avatar?: string
 }
 
 export const useAuth = () => {
@@ -57,11 +58,22 @@ export const useAuth = () => {
     navigateTo('/login')
   }
 
+  const updateUser = (updatedData: Partial<User>) => {
+    if (user.value) {
+      user.value = { ...user.value, ...updatedData }
+      // Atualizar no localStorage
+      if (process.client) {
+        localStorage.setItem('auth-user', JSON.stringify(user.value))
+      }
+    }
+  }
+
   return {
     user,
     isAuthenticated,
     isAdmin,
     login,
-    logout
+    logout,
+    updateUser
   }
 }

@@ -3,7 +3,7 @@
     <!-- Cabeçalho da Página -->
     <div class="mb-8">
       <h1 class="text-3xl lg:text-4xl font-bold text-gray-800">
-        Olá, {{ user?.nome?.split(' ')[0] }}! 👋
+        {{ obterSaudacao() }} {{ user?.nome?.split(' ')[0] }}!
       </h1>
       <p class="text-lg text-gray-500 mt-2">
         Bem-vindo ao Sistema de RH. Aqui você encontra tudo sobre sua vida profissional.
@@ -21,6 +21,7 @@
       />
 
       <DashboardCard 
+        v-if="!isAdmin"
         to="/holerites"
         title="Meus Holerites"
         description="Acesse seus contracheques e baixe em PDF"
@@ -29,12 +30,17 @@
       />
 
       <DashboardCard 
-        title="Minha Empresa"
-        description="Aguardando cadastro"
+        :title="empresaUsuario ? (empresaUsuario.nome_fantasia || empresaUsuario.nome) : 'Minha Empresa'"
+        :description="empresaUsuario ? `CNPJ: ${empresaUsuario.cnpj || 'Não informado'}` : 'Aguardando cadastro'"
         color="purple"
         icon-path="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
       >
-        <UiBadge variant="warning" class="mt-3">⏳ Pendente</UiBadge>
+        <UiBadge 
+          :variant="empresaUsuario ? 'success' : 'warning'" 
+          class="mt-3"
+        >
+          {{ empresaUsuario ? '✓ Vinculado' : '⏳ Pendente' }}
+        </UiBadge>
       </DashboardCard>
     </div>
 
@@ -44,21 +50,30 @@
         <div class="space-y-4">
           <div>
             <p class="text-sm text-gray-500 mb-1">Nome Completo</p>
-            <p class="text-lg font-semibold text-gray-800">{{ user?.nome }}</p>
+            <p class="text-lg font-semibold text-gray-800">{{ dadosCompletos?.nome_completo || user?.nome }}</p>
           </div>
           <div>
             <p class="text-sm text-gray-500 mb-1">Cargo</p>
-            <p class="text-lg font-semibold text-gray-800">{{ user?.cargo }}</p>
+            <p class="text-lg font-semibold text-gray-800">{{ obterNomeCargo(dadosCompletos?.cargo_id) }}</p>
+          </div>
+          <div v-if="empresaUsuario">
+            <p class="text-sm text-gray-500 mb-1">Empresa</p>
+            <p class="text-lg font-semibold text-gray-800">{{ empresaUsuario.nome_fantasia || empresaUsuario.nome }}</p>
+            <p class="text-sm text-gray-500">{{ empresaUsuario.nome }}</p>
           </div>
         </div>
         <div class="space-y-4">
           <div>
             <p class="text-sm text-gray-500 mb-1">Departamento</p>
-            <p class="text-lg font-semibold text-gray-800">{{ user?.departamento }}</p>
+            <p class="text-lg font-semibold text-gray-800">{{ obterNomeDepartamento(dadosCompletos?.departamento_id) }}</p>
           </div>
           <div>
             <p class="text-sm text-gray-500 mb-1">Email</p>
-            <p class="text-lg font-semibold text-gray-800">{{ user?.email }}</p>
+            <p class="text-lg font-semibold text-gray-800">{{ dadosCompletos?.email || user?.email }}</p>
+          </div>
+          <div v-if="empresaUsuario?.cnpj">
+            <p class="text-sm text-gray-500 mb-1">CNPJ da Empresa</p>
+            <p class="text-lg font-semibold text-gray-800">{{ empresaUsuario.cnpj }}</p>
           </div>
         </div>
       </div>
@@ -86,7 +101,7 @@
           icon-path="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
         />
         <DashboardStatCard 
-          to="/admin/folha-pagamento"
+          to="/admin/holerites"
           :value="loading ? '...' : formatarMoeda(stats.folhaMensal)"
           label="Folha Mensal"
           color="green"
@@ -148,25 +163,94 @@ const stats = ref({
 
 const aniversariantes = ref<any[]>([])
 const loading = ref(true)
+const dadosCompletos = ref<any>(null)
+const empresaUsuario = ref<any>(null)
+
+// Mapas para conversão de IDs para nomes
+const cargosMap = ref<Record<string, string>>({})
+const departamentosMap = ref<Record<string, string>>({})
+
+// Função para obter saudação baseada no horário de Brasília/SP
+const obterSaudacao = () => {
+  const agora = new Date()
+  // Converter para horário de Brasília (UTC-3)
+  const horarioBrasilia = new Date(agora.getTime() - (3 * 60 * 60 * 1000))
+  const hora = horarioBrasilia.getHours()
+  
+  if (hora >= 5 && hora < 12) {
+    return 'Bom dia'
+  } else if (hora >= 12 && hora < 18) {
+    return 'Boa tarde'
+  } else {
+    return 'Boa noite'
+  }
+}
+
+// Funções para obter nomes
+const obterNomeCargo = (id: string | number) => {
+  const idStr = id?.toString()
+  return cargosMap.value[idStr] || idStr || 'Não informado'
+}
+
+const obterNomeDepartamento = (id: string | number) => {
+  const idStr = id?.toString()
+  return departamentosMap.value[idStr] || idStr || 'Não informado'
+}
+
+// Carregar mapas de conversão
+const carregarMapas = async () => {
+  try {
+    // Carregar cargos
+    const cargosRes: any = await $fetch('/api/cargos')
+    if (cargosRes.success && cargosRes.data) {
+      cargosRes.data.forEach((c: any) => {
+        cargosMap.value[c.id.toString()] = c.nome
+      })
+    }
+
+    // Carregar departamentos
+    const deptosRes: any = await $fetch('/api/departamentos')
+    if (deptosRes.success && deptosRes.data) {
+      deptosRes.data.forEach((d: any) => {
+        departamentosMap.value[d.id.toString()] = d.nome
+      })
+    }
+  } catch (error) {
+    console.error('Erro ao carregar mapas:', error)
+  }
+}
 
 // Buscar dados do dashboard
 const carregarDados = async () => {
-  if (!isAdmin.value) {
-    loading.value = false
-    return
-  }
-
   try {
     loading.value = true
     
-    // Buscar estatísticas
-    const [statsData, aniversariantesData] = await Promise.all([
-      $fetch('/api/dashboard/stats'),
-      $fetch('/api/dashboard/aniversariantes')
-    ])
+    // Carregar mapas de conversão primeiro
+    await carregarMapas()
+    
+    // Buscar dados completos do usuário (incluindo empresa)
+    if (user.value?.id) {
+      try {
+        const dadosResponse: any = await $fetch(`/api/funcionarios/meus-dados?userId=${user.value.id}`)
+        if (dadosResponse.success) {
+          dadosCompletos.value = dadosResponse.data
+          empresaUsuario.value = dadosResponse.data.empresas
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error)
+      }
+    }
+    
+    // Buscar estatísticas apenas para admin
+    if (isAdmin.value) {
+      const [statsData, aniversariantesData] = await Promise.all([
+        $fetch('/api/dashboard/stats'),
+        $fetch('/api/dashboard/aniversariantes')
+      ])
 
-    stats.value = statsData as any
-    aniversariantes.value = aniversariantesData as any[]
+      stats.value = statsData as any
+      aniversariantes.value = aniversariantesData as any[]
+    }
   } catch (error) {
     console.error('Erro ao carregar dados do dashboard:', error)
   } finally {

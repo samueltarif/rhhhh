@@ -5,9 +5,9 @@ export default defineEventHandler(async (event) => {
   const supabaseKey = config.public.supabaseKey
 
   try {
-    // Buscar admin (Silvana) - usuário com tipo 'admin'
+    // Buscar admin (Silvana) - usuário com tipo_acesso 'admin'
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/funcionarios?tipo=eq.admin&select=id,nome,email,cargo_id,departamento_id&limit=1`,
+      `${supabaseUrl}/rest/v1/funcionarios?tipo_acesso=eq.admin&select=id,nome_completo,email_login,cargo_id,departamento_id&limit=1`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -26,7 +26,13 @@ export default defineEventHandler(async (event) => {
     if (admins && admins.length > 0) {
       return {
         success: true,
-        data: admins[0]
+        data: {
+          id: admins[0].id,
+          nome: admins[0].nome_completo,
+          email: admins[0].email_login,
+          cargo_id: admins[0].cargo_id,
+          departamento_id: admins[0].departamento_id
+        }
       }
     }
 

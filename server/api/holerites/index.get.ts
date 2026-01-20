@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
       inss: h.inss,
       irrf: h.irrf,
       vale_transporte: h.vale_transporte,
-      vale_refeicao_desconto: h.vale_refeicao_desconto,
+      vale_refeicao_desconto: h.cesta_basica_desconto,
       plano_saude: h.plano_saude,
       plano_odontologico: h.plano_odontologico,
       adiantamento: h.adiantamento,

@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     if (body.inss !== undefined) dadosParaAtualizar.inss = body.inss
     if (body.irrf !== undefined) dadosParaAtualizar.irrf = body.irrf
     if (body.vale_transporte !== undefined) dadosParaAtualizar.vale_transporte = body.vale_transporte
-    if (body.vale_refeicao_desconto !== undefined) dadosParaAtualizar.vale_refeicao_desconto = body.vale_refeicao_desconto
+    if (body.cesta_basica_desconto !== undefined) dadosParaAtualizar.cesta_basica_desconto = body.cesta_basica_desconto
     if (body.plano_saude !== undefined) dadosParaAtualizar.plano_saude = body.plano_saude
     if (body.plano_odontologico !== undefined) dadosParaAtualizar.plano_odontologico = body.plano_odontologico
     if (body.adiantamento !== undefined) dadosParaAtualizar.adiantamento = body.adiantamento
@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
     if (body.horas_trabalhadas !== undefined) dadosParaAtualizar.horas_trabalhadas = body.horas_trabalhadas
     if (body.observacoes !== undefined) dadosParaAtualizar.observacoes = body.observacoes
     if (body.data_pagamento !== undefined) dadosParaAtualizar.data_pagamento = body.data_pagamento
+    if (body.status !== undefined) dadosParaAtualizar.status = body.status
 
     if (Object.keys(dadosParaAtualizar).length === 0) {
       throw createError({

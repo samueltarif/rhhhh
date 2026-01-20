@@ -10,17 +10,33 @@
       <div class="flex gap-3">
         <UiButton 
           variant="secondary" 
-          @click="mostrarModalGerar = true"
+          @click="abrirModalGerar('adiantamento')"
           :disabled="loading"
         >
-          🤖 Gerar Automático
+          💰 Gerar Adiantamento (40%)
         </UiButton>
         
         <UiButton 
-          @click="enviarTodosHolerites"
+          @click="abrirModalGerar('mensal')"
+          :disabled="loading"
+        >
+          📄 Gerar Folha Mensal
+        </UiButton>
+        
+        <UiButton 
+          variant="ghost"
+          @click="abrirModalDisponibilizar"
           :disabled="loading || holerites.length === 0"
         >
-          📧 Enviar Todos
+          👤 Disponibilizar no Perfil
+        </UiButton>
+        
+        <UiButton 
+          variant="ghost"
+          @click="abrirModalEnvio"
+          :disabled="loading || holerites.length === 0"
+        >
+          📧 Enviar por Email
         </UiButton>
       </div>
     </div>
@@ -185,16 +201,29 @@
     <!-- Modal de Geração -->
     <UiModal 
       v-model="mostrarModalGerar" 
-      title="Gerar Holerites Automáticos"
+      :title="tipoGeracao === 'adiantamento' ? 'Gerar Adiantamento Salarial' : 'Gerar Folha Mensal'"
       max-width="max-w-lg"
     >
       <div class="space-y-4">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <!-- Adiantamento -->
+        <div v-if="tipoGeracao === 'adiantamento'" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p class="text-sm text-blue-800">
-            <strong>📋 O que será feito:</strong><br>
-            • Gerar holerites para todos os funcionários ativos<br>
+            <strong>💰 Adiantamento Salarial (40%):</strong><br>
+            • Gerar adiantamento de 40% do salário base<br>
             • Período: Primeira quinzena do mês atual<br>
-            • Cálculos automáticos de INSS, IRRF e descontos
+            • O valor será descontado automaticamente na folha mensal<br>
+            • Sem cálculo de INSS e IRRF (apenas adiantamento)
+          </p>
+        </div>
+
+        <!-- Folha Mensal -->
+        <div v-else class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-blue-800">
+            <strong>📄 Folha de Pagamento Mensal:</strong><br>
+            • Gerar holerites completos para todos os funcionários ativos<br>
+            • Período: Mês completo<br>
+            • Cálculos automáticos de INSS, IRRF e descontos<br>
+            • Desconto automático de adiantamentos já pagos
           </p>
         </div>
 
@@ -223,6 +252,170 @@
             :disabled="loading"
           >
             {{ loading ? 'Gerando...' : '✓ Confirmar Geração' }}
+          </UiButton>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- Modal de Envio -->
+    <UiModal 
+      v-model="mostrarModalEnvio" 
+      title="Enviar Holerites por Email"
+      max-width="max-w-lg"
+    >
+      <div class="space-y-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-blue-800 mb-3">
+            <strong>📧 Selecione o tipo de holerite para enviar:</strong>
+          </p>
+          
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200">
+              <input 
+                type="radio" 
+                id="enviar-adiantamento" 
+                value="adiantamento"
+                v-model="tipoEnvio"
+                class="w-4 h-4 text-blue-600"
+              >
+              <label for="enviar-adiantamento" class="flex-1 cursor-pointer">
+                <strong class="text-gray-900">💰 Apenas Adiantamentos</strong><br>
+                <span class="text-xs text-gray-600">Enviar apenas holerites de adiantamento (primeira quinzena)</span>
+              </label>
+            </div>
+            
+            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200">
+              <input 
+                type="radio" 
+                id="enviar-mensal" 
+                value="mensal"
+                v-model="tipoEnvio"
+                class="w-4 h-4 text-blue-600"
+              >
+              <label for="enviar-mensal" class="flex-1 cursor-pointer">
+                <strong class="text-gray-900">📄 Apenas Folhas Mensais</strong><br>
+                <span class="text-xs text-gray-600">Enviar apenas holerites mensais completos</span>
+              </label>
+            </div>
+            
+            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200">
+              <input 
+                type="radio" 
+                id="enviar-todos" 
+                value="todos"
+                v-model="tipoEnvio"
+                class="w-4 h-4 text-blue-600"
+              >
+              <label for="enviar-todos" class="flex-1 cursor-pointer">
+                <strong class="text-gray-900">📧 Todos os Holerites</strong><br>
+                <span class="text-xs text-gray-600">Enviar todos os holerites listados</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <p class="text-sm text-gray-700">
+            <strong>Total a enviar:</strong> {{ contarHoleritesPorTipo() }} holerite(s)
+          </p>
+        </div>
+
+        <div class="flex gap-3 justify-end pt-4 border-t">
+          <UiButton 
+            variant="secondary" 
+            @click="mostrarModalEnvio = false"
+          >
+            Cancelar
+          </UiButton>
+          <UiButton 
+            @click="confirmarEnvioHolerites"
+            :disabled="loading || contarHoleritesPorTipo() === 0"
+          >
+            {{ loading ? 'Enviando...' : '✓ Confirmar Envio' }}
+          </UiButton>
+        </div>
+      </div>
+    </UiModal>
+
+    <!-- Modal de Disponibilização -->
+    <UiModal 
+      v-model="mostrarModalDisponibilizar" 
+      title="Disponibilizar Holerites no Perfil"
+      max-width="max-w-lg"
+    >
+      <div class="space-y-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-blue-800 mb-3">
+            <strong>👤 Selecione o tipo de holerite para disponibilizar:</strong><br>
+            <span class="text-xs">Os holerites ficarão disponíveis para visualização no perfil do funcionário</span>
+          </p>
+          
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200">
+              <input 
+                type="radio" 
+                id="disp-adiantamento" 
+                value="adiantamento"
+                v-model="tipoDisponibilizar"
+                class="w-4 h-4 text-blue-600"
+              >
+              <label for="disp-adiantamento" class="flex-1 cursor-pointer">
+                <strong class="text-gray-900">💰 Apenas Adiantamentos</strong><br>
+                <span class="text-xs text-gray-600">Disponibilizar apenas holerites de adiantamento</span>
+              </label>
+            </div>
+            
+            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200">
+              <input 
+                type="radio" 
+                id="disp-mensal" 
+                value="mensal"
+                v-model="tipoDisponibilizar"
+                class="w-4 h-4 text-blue-600"
+              >
+              <label for="disp-mensal" class="flex-1 cursor-pointer">
+                <strong class="text-gray-900">📄 Apenas Folhas Mensais</strong><br>
+                <span class="text-xs text-gray-600">Disponibilizar apenas holerites mensais completos</span>
+              </label>
+            </div>
+            
+            <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200">
+              <input 
+                type="radio" 
+                id="disp-todos" 
+                value="todos"
+                v-model="tipoDisponibilizar"
+                class="w-4 h-4 text-blue-600"
+              >
+              <label for="disp-todos" class="flex-1 cursor-pointer">
+                <strong class="text-gray-900">📋 Todos os Holerites</strong><br>
+                <span class="text-xs text-gray-600">Disponibilizar todos os holerites listados</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <p class="text-sm text-gray-700">
+            <strong>Total a disponibilizar:</strong> {{ contarHoleritesPorTipoDisp() }} holerite(s)
+          </p>
+          <p class="text-xs text-gray-500 mt-2">
+            Os funcionários poderão visualizar e baixar seus holerites na área "Meus Holerites"
+          </p>
+        </div>
+
+        <div class="flex gap-3 justify-end pt-4 border-t">
+          <UiButton 
+            variant="secondary" 
+            @click="mostrarModalDisponibilizar = false"
+          >
+            Cancelar
+          </UiButton>
+          <UiButton 
+            @click="confirmarDisponibilizacao"
+            :disabled="loading || contarHoleritesPorTipoDisp() === 0"
+          >
+            {{ loading ? 'Disponibilizando...' : '✓ Confirmar' }}
           </UiButton>
         </div>
       </div>
@@ -297,6 +490,11 @@ const holerites = ref<Holerite[]>([])
 const modalVisualizacao = ref(false)
 const modalEdicao = ref(false)
 const mostrarModalGerar = ref(false)
+const mostrarModalEnvio = ref(false)
+const mostrarModalDisponibilizar = ref(false)
+const tipoGeracao = ref<'adiantamento' | 'mensal'>('mensal')
+const tipoEnvio = ref<'adiantamento' | 'mensal' | 'todos'>('todos')
+const tipoDisponibilizar = ref<'adiantamento' | 'mensal' | 'todos'>('todos')
 const holeriteSelecionado = ref<Holerite | null>(null)
 const mostrarNotificacao = ref(false)
 const notificacao = ref<Notificacao>({ title: '', message: '', variant: 'info' })
@@ -345,6 +543,136 @@ const statusOptions = computed(() => [
 ])
 
 // Funções
+const abrirModalGerar = (tipo: 'adiantamento' | 'mensal') => {
+  tipoGeracao.value = tipo
+  mostrarModalGerar.value = true
+}
+
+const abrirModalEnvio = () => {
+  tipoEnvio.value = 'todos'
+  mostrarModalEnvio.value = true
+}
+
+const abrirModalDisponibilizar = () => {
+  tipoDisponibilizar.value = 'todos'
+  mostrarModalDisponibilizar.value = true
+}
+
+const contarHoleritesPorTipo = () => {
+  if (tipoEnvio.value === 'todos') {
+    return holerites.value.filter(h => h.status !== 'enviado').length
+  } else if (tipoEnvio.value === 'adiantamento') {
+    // Adiantamentos têm periodo_fim até dia 15
+    return holerites.value.filter(h => {
+      const diaFim = new Date(h.periodo_fim).getDate()
+      return diaFim <= 15 && h.status !== 'enviado'
+    }).length
+  } else {
+    // Mensais têm periodo_fim após dia 15
+    return holerites.value.filter(h => {
+      const diaFim = new Date(h.periodo_fim).getDate()
+      return diaFim > 15 && h.status !== 'enviado'
+    }).length
+  }
+}
+
+const contarHoleritesPorTipoDisp = () => {
+  if (tipoDisponibilizar.value === 'todos') {
+    return holerites.value.length
+  } else if (tipoDisponibilizar.value === 'adiantamento') {
+    return holerites.value.filter(h => {
+      const diaFim = new Date(h.periodo_fim).getDate()
+      return diaFim <= 15
+    }).length
+  } else {
+    return holerites.value.filter(h => {
+      const diaFim = new Date(h.periodo_fim).getDate()
+      return diaFim > 15
+    }).length
+  }
+}
+
+const confirmarDisponibilizacao = async () => {
+  mostrarModalDisponibilizar.value = false
+  await disponibilizarHolerites()
+}
+
+const disponibilizarHolerites = async () => {
+  loading.value = true
+  try {
+    let holeritesFiltrados: Holerite[] = []
+    
+    if (tipoDisponibilizar.value === 'todos') {
+      holeritesFiltrados = holerites.value
+    } else if (tipoDisponibilizar.value === 'adiantamento') {
+      holeritesFiltrados = holerites.value.filter(h => {
+        const diaFim = new Date(h.periodo_fim).getDate()
+        return diaFim <= 15
+      })
+    } else {
+      holeritesFiltrados = holerites.value.filter(h => {
+        const diaFim = new Date(h.periodo_fim).getDate()
+        return diaFim > 15
+      })
+    }
+    
+    if (holeritesFiltrados.length === 0) {
+      notificacao.value = {
+        title: 'Aviso',
+        message: 'Nenhum holerite para disponibilizar',
+        variant: 'warning'
+      }
+      mostrarNotificacao.value = true
+      loading.value = false
+      return
+    }
+    
+    // Atualizar status para "visualizado" (disponível no perfil)
+    let disponibilizados = 0
+    let erros = 0
+    
+    for (const holerite of holeritesFiltrados) {
+      try {
+        await $fetch(`/api/holerites/${holerite.id}`, {
+          method: 'PATCH',
+          body: {
+            status: 'visualizado' // Status que indica disponível no perfil
+          }
+        })
+        disponibilizados++
+      } catch (error) {
+        console.error(`Erro ao disponibilizar holerite ${holerite.id}:`, error)
+        erros++
+      }
+    }
+    
+    const tipoTexto = tipoDisponibilizar.value === 'adiantamento' 
+      ? 'adiantamentos' 
+      : tipoDisponibilizar.value === 'mensal' 
+        ? 'folhas mensais' 
+        : 'holerites'
+    
+    notificacao.value = {
+      title: 'Disponibilização Concluída!',
+      message: `${disponibilizados} ${tipoTexto} disponibilizado(s) no perfil${erros > 0 ? ` (${erros} erro(s))` : ''}`,
+      variant: erros > 0 ? 'warning' : 'success'
+    }
+    mostrarNotificacao.value = true
+    
+    // Recarregar lista
+    await carregarHolerites()
+  } catch (error: any) {
+    notificacao.value = {
+      title: 'Erro!',
+      message: error.data?.message || 'Erro ao disponibilizar holerites',
+      variant: 'error'
+    }
+    mostrarNotificacao.value = true
+  } finally {
+    loading.value = false
+  }
+}
+
 const carregarHolerites = async () => {
   loading.value = true
   try {
@@ -373,20 +701,37 @@ const carregarHolerites = async () => {
 const gerarHoleritesAutomaticos = async () => {
   loading.value = true
   try {
+    const hoje = new Date()
+    const ano = hoje.getFullYear()
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0')
+    
+    let periodo_inicio, periodo_fim
+    
+    if (tipoGeracao.value === 'adiantamento') {
+      // Adiantamento: primeira quinzena
+      periodo_inicio = `${ano}-${mes}-01`
+      periodo_fim = `${ano}-${mes}-15`
+    } else {
+      // Folha mensal: mês completo
+      periodo_inicio = `${ano}-${mes}-01`
+      const ultimoDia = new Date(ano, hoje.getMonth() + 1, 0).getDate()
+      periodo_fim = `${ano}-${mes}-${String(ultimoDia).padStart(2, '0')}`
+    }
+    
     // Chamar API para gerar holerites
     const resultado: any = await $fetch('/api/holerites/gerar', {
       method: 'POST',
       body: {
-        // Período atual (primeira quinzena do mês)
-        periodo_inicio: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`,
-        periodo_fim: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-15`,
+        periodo_inicio,
+        periodo_fim,
+        tipo: tipoGeracao.value,
         recriar: opcoesGeracao.value.recriar
       }
     })
     
     notificacao.value = {
       title: 'Sucesso!',
-      message: resultado.message || 'Holerites gerados com sucesso',
+      message: resultado.message || `${tipoGeracao.value === 'adiantamento' ? 'Adiantamentos' : 'Holerites'} gerados com sucesso`,
       variant: 'success'
     }
     mostrarNotificacao.value = true
@@ -410,25 +755,76 @@ const confirmarGeracaoHolerites = async () => {
   await gerarHoleritesAutomaticos()
 }
 
-const enviarTodosHolerites = async () => {
+const confirmarEnvioHolerites = async () => {
+  mostrarModalEnvio.value = false
+  await enviarHoleritesPorTipo()
+}
+
+const enviarHoleritesPorTipo = async () => {
   loading.value = true
   try {
-    // Simular envio em massa
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    let holeritesFiltrados: Holerite[] = []
+    
+    if (tipoEnvio.value === 'todos') {
+      holeritesFiltrados = holerites.value.filter(h => h.status !== 'enviado')
+    } else if (tipoEnvio.value === 'adiantamento') {
+      holeritesFiltrados = holerites.value.filter(h => {
+        const diaFim = new Date(h.periodo_fim).getDate()
+        return diaFim <= 15 && h.status !== 'enviado'
+      })
+    } else {
+      holeritesFiltrados = holerites.value.filter(h => {
+        const diaFim = new Date(h.periodo_fim).getDate()
+        return diaFim > 15 && h.status !== 'enviado'
+      })
+    }
+    
+    if (holeritesFiltrados.length === 0) {
+      notificacao.value = {
+        title: 'Aviso',
+        message: 'Nenhum holerite para enviar',
+        variant: 'warning'
+      }
+      mostrarNotificacao.value = true
+      loading.value = false
+      return
+    }
+    
+    // Enviar cada holerite
+    let enviados = 0
+    let erros = 0
+    
+    for (const holerite of holeritesFiltrados) {
+      try {
+        await $fetch(`/api/holerites/${holerite.id}/enviar-email`, {
+          method: 'POST'
+        })
+        enviados++
+      } catch (error) {
+        console.error(`Erro ao enviar holerite ${holerite.id}:`, error)
+        erros++
+      }
+    }
+    
+    const tipoTexto = tipoEnvio.value === 'adiantamento' 
+      ? 'adiantamentos' 
+      : tipoEnvio.value === 'mensal' 
+        ? 'folhas mensais' 
+        : 'holerites'
     
     notificacao.value = {
-      title: 'Sucesso!',
-      message: `${holerites.value.length} holerites enviados por email`,
-      variant: 'success'
+      title: 'Envio Concluído!',
+      message: `${enviados} ${tipoTexto} enviado(s) com sucesso${erros > 0 ? ` (${erros} erro(s))` : ''}`,
+      variant: erros > 0 ? 'warning' : 'success'
     }
     mostrarNotificacao.value = true
     
-    // Atualizar status dos holerites
-    holerites.value.forEach(h => h.status = 'enviado')
-  } catch (error) {
+    // Recarregar lista
+    await carregarHolerites()
+  } catch (error: any) {
     notificacao.value = {
       title: 'Erro!',
-      message: 'Erro ao enviar holerites',
+      message: error.data?.message || 'Erro ao enviar holerites',
       variant: 'error'
     }
     mostrarNotificacao.value = true

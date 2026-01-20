@@ -18,9 +18,9 @@ export default defineEventHandler(async (event) => {
   console.log('🔍 Buscando dados do funcionário ID:', userId)
 
   try {
-    // Buscar dados do funcionário usando SERVICE ROLE KEY para bypassar RLS
+    // Buscar dados do funcionário com informações da empresa usando SERVICE ROLE KEY para bypassar RLS
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/funcionarios?id=eq.${userId}&select=*`,
+      `${supabaseUrl}/rest/v1/funcionarios?id=eq.${userId}&select=*,empresas(id,nome_fantasia,nome,cnpj)`,
       {
         headers: {
           'apikey': serviceRoleKey,

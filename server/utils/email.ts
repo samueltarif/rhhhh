@@ -174,7 +174,7 @@ export function templateBoasVindas(dados: {
         </ul>
         
         <center>
-          <a href="${process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login" class="button">
+          <a href="https://rhqualitec.vercel.app/login" class="button">
             Acessar Sistema RH
           </a>
         </center>

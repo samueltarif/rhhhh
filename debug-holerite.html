@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holerite - vendas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #333;
+      padding: 20px;
+      background: #fff;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+    }
+    
+    .header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #333;
+    }
+    
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    
+    .company-name {
+      font-size: 16px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .company-cnpj {
+      font-size: 11px;
+      margin-top: 3px;
+    }
+    
+    .header-right {
+      text-align: right;
+    }
+    
+    .folha-tipo {
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .competencia {
+      font-size: 11px;
+      text-transform: capitalize;
+    }
+    
+    .employee-info {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+    }
+    
+    .info-item {
+      font-size: 10px;
+    }
+    
+    .info-label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 2px;
+    }
+    
+    .info-value {
+      display: block;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    
+    th {
+      background: #f0f0f0;
+      padding: 8px 5px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: bold;
+      border: 1px solid #ccc;
+    }
+    
+    td {
+      padding: 6px 5px;
+      border: 1px solid #ddd;
+      font-size: 10px;
+    }
+    
+    .text-right {
+      text-align: right;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    .totals {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f9f9f9;
+      border: 2px solid #333;
+    }
+    
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 11px;
+    }
+    
+    .total-row.liquido {
+      font-size: 14px;
+      font-weight: bold;
+      padding-top: 10px;
+      border-top: 2px solid #333;
+      margin-top: 5px;
+    }
+    
+    .signature {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .signature-image {
+      max-width: 200px;
+      height: auto;
+    }
+    
+    .signature-text {
+      flex: 1;
+    }
+    
+    .signature-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .bases-calculo {
+      margin-top: 20px;
+    }
+    
+    .bases-title {
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding: 5px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+    }
+    
+    .bases-table {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1px;
+      background: #ccc;
+      border: 1px solid #ccc;
+    }
+    
+    .base-item {
+      background: white;
+      padding: 8px 5px;
+      font-size: 9px;
+      text-align: center;
+    }
+    
+    .base-label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 3px;
+    }
+    
+    .base-value {
+      display: block;
+    }
+    
+    @media print {
+      body {
+        padding: 0;
+      }
+      
+      .container {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="company-name">SPEED GESTAO E SERVICOS ADMINISTRATIVOS LTDA</div>
+          <div class="company-cnpj">CNPJ: 46.732.564/0001-10</div>
+          <div class="company-cnpj">CC: GERAL</div>
+          <div class="company-cnpj">Mensalista</div>
+        </div>
+        <div class="header-right">
+          <div class="folha-tipo">Folha Mensal</div>
+          <div class="competencia">dezembro de 2025</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="employee-info">
+      <div class="info-item">
+        <span class="info-label">Código</span>
+        <span class="info-value">undefined</span>
+      </div>
+      <div class="info-item" style="grid-column: span 2;">
+        <span class="info-label">Nome do Funcionário</span>
+        <span class="info-value">vendas</span>
+        <span class="info-value">CARGO NÃO DEFINIDO</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">CBO</span>
+        <span class="info-value">354125</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Departamento</span>
+        <span class="info-value">Comercial</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Mat</span>
+        <span class="info-value">undefined</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Admissão:</span>
+        <span class="info-value">31/07/1999</span>
+      </div>
+      
+    </div>
+    
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 10%;">Código</th>
+          <th style="width: 40%;">Descrição</th>
+          <th style="width: 15%;" class="text-center">Referência</th>
+          <th style="width: 17.5%;" class="text-right">Vencimentos</th>
+          <th style="width: 17.5%;" class="text-right">Descontos</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>8781</td>
+          <td>DIAS NORMAIS</td>
+          <td class="text-center">30,00</td>
+          <td class="text-right">7.500,00</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>700</td>
+          <td>VALE TRANSPORTE</td>
+          <td class="text-center"></td>
+          <td class="text-right">233,20</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>701</td>
+          <td>VALE REFEIÇÃO</td>
+          <td class="text-center"></td>
+          <td class="text-right">280,06</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>998</td>
+          <td>I.N.S.S.</td>
+          <td class="text-center">11.46</td>
+          <td></td>
+          <td class="text-right">859,60</td>
+        </tr>
+        <tr>
+          <td>999</td>
+          <td>I.R.R.F.</td>
+          <td class="text-center"></td>
+          <td></td>
+          <td class="text-right">384,64</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div class="totals">
+      <div class="total-row">
+        <span>Total de Vencimentos</span>
+        <span>8.013,26</span>
+      </div>
+      <div class="total-row">
+        <span>Total de Descontos</span>
+        <span>1.244,24</span>
+      </div>
+      <div class="total-row liquido">
+        <span>Valor Líquido</span>
+        <span>6.769,02</span>
+      </div>
+    </div>
+    
+    <div class="signature">
+      <img src="/ass.png" alt="Assinatura Digital" class="signature-image" />
+      <div class="signature-text">
+        <div class="signature-title">Assinado de forma digital por SILVANA APARECIDA BARDUCHI</div>
+        <div>CPF: 04487488869</div>
+        <div>Dados: 19/01/2026, 10:33:06 -03'00'</div>
+      </div>
+    </div>
+    
+    <div class="bases-calculo">
+      <div class="bases-title">Bases de Cálculo</div>
+      <div class="bases-table">
+        <div class="base-item">
+          <span class="base-label">Salário Base</span>
+          <span class="base-value">7.500,00</span>
+        </div>
+        <div class="base-item">
+          <span class="base-label">Sal. Contr. INSS</span>
+          <span class="base-value">7.500,00</span>
+        </div>
+        <div class="base-item">
+          <span class="base-label">Base Cálc. FGTS</span>
+          <span class="base-value">7.500,00</span>
+        </div>
+        <div class="base-item">
+          <span class="base-label">F.G.T.S do Mês</span>
+          <span class="base-value">600,00</span>
+        </div>
+        <div class="base-item">
+          <span class="base-label">Base Cálc. IRRF</span>
+          <span class="base-value">7.153,66</span>
+        </div>
+        <div class="base-item">
+          <span class="base-label">Faixa IRRF</span>
+          <span class="base-value">0,00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  

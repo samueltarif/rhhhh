@@ -83,6 +83,7 @@ const { consultarCNPJ, formatarCNPJ, validarCNPJ, loading: consultando, error: c
 
 const id = computed(() => `cnpj-input-${Math.random().toString(36).substring(2, 11)}`)
 const consultaSucesso = ref('')
+const debounceTimer = ref(null)
 
 // Valor formatado para exibição
 const displayValue = computed(() => {
@@ -109,11 +110,13 @@ const handleInput = (event: Event) => {
   // Limpar mensagens
   consultaSucesso.value = ''
   
-  // Auto consulta quando CNPJ estiver completo e válido
+  // Auto consulta quando CNPJ estiver completo e válido (com debounce)
   if (props.autoConsulta && valor.length === 14 && validarCNPJ(valor)) {
-    nextTick(() => {
+    // Debounce para evitar muitas consultas
+    clearTimeout(debounceTimer.value)
+    debounceTimer.value = setTimeout(() => {
       consultarDados()
-    })
+    }, 1500) // Aguarda 1.5 segundos após parar de digitar
   }
 }
 
@@ -141,5 +144,16 @@ const consultarDados = async () => {
 // Limpar mensagem de sucesso quando CNPJ mudar
 watch(() => props.modelValue, () => {
   consultaSucesso.value = ''
+  // Limpar timer anterior se existir
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value)
+  }
 }, { immediate: false })
+
+// Limpar timer ao desmontar componente
+onUnmounted(() => {
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value)
+  }
+})
 </script>

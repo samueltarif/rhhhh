@@ -24,7 +24,7 @@
         <nav class="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]">
           <LayoutNavLink to="/dashboard" icon="home" @click="$emit('close')">Início</LayoutNavLink>
           <LayoutNavLink to="/meus-dados" icon="user" @click="$emit('close')">Meus Dados</LayoutNavLink>
-          <LayoutNavLink to="/holerites" icon="document" @click="$emit('close')">Meus Holerites</LayoutNavLink>
+          <LayoutNavLink v-if="!isAdmin" to="/holerites" icon="document" @click="$emit('close')">Meus Holerites</LayoutNavLink>
 
           <template v-if="isAdmin">
             <div class="pt-4 mt-4 border-t border-gray-200">
@@ -36,18 +36,16 @@
             <LayoutNavLink to="/admin/empresas" icon="office" @click="$emit('close')">Empresas</LayoutNavLink>
             <LayoutNavLink to="/admin/departamentos" icon="building" @click="$emit('close')">Departamentos</LayoutNavLink>
             <LayoutNavLink to="/admin/cargos" icon="briefcase" @click="$emit('close')">Cargos</LayoutNavLink>
-            <LayoutNavLink to="/admin/beneficios" icon="gift" @click="$emit('close')">Benefícios</LayoutNavLink>
-            <LayoutNavLink to="/admin/folha-pagamento" icon="money" @click="$emit('close')">Folha de Pagamento</LayoutNavLink>
-            <LayoutNavLink to="/admin/empresa" icon="settings" @click="$emit('close')">Configurações</LayoutNavLink>
+            <LayoutNavLink to="/admin/holerites" icon="money" @click="$emit('close')">Holerites</LayoutNavLink>
           </template>
         </nav>
 
         <div class="absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
           <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 mb-3">
-            <UiAvatar :name="user?.nome || ''" size="sm" />
+            <UiAvatar :name="user?.nome || ''" :avatar-type="user?.avatar" size="sm" />
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-gray-800 truncate">{{ user?.nome }}</p>
-              <p class="text-xs text-gray-500 truncate">{{ user?.cargo }}</p>
+              <p class="text-xs text-gray-500 truncate">{{ obterNomeCargo(user?.cargo) }}</p>
             </div>
           </div>
           <button 
@@ -80,10 +78,39 @@ const emit = defineEmits<{
 
 const { logout } = useAuth()
 
+// Mapa para conversão de IDs para nomes de cargos
+const cargosMap = ref<Record<string, string>>({})
+
+// Função para obter nome do cargo
+const obterNomeCargo = (id: string | number) => {
+  if (!id) return 'Não informado'
+  const idStr = id?.toString()
+  return cargosMap.value[idStr] || 'Carregando...'
+}
+
+// Carregar mapa de cargos
+const carregarCargos = async () => {
+  try {
+    const cargosRes: any = await $fetch('/api/cargos')
+    if (cargosRes.success && cargosRes.data) {
+      cargosRes.data.forEach((c: any) => {
+        cargosMap.value[c.id.toString()] = c.nome
+      })
+    }
+  } catch (error) {
+    console.error('Erro ao carregar cargos:', error)
+  }
+}
+
 const handleLogout = () => {
   emit('close')
   logout()
 }
+
+// Carregar cargos ao montar
+onMounted(() => {
+  carregarCargos()
+})
 </script>
 
 <style scoped>
