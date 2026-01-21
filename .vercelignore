@@ -1,12 +1,9 @@
 node_modules
 .nuxt
-.output
 .git
-.env
 *.log
 database
 docs
 *.mjs
 *.js
-!nuxt.config.ts
-!package.json
+!.output/**
