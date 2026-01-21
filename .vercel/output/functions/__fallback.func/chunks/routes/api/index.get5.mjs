@@ -1,4 +1,4 @@
-import { d as defineEventHandler, h as getQuery, c as createError } from '../../_/nitro.mjs';
+import { d as defineEventHandler, c as createError } from '../../_/nitro.mjs';
 import { s as serverSupabaseServiceRole } from '../../_/serverSupabaseServiceRole.mjs';
 import 'node:http';
 import 'node:https';
@@ -15,88 +15,61 @@ import '@supabase/auth-js';
 
 const index_get = defineEventHandler(async (event) => {
   try {
+    console.log("[HOLERITES] Iniciando busca de holerites...");
     const supabase = serverSupabaseServiceRole(event);
-    const query = getQuery(event);
-    const { empresa, mes, status } = query;
-    let queryBuilder = supabase.from("holerites").select(`
+    console.log("[HOLERITES] Cliente Supabase criado");
+    const { data: holerites, error } = await supabase.from("holerites").select(`
         *,
-        funcionario:funcionarios!inner (
+        funcionarios!inner (
           id,
           nome_completo,
-          cargo:cargos (nome),
-          empresa:empresas (nome_fantasia)
+          cpf,
+          cargos (
+            id,
+            nome
+          ),
+          departamentos (
+            id,
+            nome
+          ),
+          empresas (
+            id,
+            nome,
+            nome_fantasia
+          )
         )
-      `).order("created_at", { ascending: false });
-    if (empresa) {
-      queryBuilder = queryBuilder.eq("funcionario.empresa_id", empresa);
-    }
-    if (mes) {
-      const [ano, mesNum] = mes.split("-");
-      const dataInicio = `${ano}-${mesNum}-01`;
-      const ultimoDia = new Date(parseInt(ano), parseInt(mesNum), 0).getDate();
-      const dataFim = `${ano}-${mesNum}-${ultimoDia}`;
-      queryBuilder = queryBuilder.gte("periodo_inicio", dataInicio).lte("periodo_fim", dataFim);
-    }
-    if (status) {
-      queryBuilder = queryBuilder.eq("status", status);
-    }
-    const { data: holerites, error } = await queryBuilder;
+      `).order("created_at", { ascending: false }).limit(50);
     if (error) {
-      console.error("Erro ao buscar holerites:", error);
+      console.error("[HOLERITES] Erro na query:", error);
       throw error;
     }
-    const holeriteFormatados = (holerites == null ? void 0 : holerites.map((h) => {
-      var _a, _b;
+    console.log("[HOLERITES] Holerites encontrados:", (holerites == null ? void 0 : holerites.length) || 0);
+    const holeritesTratados = (holerites == null ? void 0 : holerites.map((h) => {
+      var _a, _b, _c;
       return {
-        id: h.id,
-        funcionario_id: h.funcionario_id,
-        // Adicionar ID do funcionário
+        ...h,
         funcionario: {
-          nome_completo: h.funcionario.nome_completo,
-          cargo: ((_a = h.funcionario.cargo) == null ? void 0 : _a.nome) || "N\xE3o definido",
-          empresa: ((_b = h.funcionario.empresa) == null ? void 0 : _b.nome_fantasia) || "N\xE3o definida"
-        },
-        periodo_inicio: h.periodo_inicio,
-        periodo_fim: h.periodo_fim,
-        salario_base: h.salario_base,
-        salario_liquido: h.salario_liquido,
-        total_proventos: h.total_proventos,
-        total_descontos: h.total_descontos,
-        status: h.status,
-        bonus: h.bonus,
-        horas_extras: h.horas_extras,
-        adicional_noturno: h.adicional_noturno,
-        adicional_periculosidade: h.adicional_periculosidade,
-        adicional_insalubridade: h.adicional_insalubridade,
-        comissoes: h.comissoes,
-        inss: h.inss,
-        irrf: h.irrf,
-        vale_transporte: h.vale_transporte,
-        vale_refeicao_desconto: h.cesta_basica_desconto,
-        plano_saude: h.plano_saude,
-        plano_odontologico: h.plano_odontologico,
-        adiantamento: h.adiantamento,
-        faltas: h.faltas,
-        horas_trabalhadas: h.horas_trabalhadas,
-        data_pagamento: h.data_pagamento,
-        observacoes: h.observacoes,
-        // ✅ CAMPOS CRÍTICOS PARA EXIBIR BENEFÍCIOS E DESCONTOS
-        beneficios: h.beneficios || [],
-        descontos_personalizados: h.descontos_personalizados || [],
-        // Campos adicionais para cálculos
-        base_inss: h.base_inss,
-        aliquota_inss: h.aliquota_inss,
-        base_irrf: h.base_irrf,
-        aliquota_irrf: h.aliquota_irrf,
-        faixa_irrf: h.faixa_irrf
+          id: h.funcionarios.id,
+          nome_completo: h.funcionarios.nome_completo,
+          cpf: h.funcionarios.cpf,
+          cargo: ((_a = h.funcionarios.cargos) == null ? void 0 : _a.nome) || "Cargo n\xE3o definido",
+          empresa: ((_b = h.funcionarios.empresas) == null ? void 0 : _b.nome_fantasia) || ((_c = h.funcionarios.empresas) == null ? void 0 : _c.nome) || "Empresa n\xE3o definida"
+        }
       };
     })) || [];
-    return holeriteFormatados;
+    console.log("[HOLERITES] Holerites tratados:", holeritesTratados.length);
+    return holeritesTratados;
   } catch (error) {
-    console.error("Erro ao buscar holerites:", error);
+    console.error("[HOLERITES] Erro completo:", {
+      message: error.message,
+      stack: error.stack,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     throw createError({
       statusCode: 500,
-      message: "Erro ao buscar holerites"
+      statusMessage: `Erro ao buscar holerites: ${error.message}`
     });
   }
 });

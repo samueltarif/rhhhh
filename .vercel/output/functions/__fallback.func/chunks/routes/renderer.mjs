@@ -1,5 +1,5 @@
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'vue-bundle-renderer/runtime';
-import { k as joinRelativeURL, a as useRuntimeConfig, l as getResponseStatusText, m as getResponseStatus, n as defineRenderHandler, h as getQuery, c as createError, o as destr, q as getRouteRules, u as useNitroApp } from '../_/nitro.mjs';
+import { l as joinRelativeURL, a as useRuntimeConfig, m as getResponseStatusText, n as getResponseStatus, o as defineRenderHandler, h as getQuery, c as createError, q as destr, v as getRouteRules, u as useNitroApp } from '../_/nitro.mjs';
 import { renderToString } from 'vue/server-renderer';
 import { createHead as createHead$1, propsToString, renderSSRHead } from 'unhead/server';
 import { stringify, uneval } from 'devalue';
@@ -89,7 +89,7 @@ function createHead(options = {}) {
   return head;
 }
 
-const appHead = {"meta":[{"charset":"utf-8"},{"name":"viewport","content":"width=device-width, initial-scale=1"},{"name":"description","content":"Sistema Interno de Gestão de Recursos Humanos - Qualitec Instrumentos. Instrumentação Industrial, Criogenia, Óleo & Gás."},{"name":"robots","content":"noindex, nofollow"},{"name":"author","content":"Qualitec Instrumentos Ltda"},{"name":"company","content":"Qualitec Instrumentos"},{"name":"theme-color","content":"#1e40af"},{"property":"og:title","content":"Sistema Corporativo - Qualitec Instrumentos"},{"property":"og:description","content":"Sistema Interno de RH - Instrumentação Industrial"},{"property":"og:type","content":"website"},{"name":"application-name","content":"Qualitec RH"}],"link":[{"rel":"icon","type":"image/svg+xml","href":"/favicon.svg"},{"rel":"icon","type":"image/x-icon","href":"/favicon.ico"},{"rel":"apple-touch-icon","sizes":"180x180","href":"/apple-touch-icon.png"}],"style":[],"script":[],"noscript":[],"title":"Sistema Corporativo - Qualitec Instrumentos"};
+const appHead = {"meta":[{"charset":"utf-8"},{"name":"viewport","content":"width=device-width, initial-scale=1"},{"name":"description","content":"Sistema Interno de Gestão de Recursos Humanos - Qualitec Instrumentos"},{"name":"robots","content":"noindex, nofollow"}],"link":[{"rel":"icon","type":"image/x-icon","href":"/favicon.ico"}],"style":[],"script":[],"noscript":[],"title":"Sistema Corporativo - Qualitec Instrumentos"};
 
 const appRootTag = "div";
 

@@ -1,5 +1,5 @@
-import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import { computed, toRef, isRef, hasInjectionContext, getCurrentInstance, defineComponent, createElementBlock, defineAsyncComponent, h, inject, unref, shallowRef, provide, shallowReactive, ref, Suspense, Fragment, createApp, onErrorCaptured, onServerPrefetch, createVNode, resolveDynamicComponent, reactive, effectScope, isReadonly, isShallow, isReactive, toRaw, mergeProps, getCurrentScope, withCtx, nextTick, useSSRContext } from 'vue';
-import { c as createError$1, v as hasProtocol, x as isScriptProtocol, y as joinURL, w as withQuery, z as sanitizeStatusCode, A as getContext, $ as $fetch$1, B as createHooks, C as executeAsync, f as getHeader, D as toRouteMatcher, E as createRouter$1, F as defu, s as setCookie } from '../_/nitro.mjs';
+import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};import { toRef, isRef, hasInjectionContext, getCurrentInstance, defineComponent, createElementBlock, defineAsyncComponent, h, inject, computed, unref, shallowRef, provide, shallowReactive, ref, Suspense, Fragment, createApp, onErrorCaptured, onServerPrefetch, createVNode, resolveDynamicComponent, reactive, effectScope, isReadonly, isShallow, isReactive, toRaw, mergeProps, getCurrentScope, withCtx, nextTick, useSSRContext } from 'vue';
+import { c as createError$1, x as hasProtocol, y as isScriptProtocol, z as joinURL, w as withQuery, A as sanitizeStatusCode, B as getContext, $ as $fetch, C as createHooks, D as executeAsync, f as getHeader, E as toRouteMatcher, F as createRouter$1, G as defu, s as setCookie } from '../_/nitro.mjs';
 import { b as baseURL } from '../routes/renderer.mjs';
 import { useRoute as useRoute$1, RouterView, createMemoryHistory, createRouter, START_LOCATION } from 'vue-router';
 import { createServerClient, parseCookieHeader } from '@supabase/ssr';
@@ -17,7 +17,7 @@ import 'devalue';
 import 'unhead/utils';
 
 if (!globalThis.$fetch) {
-  globalThis.$fetch = $fetch$1.create({
+  globalThis.$fetch = $fetch.create({
     baseURL: baseURL()
   });
 }
@@ -383,86 +383,8 @@ async function getRouteRules(arg) {
     return defu({}, ..._routeRulesMatcher.matchAll(path).reverse());
   }
 }
-const useStateKeyPrefix = "$s";
-function useState(...args) {
-  const autoKey = typeof args[args.length - 1] === "string" ? args.pop() : void 0;
-  if (typeof args[0] !== "string") {
-    args.unshift(autoKey);
-  }
-  const [_key, init] = args;
-  if (!_key || typeof _key !== "string") {
-    throw new TypeError("[nuxt] [useState] key must be a string: " + _key);
-  }
-  if (init !== void 0 && typeof init !== "function") {
-    throw new Error("[nuxt] [useState] init must be a function: " + init);
-  }
-  const key = useStateKeyPrefix + _key;
-  const nuxtApp = useNuxtApp();
-  const state = toRef(nuxtApp.payload.state, key);
-  if (state.value === void 0 && init) {
-    const initialValue = init();
-    if (isRef(initialValue)) {
-      nuxtApp.payload.state[key] = initialValue;
-      return initialValue;
-    }
-    state.value = initialValue;
-  }
-  return state;
-}
-const useAuth = () => {
-  const user = useState("auth-user", () => {
-    return null;
-  });
-  const isAuthenticated = computed(() => !!user.value);
-  const isAdmin = computed(() => user.value?.tipo === "admin");
-  const login = async (email, senha) => {
-    try {
-      const response = await $fetch("/api/auth/login", {
-        method: "POST",
-        body: { email, senha }
-      });
-      if (response.success && response.user) {
-        user.value = response.user;
-        if (false) ;
-        return { success: true, message: "Login realizado com sucesso!" };
-      }
-      return { success: false, message: "Email ou senha incorretos. Tente novamente." };
-    } catch (error) {
-      console.error("Erro no login:", error);
-      return {
-        success: false,
-        message: error.data?.message || "Email ou senha incorretos. Tente novamente."
-      };
-    }
-  };
-  const logout = () => {
-    user.value = null;
-    navigateTo("/login");
-  };
-  const updateUser = (updatedData) => {
-    if (user.value) {
-      user.value = { ...user.value, ...updatedData };
-    }
-  };
-  return {
-    user,
-    isAuthenticated,
-    isAdmin,
-    login,
-    logout,
-    updateUser
-  };
-};
 const __nuxt_page_meta$2 = {
-  layout: false,
-  middleware: (to) => {
-    const { isAuthenticated } = useAuth();
-    if (isAuthenticated.value) {
-      return navigateTo("/dashboard");
-    } else {
-      return navigateTo("/login");
-    }
-  }
+  layout: false
 };
 const __nuxt_page_meta$1 = { layout: false };
 const __nuxt_page_meta = {
@@ -479,61 +401,61 @@ const _routes = [
     name: "login",
     path: "/login",
     meta: __nuxt_page_meta$1 || {},
-    component: () => import('./login-C8rn6rhy.mjs')
+    component: () => import('./login-Br7CzZB7.mjs')
   },
   {
     name: "dashboard",
     path: "/dashboard",
     meta: { "middleware": "auth" },
-    component: () => import('./dashboard-U-mUzyY2.mjs')
+    component: () => import('./dashboard-DkREg1Jb.mjs')
   },
   {
     name: "holerites",
     path: "/holerites",
     meta: { "middleware": "auth" },
-    component: () => import('./holerites-CThK3cKd.mjs')
+    component: () => import('./holerites-CiIcbPKe.mjs')
   },
   {
     name: "meus-dados",
     path: "/meus-dados",
     meta: { "middleware": "auth" },
-    component: () => import('./meus-dados-DNHlrcn4.mjs')
+    component: () => import('./meus-dados-PAa5nP8t.mjs')
   },
   {
     name: "admin-cargos",
     path: "/admin/cargos",
     meta: { "middleware": ["auth", "admin"] },
-    component: () => import('./cargos-C_eSzEN7.mjs')
+    component: () => import('./cargos-Bp2cKJr1.mjs')
   },
   {
     name: "admin-empresas",
     path: "/admin/empresas",
     meta: { "middleware": ["auth", "admin"] },
-    component: () => import('./empresas-DtkbTHHP.mjs')
+    component: () => import('./empresas-BLadY5Os.mjs')
   },
   {
     name: "admin-jornadas",
     path: "/admin/jornadas",
     meta: { "middleware": ["auth", "admin"] },
-    component: () => import('./jornadas-DC3Q2EOM.mjs')
+    component: () => import('./jornadas-DRvczXH_.mjs')
   },
   {
     name: "admin-holerites",
     path: "/admin/holerites",
     meta: { ...__nuxt_page_meta || {}, ...{ "middleware": "auth" } },
-    component: () => import('./holerites-CMROI_cU.mjs')
+    component: () => import('./holerites-BztWzTbT.mjs')
   },
   {
     name: "admin-funcionarios",
     path: "/admin/funcionarios",
     meta: { "middleware": ["auth", "admin"] },
-    component: () => import('./funcionarios-Bk9-GFhx.mjs')
+    component: () => import('./funcionarios-jNGLzgEn.mjs')
   },
   {
     name: "admin-departamentos",
     path: "/admin/departamentos",
     meta: { "middleware": ["auth", "admin"] },
-    component: () => import('./departamentos-C909vuZK.mjs')
+    component: () => import('./departamentos-Cq7NYvfm.mjs')
   }
 ];
 const _wrapInTransition = (props, children) => {
@@ -654,8 +576,8 @@ const globalMiddleware = [
   manifest_45route_45rule
 ];
 const namedMiddleware = {
-  admin: () => import('./admin-DGlB3qYO.mjs'),
-  auth: () => import('./auth-Dz3gxNrH.mjs')
+  admin: () => import('./admin-DhGiD5Ok.mjs'),
+  auth: () => import('./auth-CudmmCPj.mjs')
 };
 const plugin = /* @__PURE__ */ defineNuxtPlugin({
   name: "nuxt:router",
@@ -922,6 +844,32 @@ const serverSupabaseSession = async (event) => {
   delete session?.user;
   return session;
 };
+const useStateKeyPrefix = "$s";
+function useState(...args) {
+  const autoKey = typeof args[args.length - 1] === "string" ? args.pop() : void 0;
+  if (typeof args[0] !== "string") {
+    args.unshift(autoKey);
+  }
+  const [_key, init] = args;
+  if (!_key || typeof _key !== "string") {
+    throw new TypeError("[nuxt] [useState] key must be a string: " + _key);
+  }
+  if (init !== void 0 && typeof init !== "function") {
+    throw new Error("[nuxt] [useState] init must be a function: " + init);
+  }
+  const key = useStateKeyPrefix + _key;
+  const nuxtApp = useNuxtApp();
+  const state = toRef(nuxtApp.payload.state, key);
+  if (state.value === void 0 && init) {
+    const initialValue = init();
+    if (isRef(initialValue)) {
+      nuxtApp.payload.state[key] = initialValue;
+      return initialValue;
+    }
+    state.value = initialValue;
+  }
+  return state;
+}
 const useSupabaseSession = () => useState("supabase_session", () => null);
 const useSupabaseUser = () => useState("supabase_user", () => null);
 function useRequestEvent(nuxtApp) {
@@ -1006,7 +954,7 @@ const ServerPlaceholder = defineComponent({
   }
 });
 const layouts = {
-  default: defineAsyncComponent(() => import('./default-D5jDH-eY.mjs').then((m) => m.default || m))
+  default: defineAsyncComponent(() => import('./default-BkCi9lIN.mjs').then((m) => m.default || m))
 };
 const LayoutLoader = defineComponent({
   name: "LayoutLoader",
@@ -1267,7 +1215,7 @@ const _sfc_main$1 = {
     const statusMessage = _error.statusMessage ?? (is404 ? "Page Not Found" : "Internal Server Error");
     const description = _error.message || _error.toString();
     const stack = void 0;
-    const _Error404 = defineAsyncComponent(() => import('./error-404-BwrDF8bo.mjs'));
+    const _Error404 = defineAsyncComponent(() => import('./error-404-eKQ-7dIt.mjs'));
     const _Error = defineAsyncComponent(() => import('./error-500-WVnta9-Y.mjs'));
     const ErrorTemplate = is404 ? _Error404 : _Error;
     return (_ctx, _push, _parent, _attrs) => {
@@ -1349,5 +1297,5 @@ let entry;
 }
 const entry_default = (ssrContext) => entry(ssrContext);
 
-export { _export_sfc as _, useAuth as a, asyncDataDefaults as b, createError as c, useRequestFetch as d, entry_default as default, defineNuxtRouteMiddleware as e, fetchDefaults as f, useRouter as g, useRuntimeConfig as h, nuxtLinkDefaults as i, navigateTo as n, resolveRouteObject as r, useNuxtApp as u };
+export { _export_sfc as _, asyncDataDefaults as a, useRequestFetch as b, createError as c, defineNuxtRouteMiddleware as d, entry_default as default, useRouter as e, fetchDefaults as f, useRuntimeConfig as g, nuxtLinkDefaults as h, useState as i, navigateTo as n, resolveRouteObject as r, useNuxtApp as u };
 //# sourceMappingURL=server.mjs.map

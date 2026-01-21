@@ -15,36 +15,47 @@ import '@supabase/auth-js';
 
 const aniversariantes_get = defineEventHandler(async (event) => {
   try {
+    console.log("[ANIVERSARIANTES] Iniciando busca...");
     const supabase = serverSupabaseServiceRole(event);
-    const { data: funcionarios, error } = await supabase.from("funcionarios").select(`
+    console.log("[ANIVERSARIANTES] Cliente Supabase criado");
+    const hoje = /* @__PURE__ */ new Date();
+    const mesAtual = hoje.getMonth() + 1;
+    console.log("[ANIVERSARIANTES] Buscando aniversariantes do m\xEAs:", mesAtual);
+    const { data: aniversariantes, error } = await supabase.from("funcionarios").select(`
         id,
         nome_completo,
         data_nascimento,
-        cargo:cargos(nome),
-        departamento:departamentos(nome)
-      `).not("data_nascimento", "is", null);
-    if (error) throw error;
-    const mesAtual = (/* @__PURE__ */ new Date()).getMonth() + 1;
-    const aniversariantes = (funcionarios == null ? void 0 : funcionarios.filter((f) => {
-      const mesNascimento = new Date(f.data_nascimento).getMonth() + 1;
+        avatar
+      `).eq("status", "ativo").not("data_nascimento", "is", null);
+    if (error) {
+      console.error("[ANIVERSARIANTES] Erro na query:", error);
+      throw error;
+    }
+    console.log("[ANIVERSARIANTES] Funcion\xE1rios encontrados:", (aniversariantes == null ? void 0 : aniversariantes.length) || 0);
+    const aniversariantesMes = (aniversariantes == null ? void 0 : aniversariantes.filter((funcionario) => {
+      if (!funcionario.data_nascimento) return false;
+      const dataNascimento = new Date(funcionario.data_nascimento);
+      const mesNascimento = dataNascimento.getMonth() + 1;
       return mesNascimento === mesAtual;
-    }).map((f) => {
-      var _a, _b;
-      return {
-        id: f.id,
-        nome_completo: f.nome_completo,
-        data_nascimento: f.data_nascimento,
-        cargo: ((_a = f.cargo) == null ? void 0 : _a.nome) || "N\xE3o definido",
-        departamento: ((_b = f.departamento) == null ? void 0 : _b.nome) || "N\xE3o definido",
-        dia: new Date(f.data_nascimento).getDate()
-      };
-    }).sort((a, b) => a.dia - b.dia)) || [];
-    return aniversariantes;
+    })) || [];
+    console.log("[ANIVERSARIANTES] Aniversariantes do m\xEAs:", aniversariantesMes.length);
+    aniversariantesMes.sort((a, b) => {
+      const diaA = new Date(a.data_nascimento).getDate();
+      const diaB = new Date(b.data_nascimento).getDate();
+      return diaA - diaB;
+    });
+    return aniversariantesMes;
   } catch (error) {
-    console.error("Erro ao buscar aniversariantes:", error);
+    console.error("[ANIVERSARIANTES] Erro completo:", {
+      message: error.message,
+      stack: error.stack,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     throw createError({
       statusCode: 500,
-      message: "Erro ao buscar aniversariantes"
+      statusMessage: `Erro ao buscar aniversariantes: ${error.message}`
     });
   }
 });

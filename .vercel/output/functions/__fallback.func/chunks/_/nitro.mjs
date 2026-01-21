@@ -974,6 +974,7 @@ function getRequestHeaders(event) {
   }
   return _headers;
 }
+const getHeaders = getRequestHeaders;
 function getRequestHeader(event, name) {
   const headers = getRequestHeaders(event);
   const value = headers[name.toLowerCase()];
@@ -4257,7 +4258,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "9533d897-4307-4246-a6de-0637a7a6c2c0",
+    "buildId": "af0972f1-7ccd-4188-b86a-f73343a9d697",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -4740,6 +4741,7 @@ const _lazy_YJnlrW = () => import('../routes/api/index.get4.mjs');
 const _lazy_BNbVdO = () => import('../routes/api/index.post3.mjs');
 const _lazy_85ihcD = () => import('../routes/api/funcionarios/meus-dados.get.mjs');
 const _lazy_3iq7En = () => import('../routes/api/funcionarios/meus-dados.patch.mjs');
+const _lazy_fhY_Rl = () => import('../routes/api/health.get.mjs');
 const _lazy_Ckfv8x = () => import('../routes/api/holerites/_id_.delete.mjs');
 const _lazy_CjcncK = () => import('../routes/api/holerites/_id_.patch.mjs');
 const _lazy_XbT4vE = () => import('../routes/api/holerites/_id/enviar-email.post.mjs');
@@ -4780,6 +4782,7 @@ const handlers = [
   { route: '/api/funcionarios', handler: _lazy_BNbVdO, lazy: true, middleware: false, method: "post" },
   { route: '/api/funcionarios/meus-dados', handler: _lazy_85ihcD, lazy: true, middleware: false, method: "get" },
   { route: '/api/funcionarios/meus-dados', handler: _lazy_3iq7En, lazy: true, middleware: false, method: "patch" },
+  { route: '/api/health', handler: _lazy_fhY_Rl, lazy: true, middleware: false, method: "get" },
   { route: '/api/holerites/:id', handler: _lazy_Ckfv8x, lazy: true, middleware: false, method: "delete" },
   { route: '/api/holerites/:id', handler: _lazy_CjcncK, lazy: true, middleware: false, method: "patch" },
   { route: '/api/holerites/:id/enviar-email', handler: _lazy_XbT4vE, lazy: true, middleware: false, method: "post" },
@@ -4980,5 +4983,5 @@ function defineRenderHandler(render) {
   });
 }
 
-export { $fetch as $, getContext as A, createHooks as B, executeAsync as C, toRouteMatcher as D, createRouter$1 as E, defu as F, withTrailingSlash as G, withoutTrailingSlash as H, hash$1 as I, useRuntimeConfig as a, getRequestURL as b, createError$1 as c, defineEventHandler as d, getRouterParam as e, getHeader as f, getRouteRulesForPath as g, getQuery as h, setHeader as i, setResponseHeader as j, joinRelativeURL as k, getResponseStatusText as l, getResponseStatus as m, defineRenderHandler as n, destr as o, parseQuery as p, getRouteRules as q, readBody as r, setCookie as s, toNodeListener as t, useNitroApp as u, hasProtocol as v, withQuery as w, isScriptProtocol as x, joinURL as y, sanitizeStatusCode as z };
+export { $fetch as $, sanitizeStatusCode as A, getContext as B, createHooks as C, executeAsync as D, toRouteMatcher as E, createRouter$1 as F, defu as G, withTrailingSlash as H, withoutTrailingSlash as I, hash$1 as J, useRuntimeConfig as a, getRequestURL as b, createError$1 as c, defineEventHandler as d, getRouterParam as e, getHeader as f, getRouteRulesForPath as g, getQuery as h, setHeader as i, setResponseHeader as j, getHeaders as k, joinRelativeURL as l, getResponseStatusText as m, getResponseStatus as n, defineRenderHandler as o, parseQuery as p, destr as q, readBody as r, setCookie as s, toNodeListener as t, useNitroApp as u, getRouteRules as v, withQuery as w, hasProtocol as x, isScriptProtocol as y, joinURL as z };
 //# sourceMappingURL=nitro.mjs.map

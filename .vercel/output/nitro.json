@@ -1,5 +1,5 @@
 {
-  "date": "2026-01-21T02:26:21.678Z",
+  "date": "2026-01-21T16:23:00.726Z",
   "preset": "vercel",
   "framework": {
     "name": "nuxt",
@@ -14,10 +14,7 @@
   },
   "config": {
     "vercel": {
-      "skewProtection": false,
-      "functions": {
-        "maxDuration": 30
-      }
+      "skewProtection": false
     }
   }
 }

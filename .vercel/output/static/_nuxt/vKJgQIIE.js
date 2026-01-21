@@ -1,1 +1,0 @@
-import{a3 as u,f as i,n as a}from"./D_68Zcu-.js";const r=u(e=>{const{isAuthenticated:t}=i();if(e.path==="/login")return t.value?a("/dashboard"):void 0;if(!t.value)return a("/login")});export{r as default};
