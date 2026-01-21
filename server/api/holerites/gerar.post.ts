@@ -1,6 +1,108 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 
 // ========================================
+// FUNÇÕES AUXILIARES PARA CÁLCULO DE DATAS
+// ========================================
+
+/**
+ * Calcula o 5º dia útil do mês
+ */
+function calcular5oDiaUtil(ano: number, mes: number): Date {
+  let diasUteis = 0
+  let data = new Date(ano, mes - 1, 1) // Primeiro dia do mês
+  
+  while (diasUteis < 5) {
+    const diaSemana = data.getDay()
+    
+    // Se for dia útil (segunda=1 a sexta=5)
+    if (diaSemana >= 1 && diaSemana <= 5) {
+      diasUteis++
+    }
+    
+    // Se ainda não chegou no 5º dia útil, avança para o próximo dia
+    if (diasUteis < 5) {
+      data.setDate(data.getDate() + 1)
+    }
+  }
+  
+  return data
+}
+
+/**
+ * Calcula as datas corretas para geração de holerites baseado na data atual
+ */
+function calcularDatasHolerite(tipo: 'adiantamento' | 'mensal') {
+  const hoje = new Date()
+  const diaAtual = hoje.getDate()
+  const mesAtual = hoje.getMonth() + 1
+  const anoAtual = hoje.getFullYear()
+  
+  if (tipo === 'adiantamento') {
+    // REGRA: Adiantamento salarial é do dia 15 ao último dia do mês vigente
+    // Data de pagamento: dia 20 do mês vigente
+    
+    if (diaAtual >= 15) {
+      // Gerar adiantamento do mês atual (15 ao último dia)
+      const periodoInicio = new Date(anoAtual, mesAtual - 1, 15)
+      const ultimoDiaMes = new Date(anoAtual, mesAtual, 0).getDate()
+      const periodoFim = new Date(anoAtual, mesAtual - 1, ultimoDiaMes)
+      const dataPagamento = new Date(anoAtual, mesAtual - 1, 20)
+      
+      return {
+        periodo_inicio: periodoInicio.toISOString().split('T')[0],
+        periodo_fim: periodoFim.toISOString().split('T')[0],
+        data_pagamento: dataPagamento.toISOString().split('T')[0],
+        mes_referencia: `${anoAtual}-${String(mesAtual).padStart(2, '0')}`
+      }
+    } else {
+      // Antes do dia 15, gerar adiantamento do mês anterior (15 ao último dia)
+      const mesAnterior = mesAtual === 1 ? 12 : mesAtual - 1
+      const anoAnterior = mesAtual === 1 ? anoAtual - 1 : anoAtual
+      
+      const periodoInicio = new Date(anoAnterior, mesAnterior - 1, 15)
+      const ultimoDiaMes = new Date(anoAnterior, mesAnterior, 0).getDate()
+      const periodoFim = new Date(anoAnterior, mesAnterior - 1, ultimoDiaMes)
+      const dataPagamento = new Date(anoAnterior, mesAnterior - 1, 20)
+      
+      return {
+        periodo_inicio: periodoInicio.toISOString().split('T')[0],
+        periodo_fim: periodoFim.toISOString().split('T')[0],
+        data_pagamento: dataPagamento.toISOString().split('T')[0],
+        mes_referencia: `${anoAnterior}-${String(mesAnterior).padStart(2, '0')}`
+      }
+    }
+  } else {
+    // REGRA: Folha mensal sempre do mês vigente (atual)
+    // Data de pagamento: 5º dia útil do mês seguinte
+    
+    // Sempre gerar folha mensal do mês atual
+    const periodoInicio = new Date(anoAtual, mesAtual - 1, 1)
+    const ultimoDiaMes = new Date(anoAtual, mesAtual, 0).getDate()
+    const periodoFim = new Date(anoAtual, mesAtual - 1, ultimoDiaMes)
+    
+    // Data de pagamento: 5º dia útil do mês seguinte
+    const proximoMes = mesAtual === 12 ? 1 : mesAtual + 1
+    const proximoAno = mesAtual === 12 ? anoAtual + 1 : anoAtual
+    const dataPagamento = calcular5oDiaUtil(proximoAno, proximoMes)
+    
+    // Log detalhado para debug
+    console.log(`📅 FOLHA MENSAL - Cálculo de Datas:`)
+    console.log(`   Data Atual: ${hoje.toISOString().split('T')[0]}`)
+    console.log(`   Mês Atual: ${mesAtual}/${anoAtual}`)
+    console.log(`   Período: ${periodoInicio.toISOString().split('T')[0]} a ${periodoFim.toISOString().split('T')[0]}`)
+    console.log(`   Mês Referência: ${anoAtual}-${String(mesAtual).padStart(2, '0')}`)
+    console.log(`   ✅ Competência: ${mesAtual}/${anoAtual} (MÊS VIGENTE)`)
+    
+    return {
+      periodo_inicio: periodoInicio.toISOString().split('T')[0],
+      periodo_fim: periodoFim.toISOString().split('T')[0],
+      data_pagamento: dataPagamento.toISOString().split('T')[0],
+      mes_referencia: `${anoAtual}-${String(mesAtual).padStart(2, '0')}`
+    }
+  }
+}
+
+// ========================================
 // FUNÇÕES AUXILIARES PARA CÁLCULO DE IRRF
 // Lei 15.270/2025 - Tabelas Oficiais 2026
 // ========================================
@@ -135,15 +237,28 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     
     const { 
-      periodo_inicio, 
-      periodo_fim, 
       funcionario_ids,
       tipo = 'mensal',
-      recriar = false
+      recriar = false,
+      // Permitir override manual das datas (opcional)
+      periodo_inicio_manual,
+      periodo_fim_manual,
+      data_pagamento_manual
     } = body
 
     console.log(`🎯 Tipo de geração: ${tipo}`)
-    console.log(`📅 Período: ${periodo_inicio} a ${periodo_fim}`)
+    
+    // Calcular datas automaticamente baseado na data atual e tipo
+    const datasCalculadas = calcularDatasHolerite(tipo)
+    
+    // Usar datas manuais se fornecidas, senão usar as calculadas
+    const periodo_inicio = periodo_inicio_manual || datasCalculadas.periodo_inicio
+    const periodo_fim = periodo_fim_manual || datasCalculadas.periodo_fim
+    const data_pagamento = data_pagamento_manual || datasCalculadas.data_pagamento
+
+    console.log(`📅 Período calculado: ${periodo_inicio} a ${periodo_fim}`)
+    console.log(`💰 Data de pagamento: ${data_pagamento}`)
+    console.log(`📊 Mês de referência: ${datasCalculadas.mes_referencia}`)
 
     // Buscar funcionários ativos
     let query = supabase
@@ -168,10 +283,6 @@ export default defineEventHandler(async (event) => {
 
     console.log('👥 Funcionários encontrados:', funcionarios.length)
 
-    const hoje = new Date()
-    const inicio = periodo_inicio || `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`
-    const fim = periodo_fim || `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-15`
-
     const holeritesCriados = []
     const erros = []
 
@@ -184,8 +295,8 @@ export default defineEventHandler(async (event) => {
           .from('holerites')
           .select('id')
           .eq('funcionario_id', (func as any).id)
-          .eq('periodo_inicio', inicio)
-          .eq('periodo_fim', fim)
+          .eq('periodo_inicio', periodo_inicio)
+          .eq('periodo_fim', periodo_fim)
           .maybeSingle()
 
         if (existente && !recriar) {
@@ -218,9 +329,9 @@ export default defineEventHandler(async (event) => {
           
           const dadosAdiantamento = {
             funcionario_id: (func as any).id,
-            periodo_inicio: inicio,
-            periodo_fim: fim,
-            data_pagamento: fim,
+            periodo_inicio: periodo_inicio,
+            periodo_fim: periodo_fim,
+            data_pagamento: data_pagamento,
             salario_base: valorAdiantamento,
             
             // Todos os outros campos zerados
@@ -282,13 +393,13 @@ export default defineEventHandler(async (event) => {
           // ========================================
           
           // Buscar adiantamentos do mês atual
-          const mesAno = inicio.substring(0, 7)
+          const mesAno = datasCalculadas.mes_referencia
           const { data: adiantamentos } = await supabase
             .from('holerites')
-            .select('salario_base, observacoes')
+            .select('salario_base, observacoes, periodo_inicio')
             .eq('funcionario_id', (func as any).id)
-            .gte('periodo_inicio', mesAno + '-01')
-            .lt('periodo_fim', mesAno + '-16')
+            .gte('periodo_inicio', mesAno + '-15') // Adiantamentos começam no dia 15
+            .lte('periodo_inicio', mesAno + '-15') // Apenas adiantamentos que começam no dia 15
           
           let totalAdiantamentos = 0
           if (adiantamentos && adiantamentos.length > 0) {
@@ -416,9 +527,9 @@ export default defineEventHandler(async (event) => {
           
           const dadosMensal = {
             funcionario_id: (func as any).id,
-            periodo_inicio: inicio,
-            periodo_fim: fim,
-            data_pagamento: fim,
+            periodo_inicio: periodo_inicio,
+            periodo_fim: periodo_fim,
+            data_pagamento: data_pagamento,
             salario_base: salarioBase,
             
             bonus: 0,

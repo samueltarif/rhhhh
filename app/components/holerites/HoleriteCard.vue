@@ -212,6 +212,16 @@ const getStatusIcon = (status?: string): string => {
 
 // Função para determinar se é adiantamento ou folha mensal
 const isAdiantamento = computed(() => {
+  // Verifica se é quinzena 1 ou se o período vai do dia 15 ao último dia do mês
+  if (props.holerite?.quinzena === 1) return true
+  
+  if (props.holerite?.periodoInicio && props.holerite?.periodoFim) {
+    const inicio = new Date(props.holerite.periodoInicio)
+    const fim = new Date(props.holerite.periodoFim)
+    // Adiantamento: período do dia 15 ao último dia do mês
+    return inicio.getDate() === 15 && fim.getDate() >= 28
+  }
+  
   return props.holerite?.quinzena === 1 || 
          props.holerite?.tipo?.toLowerCase().includes('adiantamento') ||
          props.holerite?.referencia?.toLowerCase().includes('adiantamento')

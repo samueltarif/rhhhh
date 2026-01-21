@@ -1,10 +1,24 @@
 export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any): string {
   // Formatar datas
-  const periodoInicio = new Date(holerite.periodo_inicio)
-  const periodoFim = new Date(holerite.periodo_fim)
+  const periodoInicio = new Date(holerite.periodo_inicio + 'T00:00:00')
+  const periodoFim = new Date(holerite.periodo_fim + 'T00:00:00')
+  
+  // IMPORTANTE: Usar periodo_inicio para extrair o mês de referência
+  // O periodo_inicio sempre reflete o primeiro dia do mês da competência
   const mesAno = periodoInicio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  
+  // Log para debug
+  console.log(`📄 Gerando HTML do Holerite:`)
+  console.log(`   Período Início: ${holerite.periodo_inicio}`)
+  console.log(`   Período Fim: ${holerite.periodo_fim}`)
+  console.log(`   Mês/Ano Exibido: ${mesAno}`)
+  console.log(`   Funcionário: ${funcionario.nome_completo}`)
+  console.log(`   Funcionário ID: ${funcionario.id}`)
+  console.log(`   Cargo: ${funcionario.cargo_nome}`)
+  console.log(`   Departamento: ${funcionario.departamento_nome}`)
+  
   const dataAdmissao = funcionario.data_admissao 
-    ? new Date(funcionario.data_admissao).toLocaleDateString('pt-BR')
+    ? new Date(funcionario.data_admissao + 'T00:00:00').toLocaleDateString('pt-BR')
     : 'Não informada'
   
   // Número de dependentes
@@ -15,17 +29,37 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
   const diaFim = periodoFim.getDate()
   let tipoFolha = 'Folha Mensal'
   let isAdiantamento = false
+  let isFolhaMensal = true // Apenas folha mensal completa mostra bases de cálculo
   let corTema = '#2563eb' // Azul para folha mensal
   let corFundo = '#eff6ff' // Azul claro para folha mensal
   
-  if (diaInicio === 1 && diaFim <= 15) {
-    tipoFolha = 'Adiantamento Salarial - 1ª Quinzena'
+  // Verificar se é adiantamento baseado no período (dia 15 ao último dia do mês)
+  if (diaInicio === 15) {
+    tipoFolha = 'Adiantamento Salarial'
     isAdiantamento = true
+    isFolhaMensal = false
     corTema = '#ea580c' // Laranja para adiantamento
     corFundo = '#fff7ed' // Laranja claro para adiantamento
   } else if (diaInicio === 16) {
     tipoFolha = 'Folha Quinzenal - 2ª Quinzena'
+    isFolhaMensal = false
   }
+  
+  // Verificar tipo de contrato do funcionário
+  const tipoContrato = funcionario.tipo_contrato || 'CLT'
+  const isPJ = tipoContrato === 'PJ'
+  
+  // PJ e Adiantamento NÃO devem mostrar bases de cálculo
+  const mostrarBasesCalculo = isFolhaMensal && !isPJ && !isAdiantamento
+  
+  // Log para debug
+  console.log(`📄 Tipo de Holerite:`)
+  console.log(`   Tipo Folha: ${tipoFolha}`)
+  console.log(`   É Adiantamento: ${isAdiantamento}`)
+  console.log(`   É Folha Mensal: ${isFolhaMensal}`)
+  console.log(`   Tipo Contrato: ${tipoContrato}`)
+  console.log(`   É PJ: ${isPJ}`)
+  console.log(`   Mostrar Bases de Cálculo: ${mostrarBasesCalculo}`)
   
   // Formatar CNPJ
   const cnpjFormatado = empresa.cnpj?.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') || ''
@@ -585,12 +619,12 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
     <div class="employee-info">
       <div class="info-item">
         <span class="info-label">Código</span>
-        <span class="info-value">${funcionario.id}</span>
+        <span class="info-value">${funcionario.id || 'Não informado'}</span>
       </div>
       <div class="info-item" style="grid-column: span 2;">
         <span class="info-label">Nome do Funcionário</span>
-        <span class="info-value">${funcionario.nome_completo}</span>
-        <span class="info-value">${funcionario.cargo_nome || 'CARGO NÃO DEFINIDO'}</span>
+        <span class="info-value">${funcionario.nome_completo || 'Não informado'}</span>
+        <span class="info-value">${funcionario.cargo_nome || 'Cargo não informado'}</span>
       </div>
       <div class="info-item">
         <span class="info-label">CBO</span>
@@ -598,11 +632,11 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
       </div>
       <div class="info-item">
         <span class="info-label">Departamento</span>
-        <span class="info-value">${funcionario.departamento_nome || 'Comercial'}</span>
+        <span class="info-value">${funcionario.departamento_nome || 'Não informado'}</span>
       </div>
       <div class="info-item">
         <span class="info-label">Mat</span>
-        <span class="info-value">${funcionario.id}</span>
+        <span class="info-value">${funcionario.id || 'Não informado'}</span>
       </div>
       <div class="info-item">
         <span class="info-label">Admissão:</span>
@@ -654,6 +688,7 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
       </div>
     </div>
     
+    ${mostrarBasesCalculo ? `
     <div class="bases-calculo">
       <div class="bases-title">Bases de Cálculo</div>
       <div class="bases-table">
@@ -682,7 +717,7 @@ export function gerarHoleriteHTML(holerite: any, funcionario: any, empresa: any)
           <span class="base-value">${holerite.faixa_irrf || '0,00'}</span>
         </div>
       </div>
-    </div>
+    </div>` : ''}
   </div>
 </body>
 </html>

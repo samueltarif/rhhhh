@@ -200,14 +200,19 @@ const carregarHolerites = async () => {
       const diaInicio = periodoInicio.getDate()
       const diaFim = periodoFim.getDate()
       
-      if (diaInicio === 1 && diaFim <= 15) {
-        tipo = 'Quinzenal'
+      if (diaInicio === 15) {
+        // Adiantamento salarial: período do dia 15 ao último dia do mês
+        tipo = 'Adiantamento'
         quinzena = 1
-        referencia += ' - 1ª Quinzena'
+        referencia = `Adiantamento Salarial ${periodoInicio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`
       } else if (diaInicio === 16) {
         tipo = 'Quinzenal'
         quinzena = 2
         referencia += ' - 2ª Quinzena'
+      } else if (diaInicio === 1 && diaFim <= 15) {
+        tipo = 'Quinzenal'
+        quinzena = 1
+        referencia += ' - 1ª Quinzena'
       }
       
       const holeriteFormatado = {

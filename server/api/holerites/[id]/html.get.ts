@@ -79,25 +79,30 @@ export default defineEventHandler(async (event) => {
 
     // Gerar HTML
     const funcionarioData = {
+      id: funcionario.id,
       nome_completo: funcionario.nome_completo,
       cpf: funcionario.cpf,
-      cargo: cargo?.nome || 'Não informado',
-      departamento: departamento?.nome || 'Não informado',
+      cargo_nome: (cargo as any)?.nome || 'Não informado', // CORRIGIDO: usar cargo_nome
+      departamento_nome: (departamento as any)?.nome || 'Não informado', // CORRIGIDO: usar departamento_nome
       data_admissao: funcionario.data_admissao,
       numero_dependentes: funcionario.numero_dependentes || 0,
-      pensao_alimenticia: funcionario.pensao_alimenticia || 0
+      pensao_alimenticia: funcionario.pensao_alimenticia || 0,
+      tipo_contrato: funcionario.tipo_contrato || 'CLT' // IMPORTANTE: Incluir tipo de contrato
     }
 
     const empresaData = {
-      nome: empresa.nome || empresa.nome_fantasia || 'Empresa',
-      cnpj: empresa.cnpj || '',
-      logradouro: empresa.logradouro || '',
-      numero: empresa.numero || '',
-      complemento: empresa.complemento || '',
-      bairro: empresa.bairro || '',
-      cidade: empresa.cidade || '',
-      estado: empresa.estado || '',
-      cep: empresa.cep || ''
+      nome: (empresa as any).nome || (empresa as any).nome_fantasia || 'Empresa',
+      nome_fantasia: (empresa as any).nome_fantasia || (empresa as any).nome || 'Empresa',
+      cnpj: (empresa as any).cnpj || '',
+      logradouro: (empresa as any).logradouro || '',
+      numero: (empresa as any).numero || '',
+      complemento: (empresa as any).complemento || '',
+      bairro: (empresa as any).bairro || '',
+      cidade: (empresa as any).cidade || '',
+      estado: (empresa as any).estado || '',
+      cep: (empresa as any).cep || '',
+      responsavel_nome: (empresa as any).responsavel_nome || 'SILVANA APARECIDA BARDUCHI',
+      responsavel_cpf: (empresa as any).responsavel_cpf || '04487488869'
     }
 
     const html = gerarHoleriteHTML(holerite, funcionarioData, empresaData)

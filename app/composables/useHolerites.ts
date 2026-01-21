@@ -1,13 +1,14 @@
 export const useHolerites = () => {
   // Função para determinar se um holerite é adiantamento
   const isAdiantamento = (holerite: any): boolean => {
-    // Verifica se é quinzena 1 ou se o período vai do dia 1 ao 15
+    // Verifica se é quinzena 1 ou se o período vai do dia 15 ao último dia do mês
     if (holerite.quinzena === 1) return true
     
     if (holerite.periodo_inicio && holerite.periodo_fim) {
       const inicio = new Date(holerite.periodo_inicio)
       const fim = new Date(holerite.periodo_fim)
-      return inicio.getDate() === 1 && fim.getDate() <= 15
+      // Adiantamento: período do dia 15 ao último dia do mês
+      return inicio.getDate() === 15 && fim.getDate() >= 28
     }
     
     // Verifica pelo tipo ou referência
@@ -178,19 +179,20 @@ export const useHolerites = () => {
     descricao: string
   } => {
     if (quinzena === 1) {
-      // Primeira quinzena: dia 1 ao 15
-      return {
-        inicio: new Date(ano, mes - 1, 1),
-        fim: new Date(ano, mes - 1, 15),
-        descricao: `1ª Quinzena - 01 a 15/${mes.toString().padStart(2, '0')}/${ano}`
-      }
-    } else {
-      // Segunda quinzena: dia 16 ao último dia do mês
+      // Primeira quinzena (Adiantamento): dia 15 ao último dia do mês
       const ultimoDia = new Date(ano, mes, 0).getDate()
       return {
-        inicio: new Date(ano, mes - 1, 16),
+        inicio: new Date(ano, mes - 1, 15),
         fim: new Date(ano, mes - 1, ultimoDia),
-        descricao: `2ª Quinzena - 16 a ${ultimoDia}/${mes.toString().padStart(2, '0')}/${ano}`
+        descricao: `Adiantamento Salarial - 15 a ${ultimoDia}/${mes.toString().padStart(2, '0')}/${ano}`
+      }
+    } else {
+      // Segunda quinzena (Folha Mensal): dia 1 ao último dia do mês
+      const ultimoDia = new Date(ano, mes, 0).getDate()
+      return {
+        inicio: new Date(ano, mes - 1, 1),
+        fim: new Date(ano, mes - 1, ultimoDia),
+        descricao: `Folha Mensal - 01 a ${ultimoDia}/${mes.toString().padStart(2, '0')}/${ano}`
       }
     }
   }

@@ -105,23 +105,38 @@ export default defineEventHandler(async (event) => {
       subject: `Holerite disponível - ${mesAno}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">Holerite Disponível</h2>
-          
-          <p>Olá, <strong>${funcionario.nome_completo}</strong>!</p>
-          
-          <p>Seu holerite referente a <strong>${mesAno} (${tipoHolerite})</strong> está disponível para visualização.</p>
-          
-          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #1f2937;">Resumo do Holerite</h3>
-            <p><strong>Período:</strong> ${periodoInicio.toLocaleDateString('pt-BR')} a ${periodoFim.toLocaleDateString('pt-BR')}</p>
-            <p><strong>Salário Base:</strong> ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(holerite.salario_base || 0)}</p>
-            <p><strong>Salário Líquido:</strong> ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(holerite.salario_liquido || 0)}</p>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="margin: 0;">📄 Holerite Disponível</h1>
           </div>
           
-          <p>Acesse o sistema para visualizar os detalhes completos e fazer o download do PDF.</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px;">
-            <p>Este é um email automático. Por favor, não responda.</p>
+          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p>Olá, <strong>${funcionario.nome_completo}</strong>!</p>
+            
+            <p>Seu holerite referente a <strong>${mesAno} (${tipoHolerite})</strong> está disponível para visualização no Sistema RH.</p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+              <h3 style="margin-top: 0; color: #1f2937;">📊 Resumo do Holerite</h3>
+              <p><strong>Período:</strong> ${periodoInicio.toLocaleDateString('pt-BR')} a ${periodoFim.toLocaleDateString('pt-BR')}</p>
+              <p><strong>Salário Base:</strong> ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(holerite.salario_base || 0)}</p>
+              <p><strong>Salário Líquido:</strong> ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(holerite.salario_liquido || 0)}</p>
+            </div>
+            
+            <p>Acesse o sistema para visualizar os detalhes completos e fazer o download do PDF:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://rhqualitec.vercel.app/login" style="display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                🔐 Acessar Sistema RH
+              </a>
+            </div>
+            
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
+              <strong>💡 Dica:</strong> Você pode visualizar e baixar todos os seus holerites na seção "Meus Holerites" do sistema.
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px; text-align: center;">
+              <p><strong>Qualitec Instrumentos de Medição</strong></p>
+              <p>Este é um email automático. Por favor, não responda.</p>
+            </div>
           </div>
         </div>
       `

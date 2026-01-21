@@ -210,7 +210,8 @@
           <p class="text-sm text-blue-800">
             <strong>💰 Adiantamento Salarial (40%):</strong><br>
             • Gerar adiantamento de 40% do salário base<br>
-            • Período: Primeira quinzena do mês atual<br>
+            • <strong>Data automática:</strong> Entre dia 15 e último dia do mês → gera adiantamento do mês vigente<br>
+            • <strong>Pagamento:</strong> Dia 20 do mês vigente<br>
             • O valor será descontado automaticamente na folha mensal<br>
             • Sem cálculo de INSS e IRRF (apenas adiantamento)
           </p>
@@ -221,7 +222,8 @@
           <p class="text-sm text-blue-800">
             <strong>📄 Folha de Pagamento Mensal:</strong><br>
             • Gerar holerites completos para todos os funcionários ativos<br>
-            • Período: Mês completo<br>
+            • <strong>Data automática:</strong> Entre dia 01 e 25 do mês → gera folha do mês vigente<br>
+            • <strong>Pagamento:</strong> 5º dia útil do mês vigente<br>
             • Cálculos automáticos de INSS, IRRF e descontos<br>
             • Desconto automático de adiantamentos já pagos
           </p>
@@ -701,31 +703,13 @@ const carregarHolerites = async () => {
 const gerarHoleritesAutomaticos = async () => {
   loading.value = true
   try {
-    const hoje = new Date()
-    const ano = hoje.getFullYear()
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0')
-    
-    let periodo_inicio, periodo_fim
-    
-    if (tipoGeracao.value === 'adiantamento') {
-      // Adiantamento: primeira quinzena
-      periodo_inicio = `${ano}-${mes}-01`
-      periodo_fim = `${ano}-${mes}-15`
-    } else {
-      // Folha mensal: mês completo
-      periodo_inicio = `${ano}-${mes}-01`
-      const ultimoDia = new Date(ano, hoje.getMonth() + 1, 0).getDate()
-      periodo_fim = `${ano}-${mes}-${String(ultimoDia).padStart(2, '0')}`
-    }
-    
-    // Chamar API para gerar holerites
+    // Chamar API para gerar holerites com datas automáticas
     const resultado: any = await $fetch('/api/holerites/gerar', {
       method: 'POST',
       body: {
-        periodo_inicio,
-        periodo_fim,
         tipo: tipoGeracao.value,
         recriar: opcoesGeracao.value.recriar
+        // Não enviamos datas manuais, deixamos a API calcular automaticamente
       }
     })
     

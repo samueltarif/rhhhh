@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
     const funcionario = funcionarios[0]
     
     // Buscar cargo (se existir)
-    let cargoNome = 'Não definido'
+    let cargoNome = 'Não informado' // CORRIGIDO: mensagem mais amigável
     if (funcionario.cargo_id) {
       const cargoResponse = await fetch(
         `${supabaseUrl}/rest/v1/cargos?id=eq.${funcionario.cargo_id}&select=nome`,
@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
     }
     
     // Buscar departamento (se existir)
-    let departamentoNome = 'Não definido'
+    let departamentoNome = 'Não informado' // CORRIGIDO: mensagem mais amigável
     if (funcionario.departamento_id) {
       const deptResponse = await fetch(
         `${supabaseUrl}/rest/v1/departamentos?id=eq.${funcionario.departamento_id}&select=nome`,

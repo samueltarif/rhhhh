@@ -8,7 +8,9 @@ Sistema que permite gerar adiantamentos salariais de 40% do salário base, que s
 
 ### 1. Geração de Adiantamento (40%)
 
-**Quando:** Primeira quinzena do mês (geralmente dia 15)
+**Quando:** Segunda quinzena do mês (período de 15 ao último dia do mês)
+
+**Período de Referência:** Do dia 15 ao último dia do mês vigente
 
 **Cálculo:**
 ```
@@ -20,12 +22,14 @@ Adiantamento = Salário Base × 40%
 - ✅ Sem desconto de IRRF
 - ✅ Sem benefícios ou descontos personalizados
 - ✅ Valor líquido = 40% do salário base
+- ✅ Período: 15/MM/AAAA até último dia do mês
 
 **Exemplo:**
 ```
 Salário Base: R$ 5.000,00
 Adiantamento: R$ 5.000,00 × 40% = R$ 2.000,00
 Valor a Receber: R$ 2.000,00
+Período: 15/01/2026 a 31/01/2026
 ```
 
 ### 2. Folha de Pagamento Mensal
@@ -102,7 +106,7 @@ Dia 30 do mês:
         ADIANTAMENTO SALARIAL
 ═══════════════════════════════════════
 Funcionário: João Silva
-Período: 01/01/2026 a 15/01/2026
+Período: 15/01/2026 a 31/01/2026
 
 PROVENTOS
 Adiantamento (40%)      R$ 2.000,00
@@ -167,19 +171,19 @@ Observação: Desconto de adiantamento: R$ 2.000,00
 
 Quando gera folha mensal, o sistema:
 
-1. Busca adiantamentos do mês atual
+1. Busca adiantamentos do mês atual (período que inicia no dia 15)
 2. Soma todos os valores de adiantamento
 3. Adiciona ao campo `adiantamento` do holerite
 4. Inclui no total de descontos
 
 ```typescript
-// Buscar adiantamentos já pagos
+// Buscar adiantamentos já pagos (período 15 ao último dia)
 const { data: adiantamentos } = await supabase
   .from('holerites')
   .select('salario_base, adiantamento')
   .eq('funcionario_id', funcionarioId)
-  .gte('periodo_inicio', '2026-01-01')
-  .lt('periodo_inicio', '2026-01-16')
+  .gte('periodo_inicio', '2026-01-15')
+  .lt('periodo_fim', '2026-02-01')
 
 // Somar adiantamentos
 const adiantamentoValor = adiantamentos.reduce((sum, h) => 
@@ -209,7 +213,7 @@ totalDescontos = inss + irrf + outros + adiantamentoValor
 
 ### Adiantamento não foi descontado
 **Causa:** Adiantamento foi gerado com período errado  
-**Solução:** Verificar se `periodo_fim` é até dia 15
+**Solução:** Verificar se `periodo_inicio` é dia 15 e `periodo_fim` é último dia do mês
 
 ### Desconto duplicado
 **Causa:** Adiantamento gerado duas vezes  
@@ -218,6 +222,10 @@ totalDescontos = inss + irrf + outros + adiantamentoValor
 ### Valor errado
 **Causa:** Salário base foi alterado após gerar adiantamento  
 **Solução:** Recriar adiantamento com novo salário
+
+### Período de referência incorreto
+**Causa:** Sistema estava gerando período de 01 a 15 em vez de 15 ao último dia  
+**Solução:** Corrigido - agora gera período correto de 15 ao último dia do mês
 
 ---
 
