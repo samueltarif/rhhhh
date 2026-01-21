@@ -5,25 +5,14 @@ export default defineNuxtConfig({
   
   nitro: {
     preset: 'vercel',
-    // Configurações específicas para resolver problemas SSR no Vercel
-    experimental: {
-      wasm: false
-    },
-    // Forçar bundling de dependências problemáticas
-    bundledStorage: ['redis'],
-    // Garantir que vue-bundle-renderer seja incluído
-    externals: {
-      inline: ['vue-bundle-renderer', '@vue/shared', '@vue/server-renderer']
-    },
-    // CRÍTICO: Garantir que todos os chunks sejam incluídos no Vercel
+    // SOLUÇÃO DEFINITIVA: Forçar bundle único sem chunks
     rollupConfig: {
-      external: [],
       output: {
-        manualChunks: undefined,  // Evita chunking que pode causar problemas no Vercel
-        inlineDynamicImports: true  // SOLUÇÃO: Força bundling inline para evitar imports relativos
+        manualChunks: () => 'index',  // Força TUDO em um único chunk
+        inlineDynamicImports: true    // Inline todos os imports dinâmicos
       }
     },
-    // Configuração específica para Vercel incluir todos os chunks
+    // Configuração específica para Vercel
     vercel: {
       functions: {
         maxDuration: 30

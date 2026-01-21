@@ -2919,17 +2919,17 @@ function prefixStorage(storage, base) {
   };
   return nsStorage;
 }
-function normalizeKey$3(key) {
+function normalizeKey$2(key) {
   if (!key) {
     return "";
   }
   return key.split("?")[0]?.replace(/[/\\]/g, ":").replace(/:+/g, ":").replace(/^:|:$/g, "") || "";
 }
 function joinKeys(...keys) {
-  return normalizeKey$3(keys.join(":"));
+  return normalizeKey$2(keys.join(":"));
 }
 function normalizeBaseKey(base) {
-  base = normalizeKey$3(base);
+  base = normalizeKey$2(base);
   return base ? base + ":" : "";
 }
 function filterKeyByDepth(key, depth) {
@@ -2955,11 +2955,11 @@ function defineDriver$1(factory) {
   return factory;
 }
 
-const DRIVER_NAME$3 = "memory";
-const memory$1 = defineDriver$1(() => {
+const DRIVER_NAME$1 = "memory";
+const memory = defineDriver$1(() => {
   const data = /* @__PURE__ */ new Map();
   return {
-    name: DRIVER_NAME$3,
+    name: DRIVER_NAME$1,
     getInstance: () => data,
     hasItem(key) {
       return data.has(key);
@@ -2993,7 +2993,7 @@ const memory$1 = defineDriver$1(() => {
 
 function createStorage(options = {}) {
   const context = {
-    mounts: { "": options.driver || memory$1() },
+    mounts: { "": options.driver || memory() },
     mountpoints: [""],
     watching: false,
     watchListeners: [],
@@ -3028,7 +3028,7 @@ function createStorage(options = {}) {
     if (!context.watching) {
       return;
     }
-    key = normalizeKey$3(key);
+    key = normalizeKey$2(key);
     for (const listener of context.watchListeners) {
       listener(event, key);
     }
@@ -3072,7 +3072,7 @@ function createStorage(options = {}) {
     };
     for (const item of items) {
       const isStringItem = typeof item === "string";
-      const key = normalizeKey$3(isStringItem ? item : item.key);
+      const key = normalizeKey$2(isStringItem ? item : item.key);
       const value = isStringItem ? void 0 : item.value;
       const options2 = isStringItem || !item.options ? commonOptions : { ...commonOptions, ...item.options };
       const mount = getMount(key);
@@ -3090,12 +3090,12 @@ function createStorage(options = {}) {
   const storage = {
     // Item
     hasItem(key, opts = {}) {
-      key = normalizeKey$3(key);
+      key = normalizeKey$2(key);
       const { relativeKey, driver } = getMount(key);
       return asyncCall(driver.hasItem, relativeKey, opts);
     },
     getItem(key, opts = {}) {
-      key = normalizeKey$3(key);
+      key = normalizeKey$2(key);
       const { relativeKey, driver } = getMount(key);
       return asyncCall(driver.getItem, relativeKey, opts).then(
         (value) => destr(value)
@@ -3133,7 +3133,7 @@ function createStorage(options = {}) {
       });
     },
     getItemRaw(key, opts = {}) {
-      key = normalizeKey$3(key);
+      key = normalizeKey$2(key);
       const { relativeKey, driver } = getMount(key);
       if (driver.getItemRaw) {
         return asyncCall(driver.getItemRaw, relativeKey, opts);
@@ -3146,7 +3146,7 @@ function createStorage(options = {}) {
       if (value === void 0) {
         return storage.removeItem(key);
       }
-      key = normalizeKey$3(key);
+      key = normalizeKey$2(key);
       const { relativeKey, driver } = getMount(key);
       if (!driver.setItem) {
         return;
@@ -3188,7 +3188,7 @@ function createStorage(options = {}) {
       if (value === void 0) {
         return storage.removeItem(key, opts);
       }
-      key = normalizeKey$3(key);
+      key = normalizeKey$2(key);
       const { relativeKey, driver } = getMount(key);
       if (driver.setItemRaw) {
         await asyncCall(driver.setItemRaw, relativeKey, value, opts);
@@ -3205,7 +3205,7 @@ function createStorage(options = {}) {
       if (typeof opts === "boolean") {
         opts = { removeMeta: opts };
       }
-      key = normalizeKey$3(key);
+      key = normalizeKey$2(key);
       const { relativeKey, driver } = getMount(key);
       if (!driver.removeItem) {
         return;
@@ -3223,7 +3223,7 @@ function createStorage(options = {}) {
       if (typeof opts === "boolean") {
         opts = { nativeOnly: opts };
       }
-      key = normalizeKey$3(key);
+      key = normalizeKey$2(key);
       const { relativeKey, driver } = getMount(key);
       const meta = /* @__PURE__ */ Object.create(null);
       if (driver.getMeta) {
@@ -3270,7 +3270,7 @@ function createStorage(options = {}) {
           opts
         );
         for (const key of rawKeys) {
-          const fullKey = mount.mountpoint + normalizeKey$3(key);
+          const fullKey = mount.mountpoint + normalizeKey$2(key);
           if (!maskedMounts.some((p) => fullKey.startsWith(p))) {
             allKeys.push(fullKey);
           }
@@ -3357,7 +3357,7 @@ function createStorage(options = {}) {
       delete context.mounts[base];
     },
     getMount(key = "") {
-      key = normalizeKey$3(key) + ":";
+      key = normalizeKey$2(key) + ":";
       const m = getMount(key);
       return {
         driver: m.driver,
@@ -3365,7 +3365,7 @@ function createStorage(options = {}) {
       };
     },
     getMounts(base = "", opts = {}) {
-      base = normalizeKey$3(base);
+      base = normalizeKey$2(base);
       const mounts = getMounts(base, opts.parents);
       return mounts.map((m) => ({
         driver: m.driver,
@@ -3396,7 +3396,7 @@ const _assets = {
 
 };
 
-const normalizeKey$2 = function normalizeKey(key) {
+const normalizeKey$1 = function normalizeKey(key) {
   if (!key) {
     return "";
   }
@@ -3408,27 +3408,21 @@ const assets = {
     return Promise.resolve(Object.keys(_assets))
   },
   hasItem (id) {
-    id = normalizeKey$2(id);
+    id = normalizeKey$1(id);
     return Promise.resolve(id in _assets)
   },
   getItem (id) {
-    id = normalizeKey$2(id);
+    id = normalizeKey$1(id);
     return Promise.resolve(_assets[id] ? _assets[id].import() : null)
   },
   getMeta (id) {
-    id = normalizeKey$2(id);
+    id = normalizeKey$1(id);
     return Promise.resolve(_assets[id] ? _assets[id].meta : {})
   }
 };
 
 function defineDriver(factory) {
   return factory;
-}
-function normalizeKey$1(key, sep = ":") {
-  if (!key) {
-    return "";
-  }
-  return key.replace(/[:/\\]/g, sep).replace(/^[:/\\]|[:/\\]$/g, "");
 }
 function createError$1(driver, message, opts) {
   const err = new Error(`[unstorage] [${driver}] ${message}`, opts);
@@ -3515,16 +3509,16 @@ async function rmRecursive(dir) {
 }
 
 const PATH_TRAVERSE_RE = /\.\.:|\.\.$/;
-const DRIVER_NAME$2 = "fs-lite";
+const DRIVER_NAME = "fs-lite";
 const unstorage_47drivers_47fs_45lite = defineDriver((opts = {}) => {
   if (!opts.base) {
-    throw createRequiredError(DRIVER_NAME$2, "base");
+    throw createRequiredError(DRIVER_NAME, "base");
   }
   opts.base = resolve$1(opts.base);
   const r = (key) => {
     if (PATH_TRAVERSE_RE.test(key)) {
       throw createError$1(
-        DRIVER_NAME$2,
+        DRIVER_NAME,
         `Invalid key: ${JSON.stringify(key)}. It should not contain .. segments`
       );
     }
@@ -3532,7 +3526,7 @@ const unstorage_47drivers_47fs_45lite = defineDriver((opts = {}) => {
     return resolved;
   };
   return {
-    name: DRIVER_NAME$2,
+    name: DRIVER_NAME,
     options: opts,
     flags: {
       maxDepth: true
@@ -3580,126 +3574,11 @@ const unstorage_47drivers_47fs_45lite = defineDriver((opts = {}) => {
   };
 });
 
-const OVERLAY_REMOVED = "__OVERLAY_REMOVED__";
-const DRIVER_NAME$1 = "overlay";
-const overlay = defineDriver((options) => {
-  return {
-    name: DRIVER_NAME$1,
-    options,
-    async hasItem(key, opts) {
-      for (const layer of options.layers) {
-        if (await layer.hasItem(key, opts)) {
-          if (layer === options.layers[0] && await options.layers[0]?.getItem(key) === OVERLAY_REMOVED) {
-            return false;
-          }
-          return true;
-        }
-      }
-      return false;
-    },
-    async getItem(key) {
-      for (const layer of options.layers) {
-        const value = await layer.getItem(key);
-        if (value === OVERLAY_REMOVED) {
-          return null;
-        }
-        if (value !== null) {
-          return value;
-        }
-      }
-      return null;
-    },
-    // TODO: Support native meta
-    // async getMeta (key) {},
-    async setItem(key, value, opts) {
-      await options.layers[0]?.setItem?.(key, value, opts);
-    },
-    async removeItem(key, opts) {
-      await options.layers[0]?.setItem?.(key, OVERLAY_REMOVED, opts);
-    },
-    async getKeys(base, opts) {
-      const allKeys = await Promise.all(
-        options.layers.map(async (layer) => {
-          const keys = await layer.getKeys(base, opts);
-          return keys.map((key) => normalizeKey$1(key));
-        })
-      );
-      const uniqueKeys = [...new Set(allKeys.flat())];
-      const existingKeys = await Promise.all(
-        uniqueKeys.map(async (key) => {
-          if (await options.layers[0]?.getItem(key) === OVERLAY_REMOVED) {
-            return false;
-          }
-          return key;
-        })
-      );
-      return existingKeys.filter(Boolean);
-    },
-    async dispose() {
-      await Promise.all(
-        options.layers.map(async (layer) => {
-          if (layer.dispose) {
-            await layer.dispose();
-          }
-        })
-      );
-    }
-  };
-});
-
-const DRIVER_NAME = "memory";
-const memory = defineDriver(() => {
-  const data = /* @__PURE__ */ new Map();
-  return {
-    name: DRIVER_NAME,
-    getInstance: () => data,
-    hasItem(key) {
-      return data.has(key);
-    },
-    getItem(key) {
-      return data.get(key) ?? null;
-    },
-    getItemRaw(key) {
-      return data.get(key) ?? null;
-    },
-    setItem(key, value) {
-      data.set(key, value);
-    },
-    setItemRaw(key, value) {
-      data.set(key, value);
-    },
-    removeItem(key) {
-      data.delete(key);
-    },
-    getKeys() {
-      return [...data.keys()];
-    },
-    clear() {
-      data.clear();
-    },
-    dispose() {
-      data.clear();
-    }
-  };
-});
-
 const storage = createStorage({});
 
 storage.mount('/assets', assets);
 
 storage.mount('data', unstorage_47drivers_47fs_45lite({"driver":"fsLite","base":"./.data/kv"}));
-
-const bundledStorage = ["redis"];
-for (const base of bundledStorage) {
-  storage.mount(base, overlay({
-    layers: [
-      memory(),
-      // TODO
-      // prefixStorage(storage, base),
-      prefixStorage(storage, 'assets:nitro:bundled:' + base)
-    ]
-  }));
-}
 
 function useStorage(base = "") {
   return base ? prefixStorage(storage, base) : storage;
@@ -4417,7 +4296,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "5a0ece3b-c330-45f0-843a-679088a1d807",
+    "buildId": "a8862fa3-d3a8-45c9-81bb-5b9e6eee96cd",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -24809,7 +24688,7 @@ const revive_payload_server_MVtmlZaQpj6ApFmshWfUWl5PehCebzaBf2NuRMiIbms = /* @__
     }
   }
 });
-const components_plugin_z4hgvsiddfKkfXTP6M8M4zG5Cb7sGnDhcryKVM45Di4 = /* @__PURE__ */ defineNuxtPlugin({
+const components_plugin_4kY4pyzJIYX99vmMAAIorFf3CnAaptHitJgf7JxiED8 = /* @__PURE__ */ defineNuxtPlugin({
   name: "nuxt:global-components"
 });
 const plugins = [
@@ -24817,7 +24696,7 @@ const plugins = [
   plugin,
   supabase_server_NZuw_NDm2ZtOgvg4QqXN_Xqdg_KPvGuBBWKrLH15GWY,
   revive_payload_server_MVtmlZaQpj6ApFmshWfUWl5PehCebzaBf2NuRMiIbms,
-  components_plugin_z4hgvsiddfKkfXTP6M8M4zG5Cb7sGnDhcryKVM45Di4
+  components_plugin_4kY4pyzJIYX99vmMAAIorFf3CnAaptHitJgf7JxiED8
 ];
 const ServerPlaceholder = vueExports.defineComponent({
   name: "ServerPlaceholder",
@@ -25205,10 +25084,10 @@ const interopDefault = r => r.default || r || [];
 const styles = {
   "pages/login.vue": () => Promise.resolve().then(function () { return loginStyles_b2cz1sfn$1; }).then(interopDefault),
   "pages/login.vue?vue&type=style&index=0&scoped=adb25b66&lang.css": () => Promise.resolve().then(function () { return loginStyles_b2cz1sfn$1; }).then(interopDefault),
-  "../node_modules/nuxt/dist/app/components/error-404.vue": () => Promise.resolve().then(function () { return error404Styles_SO9LtFGn$1; }).then(interopDefault),
   "../node_modules/nuxt/dist/app/components/error-500.vue": () => Promise.resolve().then(function () { return error500Styles_Dw4YpQp$1; }).then(interopDefault),
-  "../node_modules/nuxt/dist/app/components/error-404.vue?vue&type=style&index=0&scoped=cd31e6b7&lang.css": () => Promise.resolve().then(function () { return error404Styles_SO9LtFGn$1; }).then(interopDefault),
+  "../node_modules/nuxt/dist/app/components/error-404.vue": () => Promise.resolve().then(function () { return error404Styles_SO9LtFGn$1; }).then(interopDefault),
   "../node_modules/nuxt/dist/app/components/error-500.vue?vue&type=style&index=0&scoped=8851f357&lang.css": () => Promise.resolve().then(function () { return error500Styles_Dw4YpQp$1; }).then(interopDefault),
+  "../node_modules/nuxt/dist/app/components/error-404.vue?vue&type=style&index=0&scoped=cd31e6b7&lang.css": () => Promise.resolve().then(function () { return error404Styles_SO9LtFGn$1; }).then(interopDefault),
   "components/ui/UiNotification.vue": () => Promise.resolve().then(function () { return UiNotificationStyles_BJrdoWL$1; }).then(interopDefault),
   "components/ui/UiModal.vue": () => Promise.resolve().then(function () { return UiModalStyles_0VvhfPF$1; }).then(interopDefault),
   "components/ui/UiNotification.vue?vue&type=style&index=0&scoped=09772c10&lang.css": () => Promise.resolve().then(function () { return UiNotificationStyles_BJrdoWL$1; }).then(interopDefault),
@@ -25399,12 +25278,8 @@ const useAuth = () => {
     return null;
   });
   const isAuthenticated = vueExports.computed(() => !!user.value);
-  const isAdmin = vueExports.computed(() => {
-    var _a;
-    return ((_a = user.value) == null ? void 0 : _a.tipo) === "admin";
-  });
+  const isAdmin = vueExports.computed(() => user.value?.tipo === "admin");
   const login = async (email, senha) => {
-    var _a;
     try {
       const response = await $fetch("/api/auth/login", {
         method: "POST",
@@ -25420,7 +25295,7 @@ const useAuth = () => {
       console.error("Erro no login:", error);
       return {
         success: false,
-        message: ((_a = error.data) == null ? void 0 : _a.message) || "Email ou senha incorretos. Tente novamente."
+        message: error.data?.message || "Email ou senha incorretos. Tente novamente."
       };
     }
   };
@@ -25456,7 +25331,7 @@ const _sfc_main$r = /* @__PURE__ */ vueExports.defineComponent({
     return (_ctx, _push, _parent, _attrs) => {
       const _component_UiInput = __nuxt_component_4;
       const _component_UiButton = __nuxt_component_1$4;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center p-4 relative overflow-hidden" }, _attrs))} data-v-adb25b66><div class="absolute inset-0 opacity-5" data-v-adb25b66><div class="absolute inset-0" style="${ssrRenderStyle_1({ "background-image": "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)", "background-size": "20px 20px" })}" data-v-adb25b66></div><div class="absolute top-10 left-10 w-16 h-16 border-2 border-blue-300 rounded-full" data-v-adb25b66></div><div class="absolute top-32 right-20 w-12 h-12 border-2 border-blue-400 rotate-45" data-v-adb25b66></div><div class="absolute bottom-20 left-20 w-20 h-20 border-2 border-blue-300 rounded-full" data-v-adb25b66></div><div class="absolute bottom-40 right-32 w-14 h-14 border-2 border-blue-400 rotate-12" data-v-adb25b66></div><div class="absolute top-1/4 left-1/4 w-8 h-8 border border-blue-300 transform rotate-30" style="${ssrRenderStyle_1({ "clip-path": "polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%)" })}" data-v-adb25b66></div><div class="absolute bottom-1/4 right-1/4 w-6 h-6 border border-blue-400 transform rotate-45" style="${ssrRenderStyle_1({ "clip-path": "polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%)" })}" data-v-adb25b66></div></div><div class="w-full max-w-lg relative z-10" data-v-adb25b66><div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 lg:p-12 border border-gray-200/50" data-v-adb25b66><div class="text-center mb-8" data-v-adb25b66><div class="flex justify-center mb-3" data-v-adb25b66><img${ssrRenderAttr_1("src", _imports_0)} alt="Qualitec Instrumentos" class="object-contain" style="${ssrRenderStyle_1({ "width": "calc(12rem + 2cm)", "height": "calc(12rem + 2cm)" })}" data-v-adb25b66></div><div class="mb-3" data-v-adb25b66><p class="text-sm text-gray-600 font-medium" data-v-adb25b66>Gest\xE3o de Recursos Humanos</p></div><div class="flex items-center justify-center mb-2" data-v-adb25b66><div class="h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent w-24" data-v-adb25b66></div></div><p class="text-xs text-gray-500 font-medium" data-v-adb25b66>ISO 9001:2015 | Instrumenta\xE7\xE3o Industrial</p></div><div class="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg" data-v-adb25b66><div class="flex items-center justify-center mb-2" data-v-adb25b66><div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center" data-v-adb25b66><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-adb25b66><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" data-v-adb25b66></path></svg></div></div><p class="text-center text-blue-800 text-sm font-medium" data-v-adb25b66>Acesso Restrito</p><p class="text-center text-blue-600 text-xs mt-1" data-v-adb25b66>Entre com suas credenciais corporativas fornecidas pelo RH</p></div><form class="space-y-6" data-v-adb25b66><div class="space-y-2" data-v-adb25b66><label class="block text-sm font-semibold text-gray-700 mb-2" data-v-adb25b66><span class="flex items-center" data-v-adb25b66><svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-adb25b66><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" data-v-adb25b66></path></svg> E-mail </span></label>`);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center p-4 relative overflow-hidden" }, _attrs))} data-v-adb25b66><div class="absolute inset-0 opacity-5" data-v-adb25b66><div class="absolute inset-0" style="${ssrRenderStyle_1({ "background-image": "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)", "background-size": "20px 20px" })}" data-v-adb25b66></div><div class="absolute top-10 left-10 w-16 h-16 border-2 border-blue-300 rounded-full" data-v-adb25b66></div><div class="absolute top-32 right-20 w-12 h-12 border-2 border-blue-400 rotate-45" data-v-adb25b66></div><div class="absolute bottom-20 left-20 w-20 h-20 border-2 border-blue-300 rounded-full" data-v-adb25b66></div><div class="absolute bottom-40 right-32 w-14 h-14 border-2 border-blue-400 rotate-12" data-v-adb25b66></div><div class="absolute top-1/4 left-1/4 w-8 h-8 border border-blue-300 transform rotate-30" style="${ssrRenderStyle_1({ "clip-path": "polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%)" })}" data-v-adb25b66></div><div class="absolute bottom-1/4 right-1/4 w-6 h-6 border border-blue-400 transform rotate-45" style="${ssrRenderStyle_1({ "clip-path": "polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%)" })}" data-v-adb25b66></div></div><div class="w-full max-w-lg relative z-10" data-v-adb25b66><div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 lg:p-12 border border-gray-200/50" data-v-adb25b66><div class="text-center mb-8" data-v-adb25b66><div class="flex justify-center mb-3" data-v-adb25b66><img${ssrRenderAttr_1("src", _imports_0)} alt="Qualitec Instrumentos" class="object-contain" style="${ssrRenderStyle_1({ "width": "calc(12rem + 2cm)", "height": "calc(12rem + 2cm)" })}" data-v-adb25b66></div><div class="mb-3" data-v-adb25b66><p class="text-sm text-gray-600 font-medium" data-v-adb25b66>Gestão de Recursos Humanos</p></div><div class="flex items-center justify-center mb-2" data-v-adb25b66><div class="h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent w-24" data-v-adb25b66></div></div><p class="text-xs text-gray-500 font-medium" data-v-adb25b66>ISO 9001:2015 | Instrumentação Industrial</p></div><div class="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg" data-v-adb25b66><div class="flex items-center justify-center mb-2" data-v-adb25b66><div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center" data-v-adb25b66><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-adb25b66><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" data-v-adb25b66></path></svg></div></div><p class="text-center text-blue-800 text-sm font-medium" data-v-adb25b66>Acesso Restrito</p><p class="text-center text-blue-600 text-xs mt-1" data-v-adb25b66>Entre com suas credenciais corporativas fornecidas pelo RH</p></div><form class="space-y-6" data-v-adb25b66><div class="space-y-2" data-v-adb25b66><label class="block text-sm font-semibold text-gray-700 mb-2" data-v-adb25b66><span class="flex items-center" data-v-adb25b66><svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-adb25b66><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" data-v-adb25b66></path></svg> E-mail </span></label>`);
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: vueExports.unref(email),
         "onUpdate:modelValue": ($event) => vueExports.isRef(email) ? email.value = $event : null,
@@ -25548,7 +25423,7 @@ const _sfc_main$r = /* @__PURE__ */ vueExports.defineComponent({
         }),
         _: 1
       }, _parent));
-      _push(`</form><div class="mt-8 p-5 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200" data-v-adb25b66><div class="text-center" data-v-adb25b66><div class="flex items-center justify-center mb-3" data-v-adb25b66><div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3" data-v-adb25b66><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-adb25b66><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-v-adb25b66></path></svg></div><div data-v-adb25b66><p class="text-blue-800 font-bold text-sm" data-v-adb25b66>Sistema Seguro</p><p class="text-blue-600 text-xs" data-v-adb25b66>Certificado ISO 9001:2015</p></div></div><p class="text-gray-600 text-xs leading-relaxed" data-v-adb25b66> Plataforma corporativa para gest\xE3o de recursos humanos.<br data-v-adb25b66> Acesso monitorado e protegido por criptografia avan\xE7ada. </p></div></div></div><div class="mt-8 text-center" data-v-adb25b66><div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20" data-v-adb25b66><p class="text-white/90 text-sm font-medium mb-1" data-v-adb25b66> QUALITEC INSTRUMENTOS LTDA </p><p class="text-white/70 text-xs" data-v-adb25b66> \xA9 2026 - Instrumenta\xE7\xE3o Industrial | Criogenia | \xD3leo &amp; G\xE1s </p><p class="text-white/60 text-xs mt-1" data-v-adb25b66> Todos os direitos reservados </p></div></div></div></div>`);
+      _push(`</form><div class="mt-8 p-5 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200" data-v-adb25b66><div class="text-center" data-v-adb25b66><div class="flex items-center justify-center mb-3" data-v-adb25b66><div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3" data-v-adb25b66><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-adb25b66><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-v-adb25b66></path></svg></div><div data-v-adb25b66><p class="text-blue-800 font-bold text-sm" data-v-adb25b66>Sistema Seguro</p><p class="text-blue-600 text-xs" data-v-adb25b66>Certificado ISO 9001:2015</p></div></div><p class="text-gray-600 text-xs leading-relaxed" data-v-adb25b66> Plataforma corporativa para gestão de recursos humanos.<br data-v-adb25b66> Acesso monitorado e protegido por criptografia avançada. </p></div></div></div><div class="mt-8 text-center" data-v-adb25b66><div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20" data-v-adb25b66><p class="text-white/90 text-sm font-medium mb-1" data-v-adb25b66> QUALITEC INSTRUMENTOS LTDA </p><p class="text-white/70 text-xs" data-v-adb25b66> © 2026 - Instrumentação Industrial | Criogenia | Óleo &amp; Gás </p><p class="text-white/60 text-xs mt-1" data-v-adb25b66> Todos os direitos reservados </p></div></div></div></div>`);
     };
   }
 });
@@ -25661,7 +25536,7 @@ function defineNuxtLink(options) {
     return typeof link === "string" && link.startsWith("#");
   }
   function resolveTrailingSlashBehavior(to, resolve, trailingSlash) {
-    const effectiveTrailingSlash = trailingSlash != null ? trailingSlash : options.trailingSlash;
+    const effectiveTrailingSlash = trailingSlash ?? options.trailingSlash;
     if (!to || effectiveTrailingSlash !== "append" && effectiveTrailingSlash !== "remove") {
       return to;
     }
@@ -25678,7 +25553,6 @@ function defineNuxtLink(options) {
     return resolvedPath;
   }
   function useNuxtLink(props) {
-    var _a, _b, _c;
     const router = useRouter();
     const config = useRuntimeConfig();
     const hasTarget = vueExports.computed(() => !!props.target && props.target !== "_self");
@@ -25705,10 +25579,9 @@ function defineNuxtLink(options) {
       }
       return resolveTrailingSlashBehavior(path, router.resolve, props.trailingSlash);
     });
-    const link = isExternal.value ? void 0 : useBuiltinLink == null ? void 0 : useBuiltinLink({ ...props, to });
+    const link = isExternal.value ? void 0 : useBuiltinLink?.({ ...props, to });
     const href = vueExports.computed(() => {
-      var _a2, _b2, _c2;
-      const effectiveTrailingSlash = (_a2 = props.trailingSlash) != null ? _a2 : options.trailingSlash;
+      const effectiveTrailingSlash = props.trailingSlash ?? options.trailingSlash;
       if (!to.value || isAbsoluteUrl.value || isHashLinkWithoutHashMode(to.value)) {
         return to.value;
       }
@@ -25718,7 +25591,7 @@ function defineNuxtLink(options) {
         return applyTrailingSlashBehavior(href2, effectiveTrailingSlash);
       }
       if (typeof to.value === "object") {
-        return (_c2 = (_b2 = router.resolve(to.value)) == null ? void 0 : _b2.href) != null ? _c2 : null;
+        return router.resolve(to.value)?.href ?? null;
       }
       return applyTrailingSlashBehavior(joinURL(config.app.baseURL, to.value), effectiveTrailingSlash);
     });
@@ -25729,9 +25602,9 @@ function defineNuxtLink(options) {
       isExternal,
       //
       href,
-      isActive: (_a = link == null ? void 0 : link.isActive) != null ? _a : vueExports.computed(() => to.value === router.currentRoute.value.path),
-      isExactActive: (_b = link == null ? void 0 : link.isExactActive) != null ? _b : vueExports.computed(() => to.value === router.currentRoute.value.path),
-      route: (_c = link == null ? void 0 : link.route) != null ? _c : vueExports.computed(() => router.resolve(to.value)),
+      isActive: link?.isActive ?? vueExports.computed(() => to.value === router.currentRoute.value.path),
+      isExactActive: link?.isExactActive ?? vueExports.computed(() => to.value === router.currentRoute.value.path),
+      route: link?.route ?? vueExports.computed(() => router.resolve(to.value)),
       async navigate(_e) {
         await navigateTo(href.value, { replace: props.replace, external: isExternal.value || hasTarget.value });
       }
@@ -25842,7 +25715,6 @@ function defineNuxtLink(options) {
         }
       }
       return () => {
-        var _a;
         if (!isExternal.value && !hasTarget.value && !isHashLinkWithoutHashMode(to.value)) {
           const routerLinkProps = {
             ref: elRef,
@@ -25921,7 +25793,7 @@ function defineNuxtLink(options) {
             event.preventDefault();
             return props.replace ? router.replace(href.value) : router.push(href.value);
           }
-        }, (_a = slots.default) == null ? void 0 : _a.call(slots));
+        }, slots.default?.());
       };
     }
   });
@@ -26105,12 +25977,12 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
       }
     };
     const obterNomeCargo = (id) => {
-      const idStr = id == null ? void 0 : id.toString();
-      return cargosMap.value[idStr] || idStr || "N\xE3o informado";
+      const idStr = id?.toString();
+      return cargosMap.value[idStr] || idStr || "Não informado";
     };
     const obterNomeDepartamento = (id) => {
-      const idStr = id == null ? void 0 : id.toString();
-      return departamentosMap.value[idStr] || idStr || "N\xE3o informado";
+      const idStr = id?.toString();
+      return departamentosMap.value[idStr] || idStr || "Não informado";
     };
     const formatarMoeda = (valor) => {
       return new Intl.NumberFormat("pt-BR", {
@@ -26119,16 +25991,15 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
       }).format(valor);
     };
     return (_ctx, _push, _parent, _attrs) => {
-      var _a, _b;
       const _component_DashboardCard = __nuxt_component_0$4;
       const _component_UiBadge = __nuxt_component_2$2;
       const _component_UiCard = __nuxt_component_2$1;
       const _component_DashboardStatCard = __nuxt_component_3$1;
-      _push(`<div${ssrRenderAttrs_1(_attrs)}><div class="mb-8"><h1 class="text-3xl lg:text-4xl font-bold text-gray-800">${ssrInterpolate_1(obterSaudacao())} ${ssrInterpolate_1((_b = (_a = vueExports.unref(user)) == null ? void 0 : _a.nome) == null ? void 0 : _b.split(" ")[0])}! </h1><p class="text-lg text-gray-500 mt-2"> Bem-vindo ao Sistema de RH. Aqui voc\xEA encontra tudo sobre sua vida profissional. </p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">`);
+      _push(`<div${ssrRenderAttrs_1(_attrs)}><div class="mb-8"><h1 class="text-3xl lg:text-4xl font-bold text-gray-800">${ssrInterpolate_1(obterSaudacao())} ${ssrInterpolate_1(vueExports.unref(user)?.nome?.split(" ")[0])}! </h1><p class="text-lg text-gray-500 mt-2"> Bem-vindo ao Sistema de RH. Aqui você encontra tudo sobre sua vida profissional. </p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">`);
       _push(ssrRenderComponent_1(_component_DashboardCard, {
         to: "/meus-dados",
         title: "Meus Dados",
-        description: "Veja e atualize suas informa\xE7\xF5es pessoais",
+        description: "Veja e atualize suas informações pessoais",
         color: "blue",
         "icon-path": "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
       }, null, _parent));
@@ -26145,7 +26016,7 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
       }
       _push(ssrRenderComponent_1(_component_DashboardCard, {
         title: vueExports.unref(empresaUsuario) ? vueExports.unref(empresaUsuario).nome_fantasia || vueExports.unref(empresaUsuario).nome : "Minha Empresa",
-        description: vueExports.unref(empresaUsuario) ? `CNPJ: ${vueExports.unref(empresaUsuario).cnpj || "N\xE3o informado"}` : "Aguardando cadastro",
+        description: vueExports.unref(empresaUsuario) ? `CNPJ: ${vueExports.unref(empresaUsuario).cnpj || "Não informado"}` : "Aguardando cadastro",
         color: "purple",
         "icon-path": "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
       }, {
@@ -26157,10 +26028,10 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(`${ssrInterpolate_1(vueExports.unref(empresaUsuario) ? "\u2713 Vinculado" : "\u23F3 Pendente")}`);
+                  _push3(`${ssrInterpolate_1(vueExports.unref(empresaUsuario) ? "✓ Vinculado" : "⏳ Pendente")}`);
                 } else {
                   return [
-                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(empresaUsuario) ? "\u2713 Vinculado" : "\u23F3 Pendente"), 1)
+                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(empresaUsuario) ? "✓ Vinculado" : "⏳ Pendente"), 1)
                   ];
                 }
               }),
@@ -26173,7 +26044,7 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
                 class: "mt-3"
               }, {
                 default: vueExports.withCtx(() => [
-                  vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(empresaUsuario) ? "\u2713 Vinculado" : "\u23F3 Pendente"), 1)
+                  vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(empresaUsuario) ? "✓ Vinculado" : "⏳ Pendente"), 1)
                 ]),
                 _: 1
               }, 8, ["variant"])
@@ -26184,21 +26055,20 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
       }, _parent));
       _push(`</div>`);
       _push(ssrRenderComponent_1(_component_UiCard, {
-        title: "Suas Informa\xE7\xF5es",
-        icon: "\u2139\uFE0F",
+        title: "Suas Informações",
+        icon: "ℹ️",
         class: "mb-8"
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
-          var _a2, _b2, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
           if (_push2) {
-            _push2(`<div class="grid grid-cols-1 md:grid-cols-2 gap-6"${_scopeId}><div class="space-y-4"${_scopeId}><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Nome Completo</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(((_a2 = vueExports.unref(dadosCompletos)) == null ? void 0 : _a2.nome_completo) || ((_b2 = vueExports.unref(user)) == null ? void 0 : _b2.nome))}</p></div><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Cargo</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(obterNomeCargo((_c = vueExports.unref(dadosCompletos)) == null ? void 0 : _c.cargo_id))}</p></div>`);
+            _push2(`<div class="grid grid-cols-1 md:grid-cols-2 gap-6"${_scopeId}><div class="space-y-4"${_scopeId}><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Nome Completo</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(vueExports.unref(dadosCompletos)?.nome_completo || vueExports.unref(user)?.nome)}</p></div><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Cargo</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(obterNomeCargo(vueExports.unref(dadosCompletos)?.cargo_id))}</p></div>`);
             if (vueExports.unref(empresaUsuario)) {
               _push2(`<div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Empresa</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(vueExports.unref(empresaUsuario).nome_fantasia || vueExports.unref(empresaUsuario).nome)}</p><p class="text-sm text-gray-500"${_scopeId}>${ssrInterpolate_1(vueExports.unref(empresaUsuario).nome)}</p></div>`);
             } else {
               _push2(`<!---->`);
             }
-            _push2(`</div><div class="space-y-4"${_scopeId}><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Departamento</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(obterNomeDepartamento((_d = vueExports.unref(dadosCompletos)) == null ? void 0 : _d.departamento_id))}</p></div><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Email</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(((_e = vueExports.unref(dadosCompletos)) == null ? void 0 : _e.email) || ((_f = vueExports.unref(user)) == null ? void 0 : _f.email))}</p></div>`);
-            if ((_g = vueExports.unref(empresaUsuario)) == null ? void 0 : _g.cnpj) {
+            _push2(`</div><div class="space-y-4"${_scopeId}><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Departamento</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(obterNomeDepartamento(vueExports.unref(dadosCompletos)?.departamento_id))}</p></div><div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>Email</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(vueExports.unref(dadosCompletos)?.email || vueExports.unref(user)?.email)}</p></div>`);
+            if (vueExports.unref(empresaUsuario)?.cnpj) {
               _push2(`<div${_scopeId}><p class="text-sm text-gray-500 mb-1"${_scopeId}>CNPJ da Empresa</p><p class="text-lg font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(vueExports.unref(empresaUsuario).cnpj)}</p></div>`);
             } else {
               _push2(`<!---->`);
@@ -26210,11 +26080,11 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.createVNode("div", { class: "space-y-4" }, [
                   vueExports.createVNode("div", null, [
                     vueExports.createVNode("p", { class: "text-sm text-gray-500 mb-1" }, "Nome Completo"),
-                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(((_h = vueExports.unref(dadosCompletos)) == null ? void 0 : _h.nome_completo) || ((_i = vueExports.unref(user)) == null ? void 0 : _i.nome)), 1)
+                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(vueExports.unref(dadosCompletos)?.nome_completo || vueExports.unref(user)?.nome), 1)
                   ]),
                   vueExports.createVNode("div", null, [
                     vueExports.createVNode("p", { class: "text-sm text-gray-500 mb-1" }, "Cargo"),
-                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(obterNomeCargo((_j = vueExports.unref(dadosCompletos)) == null ? void 0 : _j.cargo_id)), 1)
+                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(obterNomeCargo(vueExports.unref(dadosCompletos)?.cargo_id)), 1)
                   ]),
                   vueExports.unref(empresaUsuario) ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 0 }, [
                     vueExports.createVNode("p", { class: "text-sm text-gray-500 mb-1" }, "Empresa"),
@@ -26225,13 +26095,13 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.createVNode("div", { class: "space-y-4" }, [
                   vueExports.createVNode("div", null, [
                     vueExports.createVNode("p", { class: "text-sm text-gray-500 mb-1" }, "Departamento"),
-                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(obterNomeDepartamento((_k = vueExports.unref(dadosCompletos)) == null ? void 0 : _k.departamento_id)), 1)
+                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(obterNomeDepartamento(vueExports.unref(dadosCompletos)?.departamento_id)), 1)
                   ]),
                   vueExports.createVNode("div", null, [
                     vueExports.createVNode("p", { class: "text-sm text-gray-500 mb-1" }, "Email"),
-                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(((_l = vueExports.unref(dadosCompletos)) == null ? void 0 : _l.email) || ((_m = vueExports.unref(user)) == null ? void 0 : _m.email)), 1)
+                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(vueExports.unref(dadosCompletos)?.email || vueExports.unref(user)?.email), 1)
                   ]),
-                  ((_n = vueExports.unref(empresaUsuario)) == null ? void 0 : _n.cnpj) ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 0 }, [
+                  vueExports.unref(empresaUsuario)?.cnpj ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 0 }, [
                     vueExports.createVNode("p", { class: "text-sm text-gray-500 mb-1" }, "CNPJ da Empresa"),
                     vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800" }, vueExports.toDisplayString(vueExports.unref(empresaUsuario).cnpj), 1)
                   ])) : vueExports.createCommentVNode("", true)
@@ -26243,11 +26113,11 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
         _: 1
       }, _parent));
       if (vueExports.unref(isAdmin)) {
-        _push(`<!--[--><h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3"> \u{1F6E1}\uFE0F \xC1rea do Administrador </h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">`);
+        _push(`<!--[--><h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3"> 🛡️ Área do Administrador </h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">`);
         _push(ssrRenderComponent_1(_component_DashboardStatCard, {
           to: "/admin/funcionarios",
           value: vueExports.unref(loading) ? "..." : (vueExports.unref(stats).totalFuncionarios || 0).toString(),
-          label: "Funcion\xE1rios",
+          label: "Funcionários",
           color: "blue",
           "icon-path": "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
         }, null, _parent));
@@ -26266,17 +26136,17 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
           "icon-path": "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
         }, null, _parent));
         _push(`<div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-5 text-white"><svg class="w-10 h-10 mb-3 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"></path></svg><p class="text-3xl font-bold">${ssrInterpolate_1(vueExports.unref(loading) ? "..." : vueExports.unref(stats).totalAniversariantes || 0)}</p><p class="text-white/80">Aniversariantes</p></div></div>`);
-        _push(ssrRenderComponent_1(_component_UiCard, { title: "\u{1F382} Aniversariantes do M\xEAs" }, {
+        _push(ssrRenderComponent_1(_component_UiCard, { title: "🎂 Aniversariantes do Mês" }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
               if (vueExports.unref(loading)) {
                 _push2(`<div class="text-center py-8"${_scopeId}><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"${_scopeId}></div><p class="mt-2 text-gray-600"${_scopeId}>Carregando...</p></div>`);
               } else if (vueExports.unref(aniversariantes).length === 0) {
-                _push2(`<div class="text-center py-8 text-gray-500"${_scopeId}> Nenhum aniversariante este m\xEAs </div>`);
+                _push2(`<div class="text-center py-8 text-gray-500"${_scopeId}> Nenhum aniversariante este mês </div>`);
               } else {
                 _push2(`<div class="space-y-4"${_scopeId}><!--[-->`);
                 ssrRenderList_1(vueExports.unref(aniversariantes), (aniversariante) => {
-                  _push2(`<div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"${_scopeId}><div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center"${_scopeId}><span class="text-orange-600 font-bold text-lg"${_scopeId}>${ssrInterpolate_1(aniversariante.dia)}</span></div><div class="flex-1"${_scopeId}><h4 class="font-semibold text-gray-900"${_scopeId}>${ssrInterpolate_1(aniversariante.nome_completo)}</h4><p class="text-sm text-gray-600"${_scopeId}>${ssrInterpolate_1(aniversariante.cargo)} - ${ssrInterpolate_1(aniversariante.departamento)}</p></div><div class="text-2xl"${_scopeId}>\u{1F382}</div></div>`);
+                  _push2(`<div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"${_scopeId}><div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center"${_scopeId}><span class="text-orange-600 font-bold text-lg"${_scopeId}>${ssrInterpolate_1(aniversariante.dia)}</span></div><div class="flex-1"${_scopeId}><h4 class="font-semibold text-gray-900"${_scopeId}>${ssrInterpolate_1(aniversariante.nome_completo)}</h4><p class="text-sm text-gray-600"${_scopeId}>${ssrInterpolate_1(aniversariante.cargo)} - ${ssrInterpolate_1(aniversariante.departamento)}</p></div><div class="text-2xl"${_scopeId}>🎂</div></div>`);
                 });
                 _push2(`<!--]--></div>`);
               }
@@ -26291,7 +26161,7 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
                 ])) : vueExports.unref(aniversariantes).length === 0 ? (vueExports.openBlock(), vueExports.createBlock("div", {
                   key: 1,
                   class: "text-center py-8 text-gray-500"
-                }, " Nenhum aniversariante este m\xEAs ")) : (vueExports.openBlock(), vueExports.createBlock("div", {
+                }, " Nenhum aniversariante este mês ")) : (vueExports.openBlock(), vueExports.createBlock("div", {
                   key: 2,
                   class: "space-y-4"
                 }, [
@@ -26307,7 +26177,7 @@ const _sfc_main$o = /* @__PURE__ */ vueExports.defineComponent({
                         vueExports.createVNode("h4", { class: "font-semibold text-gray-900" }, vueExports.toDisplayString(aniversariante.nome_completo), 1),
                         vueExports.createVNode("p", { class: "text-sm text-gray-600" }, vueExports.toDisplayString(aniversariante.cargo) + " - " + vueExports.toDisplayString(aniversariante.departamento), 1)
                       ]),
-                      vueExports.createVNode("div", { class: "text-2xl" }, "\u{1F382}")
+                      vueExports.createVNode("div", { class: "text-2xl" }, "🎂")
                     ]);
                   }), 128))
                 ]))
@@ -26436,17 +26306,16 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
       }
     };
     const formatarPeriodo = (inicio, fim) => {
-      if (!inicio || !fim) return "Per\xEDodo n\xE3o definido";
+      if (!inicio || !fim) return "Período não definido";
       try {
         const dataInicio = new Date(inicio).toLocaleDateString("pt-BR");
         const dataFim = new Date(fim).toLocaleDateString("pt-BR");
         return `${dataInicio} - ${dataFim}`;
       } catch (error) {
-        return "Per\xEDodo inv\xE1lido";
+        return "Período inválido";
       }
     };
     const baixarHTML = async () => {
-      var _a, _b, _c, _d;
       try {
         const response = await fetch(`/api/holerites/${props.holerite.id}/html`);
         if (!response.ok) {
@@ -26456,7 +26325,7 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
         const url = (void 0).URL.createObjectURL(blob);
         const a = (void 0).createElement("a");
         a.href = url;
-        const nomeArquivo = ((_c = (_b = (_a = props.holerite) == null ? void 0 : _a.funcionario) == null ? void 0 : _b.nome_completo) == null ? void 0 : _c.replace(/\s+/g, "-")) || ((_d = props.userName) == null ? void 0 : _d.replace(/\s+/g, "-")) || "funcionario";
+        const nomeArquivo = props.holerite?.funcionario?.nome_completo?.replace(/\s+/g, "-") || props.userName?.replace(/\s+/g, "-") || "funcionario";
         a.download = `holerite-${nomeArquivo}.html`;
         (void 0).body.appendChild(a);
         a.click();
@@ -26486,9 +26355,8 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
           "onUpdate:modelValue": ($event) => _ctx.$emit("close")
         }, _attrs), {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
             if (_push2) {
-              _push2(`<div class="space-y-6"${_scopeId}><div class="bg-gray-50 rounded-xl p-4"${_scopeId}><p class="font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(((_b = (_a = __props.holerite) == null ? void 0 : _a.funcionario) == null ? void 0 : _b.nome_completo) || __props.userName || "Funcion\xE1rio")}</p><p class="text-gray-500"${_scopeId}>${ssrInterpolate_1(((_d = (_c = __props.holerite) == null ? void 0 : _c.funcionario) == null ? void 0 : _d.cargo) || __props.userCargo || "Cargo n\xE3o informado")} - ${ssrInterpolate_1(((_f = (_e = __props.holerite) == null ? void 0 : _e.funcionario) == null ? void 0 : _f.empresa) || "Empresa")}</p><p class="text-sm text-gray-400 mt-1"${_scopeId}> Per\xEDodo: ${ssrInterpolate_1(formatarPeriodo((_g = __props.holerite) == null ? void 0 : _g.periodo_inicio, (_h = __props.holerite) == null ? void 0 : _h.periodo_fim))}</p></div><div${_scopeId}><h3 class="text-lg font-bold text-green-600 mb-3"${_scopeId}>Proventos</h3><div class="space-y-2"${_scopeId}><div class="flex justify-between py-2 border-b border-gray-100"${_scopeId}><span class="text-gray-600"${_scopeId}>Sal\xE1rio Base</span><span class="font-semibold"${_scopeId}>${ssrInterpolate_1(formatarMoeda(__props.holerite.salario_base))}</span></div>`);
+              _push2(`<div class="space-y-6"${_scopeId}><div class="bg-gray-50 rounded-xl p-4"${_scopeId}><p class="font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(__props.holerite?.funcionario?.nome_completo || __props.userName || "Funcionário")}</p><p class="text-gray-500"${_scopeId}>${ssrInterpolate_1(__props.holerite?.funcionario?.cargo || __props.userCargo || "Cargo não informado")} - ${ssrInterpolate_1(__props.holerite?.funcionario?.empresa || "Empresa")}</p><p class="text-sm text-gray-400 mt-1"${_scopeId}> Período: ${ssrInterpolate_1(formatarPeriodo(__props.holerite?.periodo_inicio, __props.holerite?.periodo_fim))}</p></div><div${_scopeId}><h3 class="text-lg font-bold text-green-600 mb-3"${_scopeId}>Proventos</h3><div class="space-y-2"${_scopeId}><div class="flex justify-between py-2 border-b border-gray-100"${_scopeId}><span class="text-gray-600"${_scopeId}>Salário Base</span><span class="font-semibold"${_scopeId}>${ssrInterpolate_1(formatarMoeda(__props.holerite.salario_base))}</span></div>`);
               if (__props.holerite.beneficios && __props.holerite.beneficios.length > 0) {
                 _push2(`<div${_scopeId}><!--[-->`);
                 ssrRenderList_1(__props.holerite.beneficios, (beneficio) => {
@@ -26499,7 +26367,7 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
                 _push2(`<!---->`);
               }
               if (__props.holerite.bonus) {
-                _push2(`<div class="flex justify-between py-2 border-b border-gray-100"${_scopeId}><span class="text-gray-600"${_scopeId}>B\xF4nus</span><span class="font-semibold"${_scopeId}>${ssrInterpolate_1(formatarMoeda(__props.holerite.bonus))}</span></div>`);
+                _push2(`<div class="flex justify-between py-2 border-b border-gray-100"${_scopeId}><span class="text-gray-600"${_scopeId}>Bônus</span><span class="font-semibold"${_scopeId}>${ssrInterpolate_1(formatarMoeda(__props.holerite.bonus))}</span></div>`);
               } else {
                 _push2(`<!---->`);
               }
@@ -26543,11 +26411,11 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
                 _push2(`<!---->`);
               }
               if (__props.holerite.adiantamento && __props.holerite.adiantamento > 0) {
-                _push2(`<div class="flex justify-between py-2 border-b border-gray-100 bg-yellow-50"${_scopeId}><span class="text-gray-600 font-semibold"${_scopeId}>\u{1F4B0} Adiantamento Pago</span><span class="font-semibold text-red-600"${_scopeId}>- ${ssrInterpolate_1(formatarMoeda(__props.holerite.adiantamento))}</span></div>`);
+                _push2(`<div class="flex justify-between py-2 border-b border-gray-100 bg-yellow-50"${_scopeId}><span class="text-gray-600 font-semibold"${_scopeId}>💰 Adiantamento Pago</span><span class="font-semibold text-red-600"${_scopeId}>- ${ssrInterpolate_1(formatarMoeda(__props.holerite.adiantamento))}</span></div>`);
               } else {
                 _push2(`<!---->`);
               }
-              _push2(`</div><div class="flex justify-between py-2 mt-2 bg-red-50 px-3 rounded-lg"${_scopeId}><span class="font-bold text-red-700"${_scopeId}>Total Descontos</span><span class="font-bold text-red-700"${_scopeId}>- ${ssrInterpolate_1(formatarMoeda(__props.holerite.total_descontos))}</span></div></div><div class="bg-primary-50 rounded-xl p-4"${_scopeId}><div class="flex justify-between items-center"${_scopeId}><span class="text-xl font-bold text-primary-800"${_scopeId}>Sal\xE1rio L\xEDquido</span><span class="text-2xl font-bold text-primary-700"${_scopeId}>${ssrInterpolate_1(formatarMoeda(__props.holerite.salario_liquido))}</span></div></div><div class="flex justify-end gap-3 pt-4 border-t border-gray-200"${_scopeId}>`);
+              _push2(`</div><div class="flex justify-between py-2 mt-2 bg-red-50 px-3 rounded-lg"${_scopeId}><span class="font-bold text-red-700"${_scopeId}>Total Descontos</span><span class="font-bold text-red-700"${_scopeId}>- ${ssrInterpolate_1(formatarMoeda(__props.holerite.total_descontos))}</span></div></div><div class="bg-primary-50 rounded-xl p-4"${_scopeId}><div class="flex justify-between items-center"${_scopeId}><span class="text-xl font-bold text-primary-800"${_scopeId}>Salário Líquido</span><span class="text-2xl font-bold text-primary-700"${_scopeId}>${ssrInterpolate_1(formatarMoeda(__props.holerite.salario_liquido))}</span></div></div><div class="flex justify-end gap-3 pt-4 border-t border-gray-200"${_scopeId}>`);
               _push2(ssrRenderComponent_1(_component_UiButton, {
                 variant: "secondary",
                 onClick: ($event) => _ctx.$emit("close")
@@ -26569,10 +26437,10 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u{1F4C4} Baixar HTML `);
+                    _push3(` 📄 Baixar HTML `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u{1F4C4} Baixar HTML ")
+                      vueExports.createTextVNode(" 📄 Baixar HTML ")
                     ];
                   }
                 }),
@@ -26581,10 +26449,10 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
               _push2(ssrRenderComponent_1(_component_UiButton, { onClick: baixarPDF }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u{1F4C4} Baixar PDF `);
+                    _push3(` 📄 Baixar PDF `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u{1F4C4} Baixar PDF ")
+                      vueExports.createTextVNode(" 📄 Baixar PDF ")
                     ];
                   }
                 }),
@@ -26595,15 +26463,15 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
               return [
                 vueExports.createVNode("div", { class: "space-y-6" }, [
                   vueExports.createVNode("div", { class: "bg-gray-50 rounded-xl p-4" }, [
-                    vueExports.createVNode("p", { class: "font-semibold text-gray-800" }, vueExports.toDisplayString(((_j = (_i = __props.holerite) == null ? void 0 : _i.funcionario) == null ? void 0 : _j.nome_completo) || __props.userName || "Funcion\xE1rio"), 1),
-                    vueExports.createVNode("p", { class: "text-gray-500" }, vueExports.toDisplayString(((_l = (_k = __props.holerite) == null ? void 0 : _k.funcionario) == null ? void 0 : _l.cargo) || __props.userCargo || "Cargo n\xE3o informado") + " - " + vueExports.toDisplayString(((_n = (_m = __props.holerite) == null ? void 0 : _m.funcionario) == null ? void 0 : _n.empresa) || "Empresa"), 1),
-                    vueExports.createVNode("p", { class: "text-sm text-gray-400 mt-1" }, " Per\xEDodo: " + vueExports.toDisplayString(formatarPeriodo((_o = __props.holerite) == null ? void 0 : _o.periodo_inicio, (_p = __props.holerite) == null ? void 0 : _p.periodo_fim)), 1)
+                    vueExports.createVNode("p", { class: "font-semibold text-gray-800" }, vueExports.toDisplayString(__props.holerite?.funcionario?.nome_completo || __props.userName || "Funcionário"), 1),
+                    vueExports.createVNode("p", { class: "text-gray-500" }, vueExports.toDisplayString(__props.holerite?.funcionario?.cargo || __props.userCargo || "Cargo não informado") + " - " + vueExports.toDisplayString(__props.holerite?.funcionario?.empresa || "Empresa"), 1),
+                    vueExports.createVNode("p", { class: "text-sm text-gray-400 mt-1" }, " Período: " + vueExports.toDisplayString(formatarPeriodo(__props.holerite?.periodo_inicio, __props.holerite?.periodo_fim)), 1)
                   ]),
                   vueExports.createVNode("div", null, [
                     vueExports.createVNode("h3", { class: "text-lg font-bold text-green-600 mb-3" }, "Proventos"),
                     vueExports.createVNode("div", { class: "space-y-2" }, [
                       vueExports.createVNode("div", { class: "flex justify-between py-2 border-b border-gray-100" }, [
-                        vueExports.createVNode("span", { class: "text-gray-600" }, "Sal\xE1rio Base"),
+                        vueExports.createVNode("span", { class: "text-gray-600" }, "Salário Base"),
                         vueExports.createVNode("span", { class: "font-semibold" }, vueExports.toDisplayString(formatarMoeda(__props.holerite.salario_base)), 1)
                       ]),
                       __props.holerite.beneficios && __props.holerite.beneficios.length > 0 ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 0 }, [
@@ -26621,7 +26489,7 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
                         key: 1,
                         class: "flex justify-between py-2 border-b border-gray-100"
                       }, [
-                        vueExports.createVNode("span", { class: "text-gray-600" }, "B\xF4nus"),
+                        vueExports.createVNode("span", { class: "text-gray-600" }, "Bônus"),
                         vueExports.createVNode("span", { class: "font-semibold" }, vueExports.toDisplayString(formatarMoeda(__props.holerite.bonus)), 1)
                       ])) : vueExports.createCommentVNode("", true),
                       __props.holerite.horas_extras ? (vueExports.openBlock(), vueExports.createBlock("div", {
@@ -26685,7 +26553,7 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
                         key: 5,
                         class: "flex justify-between py-2 border-b border-gray-100 bg-yellow-50"
                       }, [
-                        vueExports.createVNode("span", { class: "text-gray-600 font-semibold" }, "\u{1F4B0} Adiantamento Pago"),
+                        vueExports.createVNode("span", { class: "text-gray-600 font-semibold" }, "💰 Adiantamento Pago"),
                         vueExports.createVNode("span", { class: "font-semibold text-red-600" }, "- " + vueExports.toDisplayString(formatarMoeda(__props.holerite.adiantamento)), 1)
                       ])) : vueExports.createCommentVNode("", true)
                     ]),
@@ -26696,7 +26564,7 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
                   ]),
                   vueExports.createVNode("div", { class: "bg-primary-50 rounded-xl p-4" }, [
                     vueExports.createVNode("div", { class: "flex justify-between items-center" }, [
-                      vueExports.createVNode("span", { class: "text-xl font-bold text-primary-800" }, "Sal\xE1rio L\xEDquido"),
+                      vueExports.createVNode("span", { class: "text-xl font-bold text-primary-800" }, "Salário Líquido"),
                       vueExports.createVNode("span", { class: "text-2xl font-bold text-primary-700" }, vueExports.toDisplayString(formatarMoeda(__props.holerite.salario_liquido)), 1)
                     ])
                   ]),
@@ -26715,13 +26583,13 @@ const _sfc_main$m = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: baixarHTML
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u{1F4C4} Baixar HTML ")
+                        vueExports.createTextVNode(" 📄 Baixar HTML ")
                       ]),
                       _: 1
                     }),
                     vueExports.createVNode(_component_UiButton, { onClick: baixarPDF }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u{1F4C4} Baixar PDF ")
+                        vueExports.createTextVNode(" 📄 Baixar PDF ")
                       ]),
                       _: 1
                     })
@@ -26748,20 +26616,19 @@ const HoleriteModal = Object.assign(_sfc_main$m, { __name: "HoleritesHoleriteMod
 
 const useHolerites = () => {
   const isAdiantamento = (holerite) => {
-    var _a, _b;
     if (holerite.quinzena === 1) return true;
     if (holerite.periodo_inicio && holerite.periodo_fim) {
       const inicio = new Date(holerite.periodo_inicio);
       const fim = new Date(holerite.periodo_fim);
       return inicio.getDate() === 1 && fim.getDate() <= 15;
     }
-    return ((_a = holerite.tipo) == null ? void 0 : _a.toLowerCase().includes("adiantamento")) || ((_b = holerite.referencia) == null ? void 0 : _b.toLowerCase().includes("adiantamento"));
+    return holerite.tipo?.toLowerCase().includes("adiantamento") || holerite.referencia?.toLowerCase().includes("adiantamento");
   };
   const getTipoHolerite = (holerite) => {
     return isAdiantamento(holerite) ? "adiantamento" : "folha_mensal";
   };
   const getTipoLabel = (holerite) => {
-    return isAdiantamento(holerite) ? "\u{1F4B0} Adiantamento" : "\u{1F4CA} Folha Mensal";
+    return isAdiantamento(holerite) ? "💰 Adiantamento" : "📊 Folha Mensal";
   };
   const isFeriado = (data) => {
     const feriados = [
@@ -26838,7 +26705,7 @@ const useHolerites = () => {
         ano,
         dataDisponibilizacao: new Date(ano, mes - 1, 1),
         // Placeholder - será manual
-        descricao: `Holerite ${mes.toString().padStart(2, "0")}/${ano} - 1\xAA Quinzena (Manual)`
+        descricao: `Holerite ${mes.toString().padStart(2, "0")}/${ano} - 1ª Quinzena (Manual)`
       });
       const dataHolerite20 = calcularDataDisponibilizacaoHolerite20(ano, mes);
       proximasDisponibilizacoes.push({
@@ -26846,7 +26713,7 @@ const useHolerites = () => {
         mes,
         ano,
         dataDisponibilizacao: dataHolerite20,
-        descricao: `Holerite ${mes.toString().padStart(2, "0")}/${ano} - 2\xAA Quinzena (Autom\xE1tico)`
+        descricao: `Holerite ${mes.toString().padStart(2, "0")}/${ano} - 2ª Quinzena (Automático)`
       });
     }
     return proximasDisponibilizacoes.sort(
@@ -26874,19 +26741,19 @@ const useHolerites = () => {
       return {
         inicio: new Date(ano, mes - 1, 1),
         fim: new Date(ano, mes - 1, 15),
-        descricao: `1\xAA Quinzena - 01 a 15/${mes.toString().padStart(2, "0")}/${ano}`
+        descricao: `1ª Quinzena - 01 a 15/${mes.toString().padStart(2, "0")}/${ano}`
       };
     } else {
       const ultimoDia = new Date(ano, mes, 0).getDate();
       return {
         inicio: new Date(ano, mes - 1, 16),
         fim: new Date(ano, mes - 1, ultimoDia),
-        descricao: `2\xAA Quinzena - 16 a ${ultimoDia}/${mes.toString().padStart(2, "0")}/${ano}`
+        descricao: `2ª Quinzena - 16 a ${ultimoDia}/${mes.toString().padStart(2, "0")}/${ano}`
       };
     }
   };
   const isSalarioQuinzenal = (funcionario) => {
-    return (funcionario == null ? void 0 : funcionario.tipo_salario) === "quinzenal";
+    return funcionario?.tipo_salario === "quinzenal";
   };
   const calcularValorQuinzenal = (salarioMensal) => {
     return salarioMensal / 2;
@@ -26966,8 +26833,7 @@ const _sfc_main$1$7 = /* @__PURE__ */ vueExports.defineComponent({
       return colors[status || "Pendente"] || colors["Pendente"];
     };
     const isAdiantamento = vueExports.computed(() => {
-      var _a, _b, _c, _d, _e;
-      return ((_a = props.holerite) == null ? void 0 : _a.quinzena) === 1 || ((_c = (_b = props.holerite) == null ? void 0 : _b.tipo) == null ? void 0 : _c.toLowerCase().includes("adiantamento")) || ((_e = (_d = props.holerite) == null ? void 0 : _d.referencia) == null ? void 0 : _e.toLowerCase().includes("adiantamento"));
+      return props.holerite?.quinzena === 1 || props.holerite?.tipo?.toLowerCase().includes("adiantamento") || props.holerite?.referencia?.toLowerCase().includes("adiantamento");
     });
     const getTipoHoleriteStyle = () => {
       if (isAdiantamento.value) {
@@ -26985,7 +26851,7 @@ const _sfc_main$1$7 = /* @__PURE__ */ vueExports.defineComponent({
       }
     };
     const getTipoHoleriteIcon = () => {
-      return isAdiantamento.value ? "\u{1F4B0}" : "\u{1F4CA}";
+      return isAdiantamento.value ? "💰" : "📊";
     };
     const getTipoHoleriteLabel = () => {
       return isAdiantamento.value ? "Adiantamento" : "Folha Mensal";
@@ -27006,22 +26872,22 @@ const _sfc_main$1$7 = /* @__PURE__ */ vueExports.defineComponent({
           getTipoHoleriteStyle().badge
         ])}">${ssrInterpolate_1(getTipoHoleriteLabel())}</span></div><div class="flex items-center gap-2 text-sm text-gray-500"><span>${ssrInterpolate_1(__props.holerite.competencia)}</span>`);
         if (__props.holerite.quinzena) {
-          _push(`<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${ssrInterpolate_1(__props.holerite.quinzena)}\xAA Quinzena </span>`);
+          _push(`<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${ssrInterpolate_1(__props.holerite.quinzena)}ª Quinzena </span>`);
         } else {
           _push(`<!---->`);
         }
         _push(`<span class="${ssrRenderClass_1([
           "px-2 py-0.5 rounded-full text-xs font-medium",
           getStatusColor(__props.holerite.status).badge
-        ])}">${ssrInterpolate_1(__props.holerite.status)}</span></div></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"><div><div class="text-xs text-gray-500 mb-1">Proventos</div><div class="text-sm font-semibold text-green-600"> R$ ${ssrInterpolate_1(formatarMoeda(__props.holerite.totalProventos))}</div></div><div><div class="text-xs text-gray-500 mb-1">Descontos</div><div class="text-sm font-semibold text-red-600"> R$ ${ssrInterpolate_1(formatarMoeda(__props.holerite.totalDescontos))}</div></div><div><div class="text-xs text-gray-500 mb-1">L\xEDquido</div><div class="text-lg font-bold text-blue-600"> R$ ${ssrInterpolate_1(formatarMoeda(__props.holerite.liquido))}</div></div>`);
+        ])}">${ssrInterpolate_1(__props.holerite.status)}</span></div></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"><div><div class="text-xs text-gray-500 mb-1">Proventos</div><div class="text-sm font-semibold text-green-600"> R$ ${ssrInterpolate_1(formatarMoeda(__props.holerite.totalProventos))}</div></div><div><div class="text-xs text-gray-500 mb-1">Descontos</div><div class="text-sm font-semibold text-red-600"> R$ ${ssrInterpolate_1(formatarMoeda(__props.holerite.totalDescontos))}</div></div><div><div class="text-xs text-gray-500 mb-1">Líquido</div><div class="text-lg font-bold text-blue-600"> R$ ${ssrInterpolate_1(formatarMoeda(__props.holerite.liquido))}</div></div>`);
         if (__props.holerite.dataDisponibilizacao) {
-          _push(`<div><div class="text-xs text-gray-500 mb-1">Dispon\xEDvel em</div><div class="text-sm font-medium text-gray-700">${ssrInterpolate_1(__props.holerite.dataDisponibilizacao ? vueExports.unref(formatarData)(__props.holerite.dataDisponibilizacao) : "N/A")}</div></div>`);
+          _push(`<div><div class="text-xs text-gray-500 mb-1">Disponível em</div><div class="text-sm font-medium text-gray-700">${ssrInterpolate_1(__props.holerite.dataDisponibilizacao ? vueExports.unref(formatarData)(__props.holerite.dataDisponibilizacao) : "N/A")}</div></div>`);
         } else {
           _push(`<!---->`);
         }
         _push(`</div>`);
         if (__props.holerite.periodoInicio && __props.holerite.periodoFim) {
-          _push(`<div class="mt-3 p-3 bg-blue-50 rounded-lg"><div class="text-xs text-blue-700 font-medium mb-1">\u{1F4C5} Per\xEDodo de Refer\xEAncia</div><div class="text-sm text-blue-800">${ssrInterpolate_1(__props.holerite.periodoInicio ? vueExports.unref(formatarData)(__props.holerite.periodoInicio) : "N/A")} at\xE9 ${ssrInterpolate_1(__props.holerite.periodoFim ? vueExports.unref(formatarData)(__props.holerite.periodoFim) : "N/A")}</div></div>`);
+          _push(`<div class="mt-3 p-3 bg-blue-50 rounded-lg"><div class="text-xs text-blue-700 font-medium mb-1">📅 Período de Referência</div><div class="text-sm text-blue-800">${ssrInterpolate_1(__props.holerite.periodoInicio ? vueExports.unref(formatarData)(__props.holerite.periodoInicio) : "N/A")} até ${ssrInterpolate_1(__props.holerite.periodoFim ? vueExports.unref(formatarData)(__props.holerite.periodoFim) : "N/A")}</div></div>`);
         } else {
           _push(`<!---->`);
         }
@@ -27034,10 +26900,10 @@ const _sfc_main$1$7 = /* @__PURE__ */ vueExports.defineComponent({
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(` \u{1F441}\uFE0F Visualizar `);
+              _push2(` 👁️ Visualizar `);
             } else {
               return [
-                vueExports.createTextVNode(" \u{1F441}\uFE0F Visualizar ")
+                vueExports.createTextVNode(" 👁️ Visualizar ")
               ];
             }
           }),
@@ -27051,10 +26917,10 @@ const _sfc_main$1$7 = /* @__PURE__ */ vueExports.defineComponent({
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(` \u{1F4E5} Baixar PDF `);
+              _push2(` 📥 Baixar PDF `);
             } else {
               return [
-                vueExports.createTextVNode(" \u{1F4E5} Baixar PDF ")
+                vueExports.createTextVNode(" 📥 Baixar PDF ")
               ];
             }
           }),
@@ -27089,13 +26955,12 @@ const _sfc_main$l = /* @__PURE__ */ vueExports.defineComponent({
     const holerites = vueExports.ref([]);
     const carregando = vueExports.ref(true);
     const temSalarioQuinzenal = vueExports.computed(() => {
-      var _a;
-      return ((_a = user.value) == null ? void 0 : _a.tipo_salario) === "quinzenal";
+      return user.value?.tipo_salario === "quinzenal";
     });
     const mesesOptions = [
       { value: "01", label: "Janeiro" },
       { value: "02", label: "Fevereiro" },
-      { value: "03", label: "Mar\xE7o" },
+      { value: "03", label: "Março" },
       { value: "04", label: "Abril" },
       { value: "05", label: "Maio" },
       { value: "06", label: "Junho" },
@@ -27129,18 +26994,17 @@ const _sfc_main$l = /* @__PURE__ */ vueExports.defineComponent({
       filtroTipo.value = "";
     };
     const visualizarHolerite = async (holerite) => {
-      var _a, _b, _c, _d;
       let dadosFuncionario = {
-        nome_completo: ((_a = user.value) == null ? void 0 : _a.nome) || "Funcion\xE1rio",
-        cargo: ((_b = user.value) == null ? void 0 : _b.cargo) || "N\xE3o definido",
+        nome_completo: user.value?.nome || "Funcionário",
+        cargo: user.value?.cargo || "Não definido",
         empresa: "Empresa"
       };
       try {
         if (user.value) {
           const funcionarioCompleto = await $fetch(`/api/funcionarios/${user.value.id}`);
           dadosFuncionario = {
-            nome_completo: funcionarioCompleto.nome_completo || ((_c = user.value) == null ? void 0 : _c.nome) || "Funcion\xE1rio",
-            cargo: funcionarioCompleto.cargo || ((_d = user.value) == null ? void 0 : _d.cargo) || "N\xE3o definido",
+            nome_completo: funcionarioCompleto.nome_completo || user.value?.nome || "Funcionário",
+            cargo: funcionarioCompleto.cargo || user.value?.cargo || "Não definido",
             empresa: "Empresa"
           };
           if (funcionarioCompleto.empresa_id) {
@@ -27170,10 +27034,9 @@ const _sfc_main$l = /* @__PURE__ */ vueExports.defineComponent({
       (void 0).open(`/api/holerites/${holerite.id}/pdf`, "_blank");
     };
     return (_ctx, _push, _parent, _attrs) => {
-      var _a, _b, _c;
       const _component_UiButton = __nuxt_component_1$4;
       const _component_UiEmptyState = __nuxt_component_2;
-      _push(`<div${ssrRenderAttrs_1(_attrs)}><div class="bg-white rounded-xl border border-gray-200 p-6 mb-6"><h3 class="text-lg font-semibold text-gray-900 mb-4">\u{1F50D} Filtrar Holerites</h3><div class="flex flex-col sm:flex-row gap-4"><div class="flex-1"><label class="block text-sm font-medium text-gray-700 mb-1">M\xEAs</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value=""${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroMes)) ? ssrLooseContain_1(vueExports.unref(filtroMes), "") : ssrLooseEqual_1(vueExports.unref(filtroMes), "")) ? " selected" : ""}>Todos os meses</option><!--[-->`);
+      _push(`<div${ssrRenderAttrs_1(_attrs)}><div class="bg-white rounded-xl border border-gray-200 p-6 mb-6"><h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 Filtrar Holerites</h3><div class="flex flex-col sm:flex-row gap-4"><div class="flex-1"><label class="block text-sm font-medium text-gray-700 mb-1">Mês</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value=""${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroMes)) ? ssrLooseContain_1(vueExports.unref(filtroMes), "") : ssrLooseEqual_1(vueExports.unref(filtroMes), "")) ? " selected" : ""}>Todos os meses</option><!--[-->`);
       ssrRenderList_1(mesesOptions, (mes) => {
         _push(`<option${ssrRenderAttr_1("value", mes.value)}${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroMes)) ? ssrLooseContain_1(vueExports.unref(filtroMes), mes.value) : ssrLooseEqual_1(vueExports.unref(filtroMes), mes.value)) ? " selected" : ""}>${ssrInterpolate_1(mes.label)}</option>`);
       });
@@ -27181,7 +27044,7 @@ const _sfc_main$l = /* @__PURE__ */ vueExports.defineComponent({
       ssrRenderList_1(anosOptions, (ano) => {
         _push(`<option${ssrRenderAttr_1("value", ano.value)}${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroAno)) ? ssrLooseContain_1(vueExports.unref(filtroAno), ano.value) : ssrLooseEqual_1(vueExports.unref(filtroAno), ano.value)) ? " selected" : ""}>${ssrInterpolate_1(ano.label)}</option>`);
       });
-      _push(`<!--]--></select></div><div class="flex-1"><label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value=""${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroTipo)) ? ssrLooseContain_1(vueExports.unref(filtroTipo), "") : ssrLooseEqual_1(vueExports.unref(filtroTipo), "")) ? " selected" : ""}>Todos os tipos</option><option value="adiantamento"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroTipo)) ? ssrLooseContain_1(vueExports.unref(filtroTipo), "adiantamento") : ssrLooseEqual_1(vueExports.unref(filtroTipo), "adiantamento")) ? " selected" : ""}>\u{1F4B0} Adiantamento</option><option value="folha_mensal"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroTipo)) ? ssrLooseContain_1(vueExports.unref(filtroTipo), "folha_mensal") : ssrLooseEqual_1(vueExports.unref(filtroTipo), "folha_mensal")) ? " selected" : ""}>\u{1F4CA} Folha Mensal</option></select></div><div class="flex items-end">`);
+      _push(`<!--]--></select></div><div class="flex-1"><label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><option value=""${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroTipo)) ? ssrLooseContain_1(vueExports.unref(filtroTipo), "") : ssrLooseEqual_1(vueExports.unref(filtroTipo), "")) ? " selected" : ""}>Todos os tipos</option><option value="adiantamento"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroTipo)) ? ssrLooseContain_1(vueExports.unref(filtroTipo), "adiantamento") : ssrLooseEqual_1(vueExports.unref(filtroTipo), "adiantamento")) ? " selected" : ""}>💰 Adiantamento</option><option value="folha_mensal"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(filtroTipo)) ? ssrLooseContain_1(vueExports.unref(filtroTipo), "folha_mensal") : ssrLooseEqual_1(vueExports.unref(filtroTipo), "folha_mensal")) ? " selected" : ""}>📊 Folha Mensal</option></select></div><div class="flex items-end">`);
       _push(ssrRenderComponent_1(_component_UiButton, {
         variant: "secondary",
         onClick: limparFiltros
@@ -27199,12 +27062,12 @@ const _sfc_main$l = /* @__PURE__ */ vueExports.defineComponent({
       }, _parent));
       _push(`</div></div></div>`);
       if (vueExports.unref(temSalarioQuinzenal)) {
-        _push(`<div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl"><div class="flex items-start gap-3"><span class="text-2xl">\u{1F916}</span><div><h3 class="font-semibold text-blue-800 mb-2">Holerites Autom\xE1ticos</h3><div class="text-sm text-blue-700 space-y-1"><p>\u2022 <strong>2\xAA Quinzena:</strong> Disponibilizado automaticamente 2 dias antes do dia 20</p><p>\u2022 <strong>1\xAA Quinzena:</strong> Liberado manualmente pelo RH no in\xEDcio do m\xEAs</p><p>\u2022 <strong>Fins de semana/Feriados:</strong> Antecipado para o \xFAltimo dia \xFAtil anterior</p></div></div></div></div>`);
+        _push(`<div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl"><div class="flex items-start gap-3"><span class="text-2xl">🤖</span><div><h3 class="font-semibold text-blue-800 mb-2">Holerites Automáticos</h3><div class="text-sm text-blue-700 space-y-1"><p>• <strong>2ª Quinzena:</strong> Disponibilizado automaticamente 2 dias antes do dia 20</p><p>• <strong>1ª Quinzena:</strong> Liberado manualmente pelo RH no início do mês</p><p>• <strong>Fins de semana/Feriados:</strong> Antecipado para o último dia útil anterior</p></div></div></div></div>`);
       } else {
         _push(`<!---->`);
       }
       if (!vueExports.unref(user)) {
-        _push(`<div class="text-center py-12"><p class="text-red-600">\u274C Erro: Usu\xE1rio n\xE3o autenticado. Fa\xE7a login novamente.</p></div>`);
+        _push(`<div class="text-center py-12"><p class="text-red-600">❌ Erro: Usuário não autenticado. Faça login novamente.</p></div>`);
       } else if (vueExports.unref(carregando)) {
         _push(`<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div><p class="mt-4 text-gray-600">Carregando holerites...</p></div>`);
       } else {
@@ -27226,7 +27089,7 @@ const _sfc_main$l = /* @__PURE__ */ vueExports.defineComponent({
         if (vueExports.unref(holeritesFiltrados).length === 0) {
           _push(ssrRenderComponent_1(_component_UiEmptyState, {
             title: "Nenhum holerite encontrado",
-            description: "Tente ajustar os filtros ou aguarde a gera\xE7\xE3o do pr\xF3ximo holerite."
+            description: "Tente ajustar os filtros ou aguarde a geração do próximo holerite."
           }, null, _parent));
         } else {
           _push(`<!---->`);
@@ -27236,9 +27099,9 @@ const _sfc_main$l = /* @__PURE__ */ vueExports.defineComponent({
       if (vueExports.unref(holeriteVisualizado)) {
         _push(ssrRenderComponent_1(HoleriteModal, {
           holerite: vueExports.unref(holeriteVisualizado),
-          "user-name": ((_a = vueExports.unref(user)) == null ? void 0 : _a.nome) || "",
-          "user-cargo": ((_b = vueExports.unref(user)) == null ? void 0 : _b.cargo) || "",
-          "user-departamento": ((_c = vueExports.unref(user)) == null ? void 0 : _c.departamento) || "",
+          "user-name": vueExports.unref(user)?.nome || "",
+          "user-cargo": vueExports.unref(user)?.cargo || "",
+          "user-departamento": vueExports.unref(user)?.departamento || "",
           onClose: ($event) => holeriteVisualizado.value = null,
           onDownload: baixarPDF
         }, null, _parent));
@@ -27338,77 +27201,77 @@ const _sfc_main$j = /* @__PURE__ */ vueExports.defineComponent({
     });
     const avatarMap = {
       // Avatares básicos
-      "person-1": "\u{1F464}",
+      "person-1": "👤",
       // GERENTE - Responsável por Fiscal, Financeiro, Comercial, RH e Administrativo
-      "gerente-1": "\u{1F468}\u200D\u{1F4BC}",
-      "gerente-2": "\u{1F469}\u200D\u{1F4BC}",
-      "gerente-3": "\u{1F468}\u{1F3FD}\u200D\u{1F4BC}",
-      "gerente-4": "\u{1F469}\u{1F3FD}\u200D\u{1F4BC}",
+      "gerente-1": "👨‍💼",
+      "gerente-2": "👩‍💼",
+      "gerente-3": "👨🏽‍💼",
+      "gerente-4": "👩🏽‍💼",
       // ASSISTENTE COMERCIAL
-      "ass-comercial-1": "\u{1F9D1}\u200D\u{1F4BC}",
-      "ass-comercial-2": "\u{1F468}\u200D\u{1F4BC}",
-      "ass-comercial-3": "\u{1F469}\u200D\u{1F4BC}",
-      "ass-comercial-4": "\u{1F468}\u{1F3FD}\u200D\u{1F4BC}",
-      "ass-comercial-5": "\u{1F469}\u{1F3FD}\u200D\u{1F4BC}",
+      "ass-comercial-1": "🧑‍💼",
+      "ass-comercial-2": "👨‍💼",
+      "ass-comercial-3": "👩‍💼",
+      "ass-comercial-4": "👨🏽‍💼",
+      "ass-comercial-5": "👩🏽‍💼",
       // REPRESENTANTE COMERCIAL
-      "rep-comercial-1": "\u{1F91D}",
-      "rep-comercial-2": "\u{1F454}",
-      "rep-comercial-3": "\u{1F4BC}",
+      "rep-comercial-1": "🤝",
+      "rep-comercial-2": "👔",
+      "rep-comercial-3": "💼",
       // AUXILIAR COMERCIAL
-      "aux-comercial-1": "\u{1F4CA}",
-      "aux-comercial-2": "\u{1F4C8}",
-      "aux-comercial-3": "\u{1F4B9}",
+      "aux-comercial-1": "📊",
+      "aux-comercial-2": "📈",
+      "aux-comercial-3": "💹",
       // ASSISTENTE DE PRODUÇÃO
-      "ass-producao-1": "\u{1F477}\u200D\u2642\uFE0F",
-      "ass-producao-2": "\u{1F477}\u200D\u2640\uFE0F",
-      "ass-producao-3": "\u{1F477}\u{1F3FD}\u200D\u2642\uFE0F",
-      "ass-producao-4": "\u{1F477}\u{1F3FD}\u200D\u2640\uFE0F",
+      "ass-producao-1": "👷‍♂️",
+      "ass-producao-2": "👷‍♀️",
+      "ass-producao-3": "👷🏽‍♂️",
+      "ass-producao-4": "👷🏽‍♀️",
       // AUXILIAR DE PRODUÇÃO
-      "aux-producao-1": "\u{1F527}",
-      "aux-producao-2": "\u2699\uFE0F",
-      "aux-producao-3": "\u{1F6E0}\uFE0F",
+      "aux-producao-1": "🔧",
+      "aux-producao-2": "⚙️",
+      "aux-producao-3": "🛠️",
       // SOLDADOR
-      "soldador-1": "\u{1F468}\u200D\u{1F527}",
-      "soldador-2": "\u{1F469}\u200D\u{1F527}",
-      "soldador-3": "\u{1F468}\u{1F3FD}\u200D\u{1F527}",
-      "soldador-4": "\u{1F469}\u{1F3FD}\u200D\u{1F527}",
-      "soldador-5": "\u{1F525}",
-      "soldador-6": "\u26A1",
+      "soldador-1": "👨‍🔧",
+      "soldador-2": "👩‍🔧",
+      "soldador-3": "👨🏽‍🔧",
+      "soldador-4": "👩🏽‍🔧",
+      "soldador-5": "🔥",
+      "soldador-6": "⚡",
       // AUXILIAR ADMINISTRATIVO
-      "aux-admin-1": "\u{1F4CB}",
-      "aux-admin-2": "\u{1F4DD}",
-      "aux-admin-3": "\u{1F5C2}\uFE0F",
-      "aux-admin-4": "\u{1F4C4}",
+      "aux-admin-1": "📋",
+      "aux-admin-2": "📝",
+      "aux-admin-3": "🗂️",
+      "aux-admin-4": "📄",
       // LÍDER DE ESTOQUE
-      "lider-estoque-1": "\u{1F4E6}",
-      "lider-estoque-2": "\u{1F3EA}",
-      "lider-estoque-3": "\u{1F468}\u{1F3FD}\u200D\u{1F4BC}",
-      "lider-estoque-4": "\u{1F469}\u{1F3FD}\u200D\u{1F4BC}",
+      "lider-estoque-1": "📦",
+      "lider-estoque-2": "🏪",
+      "lider-estoque-3": "👨🏽‍💼",
+      "lider-estoque-4": "👩🏽‍💼",
       // AUXILIAR DE ESTOQUE
-      "aux-estoque-1": "\u{1F4CB}",
-      "aux-estoque-2": "\u{1F4CA}",
-      "aux-estoque-3": "\u{1F3F7}\uFE0F",
-      "aux-estoque-4": "\u{1F4C8}",
+      "aux-estoque-1": "📋",
+      "aux-estoque-2": "📊",
+      "aux-estoque-3": "🏷️",
+      "aux-estoque-4": "📈",
       // AUXILIAR DE EXPEDIÇÃO
-      "aux-expedicao-1": "\u{1F69A}",
-      "aux-expedicao-2": "\u{1F4E6}",
-      "aux-expedicao-3": "\u{1F69B}",
-      "aux-expedicao-4": "\u{1F4EE}",
+      "aux-expedicao-1": "🚚",
+      "aux-expedicao-2": "📦",
+      "aux-expedicao-3": "🚛",
+      "aux-expedicao-4": "📮",
       // AUXILIAR DE SERVIÇOS GERAIS
-      "aux-servicos-1": "\u{1F9F9}",
-      "aux-servicos-2": "\u{1F9FD}",
-      "aux-servicos-3": "\u{1F9F4}",
-      "aux-servicos-4": "\u{1F5D1}\uFE0F",
+      "aux-servicos-1": "🧹",
+      "aux-servicos-2": "🧽",
+      "aux-servicos-3": "🧴",
+      "aux-servicos-4": "🗑️",
       // TI (Técnico de Informática)
-      "ti-1": "\u{1F468}\u200D\u{1F4BB}",
-      "ti-2": "\u{1F469}\u200D\u{1F4BB}",
-      "ti-3": "\u{1F468}\u{1F3FD}\u200D\u{1F4BB}",
-      "ti-4": "\u{1F469}\u{1F3FD}\u200D\u{1F4BB}",
-      "ti-5": "\u{1F4BB}",
-      "ti-6": "\u{1F5A5}\uFE0F"
+      "ti-1": "👨‍💻",
+      "ti-2": "👩‍💻",
+      "ti-3": "👨🏽‍💻",
+      "ti-4": "👩🏽‍💻",
+      "ti-5": "💻",
+      "ti-6": "🖥️"
     };
     const getAvatarEmoji = (avatarType) => {
-      return avatarMap[avatarType] || "\u{1F464}";
+      return avatarMap[avatarType] || "👤";
     };
     return (_ctx, _push, _parent, _attrs) => {
       _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({
@@ -27791,7 +27654,7 @@ const _sfc_main$3$2 = /* @__PURE__ */ vueExports.defineComponent({
         _push(`<!---->`);
       }
       if (vueExports.unref(cpfValido) && !__props.error) {
-        _push(`<p class="text-xs text-green-600">CPF v\xE1lido</p>`);
+        _push(`<p class="text-xs text-green-600">CPF válido</p>`);
       } else {
         _push(`<!---->`);
       }
@@ -27887,74 +27750,74 @@ const _sfc_main$1$6 = /* @__PURE__ */ vueExports.defineComponent({
     const saving = vueExports.ref(false);
     const avatarOptions = [
       // Avatares básicos
-      { id: "person-1", name: "Pessoa Padr\xE3o", emoji: "\u{1F464}" },
+      { id: "person-1", name: "Pessoa Padrão", emoji: "👤" },
       // GERENTE - Responsável por Fiscal, Financeiro, Comercial, RH e Administrativo
-      { id: "gerente-1", name: "Gerente", emoji: "\u{1F468}\u200D\u{1F4BC}" },
-      { id: "gerente-2", name: "Gerente", emoji: "\u{1F469}\u200D\u{1F4BC}" },
-      { id: "gerente-3", name: "Gerente Moreno", emoji: "\u{1F468}\u{1F3FD}\u200D\u{1F4BC}" },
-      { id: "gerente-4", name: "Gerente Morena", emoji: "\u{1F469}\u{1F3FD}\u200D\u{1F4BC}" },
+      { id: "gerente-1", name: "Gerente", emoji: "👨‍💼" },
+      { id: "gerente-2", name: "Gerente", emoji: "👩‍💼" },
+      { id: "gerente-3", name: "Gerente Moreno", emoji: "👨🏽‍💼" },
+      { id: "gerente-4", name: "Gerente Morena", emoji: "👩🏽‍💼" },
       // ASSISTENTE COMERCIAL
-      { id: "ass-comercial-1", name: "Assistente Comercial", emoji: "\u{1F9D1}\u200D\u{1F4BC}" },
-      { id: "ass-comercial-2", name: "Assistente Comercial", emoji: "\u{1F468}\u200D\u{1F4BC}" },
-      { id: "ass-comercial-3", name: "Assistente Comercial", emoji: "\u{1F469}\u200D\u{1F4BC}" },
-      { id: "ass-comercial-4", name: "Assistente Comercial Moreno", emoji: "\u{1F468}\u{1F3FD}\u200D\u{1F4BC}" },
-      { id: "ass-comercial-5", name: "Assistente Comercial Morena", emoji: "\u{1F469}\u{1F3FD}\u200D\u{1F4BC}" },
+      { id: "ass-comercial-1", name: "Assistente Comercial", emoji: "🧑‍💼" },
+      { id: "ass-comercial-2", name: "Assistente Comercial", emoji: "👨‍💼" },
+      { id: "ass-comercial-3", name: "Assistente Comercial", emoji: "👩‍💼" },
+      { id: "ass-comercial-4", name: "Assistente Comercial Moreno", emoji: "👨🏽‍💼" },
+      { id: "ass-comercial-5", name: "Assistente Comercial Morena", emoji: "👩🏽‍💼" },
       // REPRESENTANTE COMERCIAL
-      { id: "rep-comercial-1", name: "Representante Comercial", emoji: "\u{1F91D}" },
-      { id: "rep-comercial-2", name: "Representante Comercial", emoji: "\u{1F454}" },
-      { id: "rep-comercial-3", name: "Representante Comercial", emoji: "\u{1F4BC}" },
+      { id: "rep-comercial-1", name: "Representante Comercial", emoji: "🤝" },
+      { id: "rep-comercial-2", name: "Representante Comercial", emoji: "👔" },
+      { id: "rep-comercial-3", name: "Representante Comercial", emoji: "💼" },
       // AUXILIAR COMERCIAL
-      { id: "aux-comercial-1", name: "Auxiliar Comercial", emoji: "\u{1F4CA}" },
-      { id: "aux-comercial-2", name: "Auxiliar Comercial", emoji: "\u{1F4C8}" },
-      { id: "aux-comercial-3", name: "Auxiliar Comercial", emoji: "\u{1F4B9}" },
+      { id: "aux-comercial-1", name: "Auxiliar Comercial", emoji: "📊" },
+      { id: "aux-comercial-2", name: "Auxiliar Comercial", emoji: "📈" },
+      { id: "aux-comercial-3", name: "Auxiliar Comercial", emoji: "💹" },
       // ASSISTENTE DE PRODUÇÃO
-      { id: "ass-producao-1", name: "Assistente de Produ\xE7\xE3o", emoji: "\u{1F477}\u200D\u2642\uFE0F" },
-      { id: "ass-producao-2", name: "Assistente de Produ\xE7\xE3o", emoji: "\u{1F477}\u200D\u2640\uFE0F" },
-      { id: "ass-producao-3", name: "Assistente de Produ\xE7\xE3o Moreno", emoji: "\u{1F477}\u{1F3FD}\u200D\u2642\uFE0F" },
-      { id: "ass-producao-4", name: "Assistente de Produ\xE7\xE3o Morena", emoji: "\u{1F477}\u{1F3FD}\u200D\u2640\uFE0F" },
+      { id: "ass-producao-1", name: "Assistente de Produção", emoji: "👷‍♂️" },
+      { id: "ass-producao-2", name: "Assistente de Produção", emoji: "👷‍♀️" },
+      { id: "ass-producao-3", name: "Assistente de Produção Moreno", emoji: "👷🏽‍♂️" },
+      { id: "ass-producao-4", name: "Assistente de Produção Morena", emoji: "👷🏽‍♀️" },
       // AUXILIAR DE PRODUÇÃO
-      { id: "aux-producao-1", name: "Auxiliar de Produ\xE7\xE3o", emoji: "\u{1F527}" },
-      { id: "aux-producao-2", name: "Auxiliar de Produ\xE7\xE3o", emoji: "\u2699\uFE0F" },
-      { id: "aux-producao-3", name: "Auxiliar de Produ\xE7\xE3o", emoji: "\u{1F6E0}\uFE0F" },
+      { id: "aux-producao-1", name: "Auxiliar de Produção", emoji: "🔧" },
+      { id: "aux-producao-2", name: "Auxiliar de Produção", emoji: "⚙️" },
+      { id: "aux-producao-3", name: "Auxiliar de Produção", emoji: "🛠️" },
       // SOLDADOR
-      { id: "soldador-1", name: "Soldador", emoji: "\u{1F468}\u200D\u{1F527}" },
-      { id: "soldador-2", name: "Soldador", emoji: "\u{1F469}\u200D\u{1F527}" },
-      { id: "soldador-3", name: "Soldador Moreno", emoji: "\u{1F468}\u{1F3FD}\u200D\u{1F527}" },
-      { id: "soldador-4", name: "Soldador Morena", emoji: "\u{1F469}\u{1F3FD}\u200D\u{1F527}" },
-      { id: "soldador-5", name: "Soldador", emoji: "\u{1F525}" },
-      { id: "soldador-6", name: "Soldador", emoji: "\u26A1" },
+      { id: "soldador-1", name: "Soldador", emoji: "👨‍🔧" },
+      { id: "soldador-2", name: "Soldador", emoji: "👩‍🔧" },
+      { id: "soldador-3", name: "Soldador Moreno", emoji: "👨🏽‍🔧" },
+      { id: "soldador-4", name: "Soldador Morena", emoji: "👩🏽‍🔧" },
+      { id: "soldador-5", name: "Soldador", emoji: "🔥" },
+      { id: "soldador-6", name: "Soldador", emoji: "⚡" },
       // AUXILIAR ADMINISTRATIVO
-      { id: "aux-admin-1", name: "Auxiliar Administrativo", emoji: "\u{1F4CB}" },
-      { id: "aux-admin-2", name: "Auxiliar Administrativo", emoji: "\u{1F4DD}" },
-      { id: "aux-admin-3", name: "Auxiliar Administrativo", emoji: "\u{1F5C2}\uFE0F" },
-      { id: "aux-admin-4", name: "Auxiliar Administrativo", emoji: "\u{1F4C4}" },
+      { id: "aux-admin-1", name: "Auxiliar Administrativo", emoji: "📋" },
+      { id: "aux-admin-2", name: "Auxiliar Administrativo", emoji: "📝" },
+      { id: "aux-admin-3", name: "Auxiliar Administrativo", emoji: "🗂️" },
+      { id: "aux-admin-4", name: "Auxiliar Administrativo", emoji: "📄" },
       // LÍDER DE ESTOQUE
-      { id: "lider-estoque-1", name: "L\xEDder de Estoque", emoji: "\u{1F4E6}" },
-      { id: "lider-estoque-2", name: "L\xEDder de Estoque", emoji: "\u{1F3EA}" },
-      { id: "lider-estoque-3", name: "L\xEDder de Estoque Moreno", emoji: "\u{1F468}\u{1F3FD}\u200D\u{1F4BC}" },
-      { id: "lider-estoque-4", name: "L\xEDder de Estoque Morena", emoji: "\u{1F469}\u{1F3FD}\u200D\u{1F4BC}" },
+      { id: "lider-estoque-1", name: "Líder de Estoque", emoji: "📦" },
+      { id: "lider-estoque-2", name: "Líder de Estoque", emoji: "🏪" },
+      { id: "lider-estoque-3", name: "Líder de Estoque Moreno", emoji: "👨🏽‍💼" },
+      { id: "lider-estoque-4", name: "Líder de Estoque Morena", emoji: "👩🏽‍💼" },
       // AUXILIAR DE ESTOQUE
-      { id: "aux-estoque-1", name: "Auxiliar de Estoque", emoji: "\u{1F4CB}" },
-      { id: "aux-estoque-2", name: "Auxiliar de Estoque", emoji: "\u{1F4CA}" },
-      { id: "aux-estoque-3", name: "Auxiliar de Estoque", emoji: "\u{1F3F7}\uFE0F" },
-      { id: "aux-estoque-4", name: "Auxiliar de Estoque", emoji: "\u{1F4C8}" },
+      { id: "aux-estoque-1", name: "Auxiliar de Estoque", emoji: "📋" },
+      { id: "aux-estoque-2", name: "Auxiliar de Estoque", emoji: "📊" },
+      { id: "aux-estoque-3", name: "Auxiliar de Estoque", emoji: "🏷️" },
+      { id: "aux-estoque-4", name: "Auxiliar de Estoque", emoji: "📈" },
       // AUXILIAR DE EXPEDIÇÃO
-      { id: "aux-expedicao-1", name: "Auxiliar de Expedi\xE7\xE3o", emoji: "\u{1F69A}" },
-      { id: "aux-expedicao-2", name: "Auxiliar de Expedi\xE7\xE3o", emoji: "\u{1F4E6}" },
-      { id: "aux-expedicao-3", name: "Auxiliar de Expedi\xE7\xE3o", emoji: "\u{1F69B}" },
-      { id: "aux-expedicao-4", name: "Auxiliar de Expedi\xE7\xE3o", emoji: "\u{1F4EE}" },
+      { id: "aux-expedicao-1", name: "Auxiliar de Expedição", emoji: "🚚" },
+      { id: "aux-expedicao-2", name: "Auxiliar de Expedição", emoji: "📦" },
+      { id: "aux-expedicao-3", name: "Auxiliar de Expedição", emoji: "🚛" },
+      { id: "aux-expedicao-4", name: "Auxiliar de Expedição", emoji: "📮" },
       // AUXILIAR DE SERVIÇOS GERAIS
-      { id: "aux-servicos-1", name: "Auxiliar de Servi\xE7os Gerais", emoji: "\u{1F9F9}" },
-      { id: "aux-servicos-2", name: "Auxiliar de Servi\xE7os Gerais", emoji: "\u{1F9FD}" },
-      { id: "aux-servicos-3", name: "Auxiliar de Servi\xE7os Gerais", emoji: "\u{1F9F4}" },
-      { id: "aux-servicos-4", name: "Auxiliar de Servi\xE7os Gerais", emoji: "\u{1F5D1}\uFE0F" },
+      { id: "aux-servicos-1", name: "Auxiliar de Serviços Gerais", emoji: "🧹" },
+      { id: "aux-servicos-2", name: "Auxiliar de Serviços Gerais", emoji: "🧽" },
+      { id: "aux-servicos-3", name: "Auxiliar de Serviços Gerais", emoji: "🧴" },
+      { id: "aux-servicos-4", name: "Auxiliar de Serviços Gerais", emoji: "🗑️" },
       // TI (Técnico de Informática)
-      { id: "ti-1", name: "T\xE9cnico de TI", emoji: "\u{1F468}\u200D\u{1F4BB}" },
-      { id: "ti-2", name: "T\xE9cnico de TI", emoji: "\u{1F469}\u200D\u{1F4BB}" },
-      { id: "ti-3", name: "T\xE9cnico de TI Moreno", emoji: "\u{1F468}\u{1F3FD}\u200D\u{1F4BB}" },
-      { id: "ti-4", name: "T\xE9cnico de TI Morena", emoji: "\u{1F469}\u{1F3FD}\u200D\u{1F4BB}" },
-      { id: "ti-5", name: "T\xE9cnico de TI", emoji: "\u{1F4BB}" },
-      { id: "ti-6", name: "T\xE9cnico de TI", emoji: "\u{1F5A5}\uFE0F" }
+      { id: "ti-1", name: "Técnico de TI", emoji: "👨‍💻" },
+      { id: "ti-2", name: "Técnico de TI", emoji: "👩‍💻" },
+      { id: "ti-3", name: "Técnico de TI Moreno", emoji: "👨🏽‍💻" },
+      { id: "ti-4", name: "Técnico de TI Morena", emoji: "👩🏽‍💻" },
+      { id: "ti-5", name: "Técnico de TI", emoji: "💻" },
+      { id: "ti-6", name: "Técnico de TI", emoji: "🖥️" }
     ];
     const selectAvatar = (avatarId) => {
       selectedAvatar.value = avatarId;
@@ -28149,32 +28012,32 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
     });
     const bancosOptions = [
       { value: "001", label: "Banco do Brasil" },
-      { value: "104", label: "Caixa Econ\xF4mica" },
+      { value: "104", label: "Caixa Econômica" },
       { value: "237", label: "Bradesco" },
-      { value: "341", label: "Ita\xFA" },
+      { value: "341", label: "Itaú" },
       { value: "033", label: "Santander" },
       { value: "260", label: "Nubank" }
     ];
     const tipoContaOptions = [
       { value: "corrente", label: "Conta Corrente" },
-      { value: "poupanca", label: "Conta Poupan\xE7a" }
+      { value: "poupanca", label: "Conta Poupança" }
     ];
     const sexoOptions = [
       { value: "masculino", label: "Masculino" },
       { value: "feminino", label: "Feminino" },
       { value: "outro", label: "Outro" },
-      { value: "nao_informar", label: "Prefiro n\xE3o informar" }
+      { value: "nao_informar", label: "Prefiro não informar" }
     ];
     const formaPagamentoOptions = [
-      { value: "deposito", label: "Dep\xF3sito em Conta" },
+      { value: "deposito", label: "Depósito em Conta" },
       { value: "pix", label: "PIX" },
       { value: "dinheiro", label: "Dinheiro" }
     ];
     const tipoContratoOptions = [
       { value: "CLT", label: "CLT" },
       { value: "PJ", label: "PJ" },
-      { value: "Estagio", label: "Est\xE1gio" },
-      { value: "Temporario", label: "Tempor\xE1rio" }
+      { value: "Estagio", label: "Estágio" },
+      { value: "Temporario", label: "Temporário" }
     ];
     const cargosOptions = vueExports.ref([]);
     const departamentosOptions = vueExports.ref([]);
@@ -28212,7 +28075,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         const ano = data.getFullYear();
         return `Desde ${mes}/${ano}`;
       } catch (error) {
-        console.error("Erro ao formatar data de contrata\xE7\xE3o:", error);
+        console.error("Erro ao formatar data de contratação:", error);
         return "Desde --/--";
       }
     };
@@ -28225,50 +28088,48 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
       }).format(num);
     };
     const obterNomeCargo = (id) => {
-      const idStr = id == null ? void 0 : id.toString();
+      const idStr = id?.toString();
       return cargosMap.value[idStr] || idStr || "--";
     };
     const obterNomeDepartamento = (id) => {
-      const idStr = id == null ? void 0 : id.toString();
+      const idStr = id?.toString();
       return departamentosMap.value[idStr] || idStr || "--";
     };
     const obterNomeEmpresa = (id) => {
-      const idStr = id == null ? void 0 : id.toString();
+      const idStr = id?.toString();
       return empresasMap.value[idStr] || idStr || "--";
     };
     const beneficiosAtivos = vueExports.computed(() => {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
-      if (!((_a = dadosOriginais.value) == null ? void 0 : _a.beneficios)) return {};
+      if (!dadosOriginais.value?.beneficios) return {};
       let beneficios = {};
       try {
         beneficios = typeof dadosOriginais.value.beneficios === "string" ? JSON.parse(dadosOriginais.value.beneficios) : dadosOriginais.value.beneficios;
       } catch (error) {
-        console.error("Erro ao parsear benef\xEDcios:", error);
+        console.error("Erro ao parsear benefícios:", error);
         return {};
       }
       const ativos = {};
-      if (((_b = beneficios.vale_transporte) == null ? void 0 : _b.ativo) && ((_c = beneficios.vale_transporte) == null ? void 0 : _c.valor) > 0) {
+      if (beneficios.vale_transporte?.ativo && beneficios.vale_transporte?.valor > 0) {
         ativos.vale_transporte = beneficios.vale_transporte;
       }
-      if (((_d = beneficios.cesta_basica) == null ? void 0 : _d.ativo) && ((_e = beneficios.cesta_basica) == null ? void 0 : _e.valor) > 0) {
+      if (beneficios.cesta_basica?.ativo && beneficios.cesta_basica?.valor > 0) {
         ativos.cesta_basica = beneficios.cesta_basica;
       }
-      if (((_f = beneficios.plano_saude) == null ? void 0 : _f.ativo) && ((_g = beneficios.plano_saude) == null ? void 0 : _g.valor_funcionario) > 0) {
+      if (beneficios.plano_saude?.ativo && beneficios.plano_saude?.valor_funcionario > 0) {
         ativos.plano_saude = beneficios.plano_saude;
       }
-      if (((_h = beneficios.plano_odonto) == null ? void 0 : _h.ativo) && ((_i = beneficios.plano_odonto) == null ? void 0 : _i.valor_funcionario) > 0) {
+      if (beneficios.plano_odonto?.ativo && beneficios.plano_odonto?.valor_funcionario > 0) {
         ativos.plano_odonto = beneficios.plano_odonto;
       }
       return ativos;
     });
     const beneficiosPersonalizadosAtivos = vueExports.computed(() => {
-      var _a;
-      if (!((_a = dadosOriginais.value) == null ? void 0 : _a.beneficios)) return [];
+      if (!dadosOriginais.value?.beneficios) return [];
       let beneficios = {};
       try {
         beneficios = typeof dadosOriginais.value.beneficios === "string" ? JSON.parse(dadosOriginais.value.beneficios) : dadosOriginais.value.beneficios;
       } catch (error) {
-        console.error("Erro ao parsear benef\xEDcios:", error);
+        console.error("Erro ao parsear benefícios:", error);
         return [];
       }
       if (!beneficios.personalizados || !Array.isArray(beneficios.personalizados)) {
@@ -28280,9 +28141,8 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
       return Object.keys(beneficiosAtivos.value).length > 0 || beneficiosPersonalizadosAtivos.value.length > 0;
     });
     const carregarDados = async () => {
-      var _a, _b, _c, _d;
-      if (!((_a = user.value) == null ? void 0 : _a.id)) {
-        mostrarMensagem("Erro!", "Usu\xE1rio n\xE3o autenticado", "error");
+      if (!user.value?.id) {
+        mostrarMensagem("Erro!", "Usuário não autenticado", "error");
         return;
       }
       carregando.value = true;
@@ -28301,11 +28161,11 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
             pis_pasep: response.data.pis_pasep || ""
           };
           dadosProfissionais.value = {
-            cargo: ((_b = response.data.cargo_id) == null ? void 0 : _b.toString()) || "",
-            departamento: ((_c = response.data.departamento_id) == null ? void 0 : _c.toString()) || "",
+            cargo: response.data.cargo_id?.toString() || "",
+            departamento: response.data.departamento_id?.toString() || "",
             dataAdmissao: response.data.data_admissao || "",
             tipoContrato: response.data.tipo_contrato || "CLT",
-            empresa: ((_d = response.data.empresa_id) == null ? void 0 : _d.toString()) || ""
+            empresa: response.data.empresa_id?.toString() || ""
           };
           dadosFinanceiros.value = {
             salario_base: response.data.salario_base || 0,
@@ -28325,15 +28185,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         }
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
-        mostrarMensagem("Erro!", "N\xE3o foi poss\xEDvel carregar seus dados", "error");
+        mostrarMensagem("Erro!", "Não foi possível carregar seus dados", "error");
       } finally {
         carregando.value = false;
       }
     };
     const salvarDadosPessoais = async () => {
-      var _a, _b;
-      if (!((_a = user.value) == null ? void 0 : _a.id)) {
-        mostrarMensagem("Erro!", "Usu\xE1rio n\xE3o autenticado", "error");
+      if (!user.value?.id) {
+        mostrarMensagem("Erro!", "Usuário não autenticado", "error");
         return;
       }
       salvando.value = true;
@@ -28392,15 +28251,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         }
       } catch (error) {
         console.error("Erro ao salvar dados pessoais:", error);
-        mostrarMensagem("Erro!", ((_b = error.data) == null ? void 0 : _b.message) || "N\xE3o foi poss\xEDvel salvar os dados", "error");
+        mostrarMensagem("Erro!", error.data?.message || "Não foi possível salvar os dados", "error");
       } finally {
         salvando.value = false;
       }
     };
     const salvarDadosProfissionais = async () => {
-      var _a, _b;
-      if (!((_a = user.value) == null ? void 0 : _a.id)) {
-        mostrarMensagem("Erro!", "Usu\xE1rio n\xE3o autenticado", "error");
+      if (!user.value?.id) {
+        mostrarMensagem("Erro!", "Usuário não autenticado", "error");
         return;
       }
       if (!isAdmin.value) {
@@ -28427,15 +28285,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         }
       } catch (error) {
         console.error("Erro ao salvar dados profissionais:", error);
-        mostrarMensagem("Erro!", ((_b = error.data) == null ? void 0 : _b.message) || "N\xE3o foi poss\xEDvel salvar os dados", "error");
+        mostrarMensagem("Erro!", error.data?.message || "Não foi possível salvar os dados", "error");
       } finally {
         salvando.value = false;
       }
     };
     const salvarDadosFinanceiros = async () => {
-      var _a, _b;
-      if (!((_a = user.value) == null ? void 0 : _a.id)) {
-        mostrarMensagem("Erro!", "Usu\xE1rio n\xE3o autenticado", "error");
+      if (!user.value?.id) {
+        mostrarMensagem("Erro!", "Usuário não autenticado", "error");
         return;
       }
       salvando.value = true;
@@ -28459,7 +28316,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         }
       } catch (error) {
         console.error("Erro ao salvar dados financeiros:", error);
-        mostrarMensagem("Erro!", ((_b = error.data) == null ? void 0 : _b.message) || "N\xE3o foi poss\xEDvel salvar os dados", "error");
+        mostrarMensagem("Erro!", error.data?.message || "Não foi possível salvar os dados", "error");
       } finally {
         salvando.value = false;
       }
@@ -28472,9 +28329,8 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
       }, 5e3);
     };
     const salvarAvatar = async (avatarId) => {
-      var _a, _b;
-      if (!((_a = user.value) == null ? void 0 : _a.id)) {
-        mostrarMensagem("Erro!", "Usu\xE1rio n\xE3o autenticado", "error");
+      if (!user.value?.id) {
+        mostrarMensagem("Erro!", "Usuário não autenticado", "error");
         return;
       }
       try {
@@ -28494,11 +28350,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         }
       } catch (error) {
         console.error("Erro ao salvar avatar:", error);
-        mostrarMensagem("Erro!", ((_b = error.data) == null ? void 0 : _b.message) || "N\xE3o foi poss\xEDvel salvar o avatar", "error");
+        mostrarMensagem("Erro!", error.data?.message || "Não foi possível salvar o avatar", "error");
       }
     };
     return (_ctx, _push, _parent, _attrs) => {
-      var _a, _b, _c;
       const _component_UiPageHeader = __nuxt_component_0$3;
       const _component_UiCard = __nuxt_component_2$1;
       const _component_UiAvatar = __nuxt_component_1$3;
@@ -28515,7 +28370,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
       _push(`<div${ssrRenderAttrs_1(_attrs)}>`);
       _push(ssrRenderComponent_1(_component_UiPageHeader, {
         title: "Meus Dados",
-        description: "Visualize e atualize suas informa\xE7\xF5es pessoais"
+        description: "Visualize e atualize suas informações pessoais"
       }, null, _parent));
       if (vueExports.unref(carregando)) {
         _push(`<div class="flex items-center justify-center py-12"><div class="text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div><p class="text-gray-600">Carregando seus dados...</p></div></div>`);
@@ -28523,12 +28378,11 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         _push(`<div>`);
         _push(ssrRenderComponent_1(_component_UiCard, { class: "mb-6" }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
-            var _a2, _b2, _c2, _d, _e, _f, _g, _h;
             if (_push2) {
               _push2(`<div class="flex flex-col md:flex-row items-start gap-6"${_scopeId}><div class="flex flex-col items-center"${_scopeId}>`);
               _push2(ssrRenderComponent_1(_component_UiAvatar, {
-                name: ((_a2 = vueExports.unref(user)) == null ? void 0 : _a2.nome) || "",
-                "avatar-type": (_b2 = vueExports.unref(dadosOriginais)) == null ? void 0 : _b2.avatar,
+                name: vueExports.unref(user)?.nome || "",
+                "avatar-type": vueExports.unref(dadosOriginais)?.avatar,
                 size: "xl"
               }, null, _parent2, _scopeId));
               _push2(ssrRenderComponent_1(_component_UiButton, {
@@ -28538,16 +28392,16 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u{1F4F7} Alterar Foto `);
+                    _push3(` 📷 Alterar Foto `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u{1F4F7} Alterar Foto ")
+                      vueExports.createTextVNode(" 📷 Alterar Foto ")
                     ];
                   }
                 }),
                 _: 1
               }, _parent2, _scopeId));
-              _push2(`</div><div class="flex-1 w-full"${_scopeId}><h2 class="text-2xl font-bold text-gray-800 mb-1"${_scopeId}>${ssrInterpolate_1(((_c2 = vueExports.unref(dadosOriginais)) == null ? void 0 : _c2.nome_completo) || ((_d = vueExports.unref(user)) == null ? void 0 : _d.nome))}</h2><p class="text-lg text-gray-500 mb-4"${_scopeId}>`);
+              _push2(`</div><div class="flex-1 w-full"${_scopeId}><h2 class="text-2xl font-bold text-gray-800 mb-1"${_scopeId}>${ssrInterpolate_1(vueExports.unref(dadosOriginais)?.nome_completo || vueExports.unref(user)?.nome)}</h2><p class="text-lg text-gray-500 mb-4"${_scopeId}>`);
               if (vueExports.unref(dadosOriginais) && Object.keys(vueExports.unref(cargosMap)).length > 0) {
                 _push2(`<!--[-->${ssrInterpolate_1(obterNomeCargo(vueExports.unref(dadosOriginais).cargo_id))} - ${ssrInterpolate_1(obterNomeDepartamento(vueExports.unref(dadosOriginais).departamento_id))}<!--]-->`);
               } else {
@@ -28557,10 +28411,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               _push2(ssrRenderComponent_1(_component_UiBadge, { variant: "success" }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`\u2713 Funcion\xE1rio Ativo`);
+                    _push3(`✓ Funcionário Ativo`);
                   } else {
                     return [
-                      vueExports.createTextVNode("\u2713 Funcion\xE1rio Ativo")
+                      vueExports.createTextVNode("✓ Funcionário Ativo")
                     ];
                   }
                 }),
@@ -28569,10 +28423,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               _push2(ssrRenderComponent_1(_component_UiBadge, { variant: "info" }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`\u{1F4C5} ${ssrInterpolate_1(formatarDataContratacao())}`);
+                    _push3(`📅 ${ssrInterpolate_1(formatarDataContratacao())}`);
                   } else {
                     return [
-                      vueExports.createTextVNode("\u{1F4C5} " + vueExports.toDisplayString(formatarDataContratacao()), 1)
+                      vueExports.createTextVNode("📅 " + vueExports.toDisplayString(formatarDataContratacao()), 1)
                     ];
                   }
                 }),
@@ -28584,8 +28438,8 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.createVNode("div", { class: "flex flex-col md:flex-row items-start gap-6" }, [
                   vueExports.createVNode("div", { class: "flex flex-col items-center" }, [
                     vueExports.createVNode(_component_UiAvatar, {
-                      name: ((_e = vueExports.unref(user)) == null ? void 0 : _e.nome) || "",
-                      "avatar-type": (_f = vueExports.unref(dadosOriginais)) == null ? void 0 : _f.avatar,
+                      name: vueExports.unref(user)?.nome || "",
+                      "avatar-type": vueExports.unref(dadosOriginais)?.avatar,
                       size: "xl"
                     }, null, 8, ["name", "avatar-type"]),
                     vueExports.createVNode(_component_UiButton, {
@@ -28594,13 +28448,13 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => mostrarSeletorAvatar.value = true
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u{1F4F7} Alterar Foto ")
+                        vueExports.createTextVNode(" 📷 Alterar Foto ")
                       ]),
                       _: 1
                     }, 8, ["onClick"])
                   ]),
                   vueExports.createVNode("div", { class: "flex-1 w-full" }, [
-                    vueExports.createVNode("h2", { class: "text-2xl font-bold text-gray-800 mb-1" }, vueExports.toDisplayString(((_g = vueExports.unref(dadosOriginais)) == null ? void 0 : _g.nome_completo) || ((_h = vueExports.unref(user)) == null ? void 0 : _h.nome)), 1),
+                    vueExports.createVNode("h2", { class: "text-2xl font-bold text-gray-800 mb-1" }, vueExports.toDisplayString(vueExports.unref(dadosOriginais)?.nome_completo || vueExports.unref(user)?.nome), 1),
                     vueExports.createVNode("p", { class: "text-lg text-gray-500 mb-4" }, [
                       vueExports.unref(dadosOriginais) && Object.keys(vueExports.unref(cargosMap)).length > 0 ? (vueExports.openBlock(), vueExports.createBlock(vueExports.Fragment, { key: 0 }, [
                         vueExports.createTextVNode(vueExports.toDisplayString(obterNomeCargo(vueExports.unref(dadosOriginais).cargo_id)) + " - " + vueExports.toDisplayString(obterNomeDepartamento(vueExports.unref(dadosOriginais).departamento_id)), 1)
@@ -28611,13 +28465,13 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode("div", { class: "flex flex-wrap gap-3" }, [
                       vueExports.createVNode(_component_UiBadge, { variant: "success" }, {
                         default: vueExports.withCtx(() => [
-                          vueExports.createTextVNode("\u2713 Funcion\xE1rio Ativo")
+                          vueExports.createTextVNode("✓ Funcionário Ativo")
                         ]),
                         _: 1
                       }),
                       vueExports.createVNode(_component_UiBadge, { variant: "info" }, {
                         default: vueExports.withCtx(() => [
-                          vueExports.createTextVNode("\u{1F4C5} " + vueExports.toDisplayString(formatarDataContratacao()), 1)
+                          vueExports.createTextVNode("📅 " + vueExports.toDisplayString(formatarDataContratacao()), 1)
                         ]),
                         _: 1
                       })
@@ -28630,7 +28484,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
           _: 1
         }, _parent));
         _push(ssrRenderComponent_1(_component_UiCard, {
-          title: "\u{1F464} Dados Pessoais",
+          title: "👤 Dados Pessoais",
           class: "mb-6"
         }, {
           header: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
@@ -28641,10 +28495,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`${ssrInterpolate_1(vueExports.unref(editandoDadosPessoais) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar")}`);
+                    _push3(`${ssrInterpolate_1(vueExports.unref(editandoDadosPessoais) ? "✕ Cancelar" : "✏️ Editar")}`);
                   } else {
                     return [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosPessoais) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosPessoais) ? "✕ Cancelar" : "✏️ Editar"), 1)
                     ];
                   }
                 }),
@@ -28657,7 +28511,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   onClick: ($event) => editandoDadosPessoais.value = !vueExports.unref(editandoDadosPessoais)
                 }, {
                   default: vueExports.withCtx(() => [
-                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosPessoais) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar"), 1)
+                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosPessoais) ? "✕ Cancelar" : "✏️ Editar"), 1)
                   ]),
                   _: 1
                 }, 8, ["onClick"])
@@ -28679,14 +28533,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 "onUpdate:modelValue": ($event) => vueExports.unref(dadosPessoais).cpf = $event,
                 label: "CPF",
                 disabled: !vueExports.unref(editandoDadosPessoais) || !vueExports.unref(isAdmin) || vueExports.unref(camposEditadosUmaVez).cpf && !vueExports.unref(isAdmin),
-                hint: !vueExports.unref(isAdmin) && vueExports.unref(camposEditadosUmaVez).cpf ? "CPF j\xE1 foi editado uma vez" : !vueExports.unref(isAdmin) ? "Apenas administradores podem alterar o CPF" : ""
+                hint: !vueExports.unref(isAdmin) && vueExports.unref(camposEditadosUmaVez).cpf ? "CPF já foi editado uma vez" : !vueExports.unref(isAdmin) ? "Apenas administradores podem alterar o CPF" : ""
               }, null, _parent2, _scopeId));
               _push2(ssrRenderComponent_1(_component_UiInput, {
                 modelValue: vueExports.unref(dadosPessoais).rg,
                 "onUpdate:modelValue": ($event) => vueExports.unref(dadosPessoais).rg = $event,
                 label: "RG",
                 disabled: !vueExports.unref(editandoDadosPessoais) || vueExports.unref(camposEditadosUmaVez).rg && !vueExports.unref(isAdmin),
-                hint: vueExports.unref(camposEditadosUmaVez).rg && !vueExports.unref(isAdmin) ? "RG j\xE1 foi editado uma vez" : ""
+                hint: vueExports.unref(camposEditadosUmaVez).rg && !vueExports.unref(isAdmin) ? "RG já foi editado uma vez" : ""
               }, null, _parent2, _scopeId));
               _push2(ssrRenderComponent_1(_component_UiInput, {
                 modelValue: vueExports.unref(dadosPessoais).dataNascimento,
@@ -28694,7 +28548,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 type: "date",
                 label: "Data de Nascimento",
                 disabled: !vueExports.unref(editandoDadosPessoais) || vueExports.unref(camposEditadosUmaVez).dataNascimento && !vueExports.unref(isAdmin),
-                hint: vueExports.unref(camposEditadosUmaVez).dataNascimento && !vueExports.unref(isAdmin) ? "Data de nascimento j\xE1 foi editada uma vez" : ""
+                hint: vueExports.unref(camposEditadosUmaVez).dataNascimento && !vueExports.unref(isAdmin) ? "Data de nascimento já foi editada uma vez" : ""
               }, null, _parent2, _scopeId));
               _push2(ssrRenderComponent_1(_component_UiSelect, {
                 modelValue: vueExports.unref(dadosPessoais).sexo,
@@ -28702,7 +28556,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 options: sexoOptions,
                 label: "Sexo",
                 disabled: !vueExports.unref(editandoDadosPessoais) || vueExports.unref(camposEditadosUmaVez).sexo && !vueExports.unref(isAdmin),
-                hint: vueExports.unref(camposEditadosUmaVez).sexo && !vueExports.unref(isAdmin) ? "Sexo j\xE1 foi editado uma vez" : ""
+                hint: vueExports.unref(camposEditadosUmaVez).sexo && !vueExports.unref(isAdmin) ? "Sexo já foi editado uma vez" : ""
               }, null, _parent2, _scopeId));
               _push2(ssrRenderComponent_1(_component_UiInputPhone, {
                 modelValue: vueExports.unref(dadosPessoais).telefone,
@@ -28727,16 +28581,16 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               if (vueExports.unref(editandoDadosPessoais)) {
                 _push2(`<div class="mt-6 flex justify-end"${_scopeId}>`);
                 _push2(ssrRenderComponent_1(_component_UiButton, {
-                  icon: "\u{1F4BE}",
+                  icon: "💾",
                   onClick: salvarDadosPessoais,
                   disabled: vueExports.unref(salvando)
                 }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(`${ssrInterpolate_1(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es")}`);
+                      _push3(`${ssrInterpolate_1(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações")}`);
                     } else {
                       return [
-                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es"), 1)
+                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações"), 1)
                       ];
                     }
                   }),
@@ -28761,14 +28615,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                     "onUpdate:modelValue": ($event) => vueExports.unref(dadosPessoais).cpf = $event,
                     label: "CPF",
                     disabled: !vueExports.unref(editandoDadosPessoais) || !vueExports.unref(isAdmin) || vueExports.unref(camposEditadosUmaVez).cpf && !vueExports.unref(isAdmin),
-                    hint: !vueExports.unref(isAdmin) && vueExports.unref(camposEditadosUmaVez).cpf ? "CPF j\xE1 foi editado uma vez" : !vueExports.unref(isAdmin) ? "Apenas administradores podem alterar o CPF" : ""
+                    hint: !vueExports.unref(isAdmin) && vueExports.unref(camposEditadosUmaVez).cpf ? "CPF já foi editado uma vez" : !vueExports.unref(isAdmin) ? "Apenas administradores podem alterar o CPF" : ""
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "disabled", "hint"]),
                   vueExports.createVNode(_component_UiInput, {
                     modelValue: vueExports.unref(dadosPessoais).rg,
                     "onUpdate:modelValue": ($event) => vueExports.unref(dadosPessoais).rg = $event,
                     label: "RG",
                     disabled: !vueExports.unref(editandoDadosPessoais) || vueExports.unref(camposEditadosUmaVez).rg && !vueExports.unref(isAdmin),
-                    hint: vueExports.unref(camposEditadosUmaVez).rg && !vueExports.unref(isAdmin) ? "RG j\xE1 foi editado uma vez" : ""
+                    hint: vueExports.unref(camposEditadosUmaVez).rg && !vueExports.unref(isAdmin) ? "RG já foi editado uma vez" : ""
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "disabled", "hint"]),
                   vueExports.createVNode(_component_UiInput, {
                     modelValue: vueExports.unref(dadosPessoais).dataNascimento,
@@ -28776,7 +28630,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                     type: "date",
                     label: "Data de Nascimento",
                     disabled: !vueExports.unref(editandoDadosPessoais) || vueExports.unref(camposEditadosUmaVez).dataNascimento && !vueExports.unref(isAdmin),
-                    hint: vueExports.unref(camposEditadosUmaVez).dataNascimento && !vueExports.unref(isAdmin) ? "Data de nascimento j\xE1 foi editada uma vez" : ""
+                    hint: vueExports.unref(camposEditadosUmaVez).dataNascimento && !vueExports.unref(isAdmin) ? "Data de nascimento já foi editada uma vez" : ""
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "disabled", "hint"]),
                   vueExports.createVNode(_component_UiSelect, {
                     modelValue: vueExports.unref(dadosPessoais).sexo,
@@ -28784,7 +28638,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                     options: sexoOptions,
                     label: "Sexo",
                     disabled: !vueExports.unref(editandoDadosPessoais) || vueExports.unref(camposEditadosUmaVez).sexo && !vueExports.unref(isAdmin),
-                    hint: vueExports.unref(camposEditadosUmaVez).sexo && !vueExports.unref(isAdmin) ? "Sexo j\xE1 foi editado uma vez" : ""
+                    hint: vueExports.unref(camposEditadosUmaVez).sexo && !vueExports.unref(isAdmin) ? "Sexo já foi editado uma vez" : ""
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "disabled", "hint"]),
                   vueExports.createVNode(_component_UiInputPhone, {
                     modelValue: vueExports.unref(dadosPessoais).telefone,
@@ -28811,12 +28665,12 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   class: "mt-6 flex justify-end"
                 }, [
                   vueExports.createVNode(_component_UiButton, {
-                    icon: "\u{1F4BE}",
+                    icon: "💾",
                     onClick: salvarDadosPessoais,
                     disabled: vueExports.unref(salvando)
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações"), 1)
                     ]),
                     _: 1
                   }, 8, ["disabled"])
@@ -28827,14 +28681,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
           _: 1
         }, _parent));
         _push(ssrRenderComponent_1(_component_UiCard, {
-          title: "\u{1F4BC} Dados Profissionais",
+          title: "💼 Dados Profissionais",
           class: "mb-6"
         }, {
           header: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
               _push2(`<div class="flex items-center gap-2"${_scopeId}>`);
               if (!vueExports.unref(isAdmin)) {
-                _push2(`<span class="text-sm text-gray-500"${_scopeId}>(somente visualiza\xE7\xE3o)</span>`);
+                _push2(`<span class="text-sm text-gray-500"${_scopeId}>(somente visualização)</span>`);
               } else {
                 _push2(`<!---->`);
               }
@@ -28845,10 +28699,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(`${ssrInterpolate_1(vueExports.unref(editandoDadosProfissionais) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar")}`);
+                      _push3(`${ssrInterpolate_1(vueExports.unref(editandoDadosProfissionais) ? "✕ Cancelar" : "✏️ Editar")}`);
                     } else {
                       return [
-                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosProfissionais) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar"), 1)
+                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosProfissionais) ? "✕ Cancelar" : "✏️ Editar"), 1)
                       ];
                     }
                   }),
@@ -28864,14 +28718,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   !vueExports.unref(isAdmin) ? (vueExports.openBlock(), vueExports.createBlock("span", {
                     key: 0,
                     class: "text-sm text-gray-500"
-                  }, "(somente visualiza\xE7\xE3o)")) : vueExports.createCommentVNode("", true),
+                  }, "(somente visualização)")) : vueExports.createCommentVNode("", true),
                   vueExports.unref(isAdmin) ? (vueExports.openBlock(), vueExports.createBlock(_component_UiButton, {
                     key: 1,
                     variant: "ghost",
                     onClick: ($event) => editandoDadosProfissionais.value = !vueExports.unref(editandoDadosProfissionais)
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosProfissionais) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoDadosProfissionais) ? "✕ Cancelar" : "✏️ Editar"), 1)
                     ]),
                     _: 1
                   }, 8, ["onClick"])) : vueExports.createCommentVNode("", true)
@@ -28880,7 +28734,6 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
             }
           }),
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
-            var _a2, _c2, _e, _f, _h, _j;
             if (_push2) {
               if (!vueExports.unref(isAdmin)) {
                 _push2(ssrRenderComponent_1(_component_UiAlert, {
@@ -28889,10 +28742,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(` Estes dados s\xE3o gerenciados pelo RH e n\xE3o podem ser alterados por voc\xEA. `);
+                      _push3(` Estes dados são gerenciados pelo RH e não podem ser alterados por você. `);
                     } else {
                       return [
-                        vueExports.createTextVNode(" Estes dados s\xE3o gerenciados pelo RH e n\xE3o podem ser alterados por voc\xEA. ")
+                        vueExports.createTextVNode(" Estes dados são gerenciados pelo RH e não podem ser alterados por você. ")
                       ];
                     }
                   }),
@@ -28905,10 +28758,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(` Como administrador, voc\xEA pode editar seus pr\xF3prios dados profissionais. `);
+                      _push3(` Como administrador, você pode editar seus próprios dados profissionais. `);
                     } else {
                       return [
-                        vueExports.createTextVNode(" Como administrador, voc\xEA pode editar seus pr\xF3prios dados profissionais. ")
+                        vueExports.createTextVNode(" Como administrador, você pode editar seus próprios dados profissionais. ")
                       ];
                     }
                   }),
@@ -28917,7 +28770,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               }
               _push2(`<div class="grid grid-cols-1 md:grid-cols-2 gap-6"${_scopeId}>`);
               if (!vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais)) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Cargo</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(obterNomeCargo((_a2 = vueExports.unref(dadosOriginais)) == null ? void 0 : _a2.cargo_id))}</p></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Cargo</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(obterNomeCargo(vueExports.unref(dadosOriginais)?.cargo_id) || vueExports.unref(user)?.cargo || "--")}</p></div>`);
               } else {
                 _push2(ssrRenderComponent_1(_component_UiSelect, {
                   modelValue: vueExports.unref(dadosProfissionais).cargo,
@@ -28928,7 +28781,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 }, null, _parent2, _scopeId));
               }
               if (!vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais)) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Departamento</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(obterNomeDepartamento((_c2 = vueExports.unref(dadosOriginais)) == null ? void 0 : _c2.departamento_id))}</p></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Departamento</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(obterNomeDepartamento(vueExports.unref(dadosOriginais)?.departamento_id) || vueExports.unref(user)?.departamento || "--")}</p></div>`);
               } else {
                 _push2(ssrRenderComponent_1(_component_UiSelect, {
                   modelValue: vueExports.unref(dadosProfissionais).departamento,
@@ -28939,13 +28792,13 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 }, null, _parent2, _scopeId));
               }
               if (!vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais)) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Data de Admiss\xE3o</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(formatarData(vueExports.unref(dadosProfissionais).dataAdmissao))}</p></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Data de Admissão</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(formatarData(vueExports.unref(dadosProfissionais).dataAdmissao))}</p></div>`);
               } else {
                 _push2(ssrRenderComponent_1(_component_UiInput, {
                   modelValue: vueExports.unref(dadosProfissionais).dataAdmissao,
                   "onUpdate:modelValue": ($event) => vueExports.unref(dadosProfissionais).dataAdmissao = $event,
                   type: "date",
-                  label: "Data de Admiss\xE3o"
+                  label: "Data de Admissão"
                 }, null, _parent2, _scopeId));
               }
               if (!vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais)) {
@@ -28959,7 +28812,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                 }, null, _parent2, _scopeId));
               }
               if (!vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais)) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Empresa</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(obterNomeEmpresa((_e = vueExports.unref(dadosOriginais)) == null ? void 0 : _e.empresa_id))}</p></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Empresa</label><p class="text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl"${_scopeId}>${ssrInterpolate_1(obterNomeEmpresa(vueExports.unref(dadosOriginais)?.empresa_id) || "--")}</p></div>`);
               } else {
                 _push2(ssrRenderComponent_1(_component_UiSelect, {
                   modelValue: vueExports.unref(dadosProfissionais).empresa,
@@ -28973,16 +28826,16 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               if (vueExports.unref(isAdmin) && vueExports.unref(editandoDadosProfissionais)) {
                 _push2(`<div class="mt-6 flex justify-end"${_scopeId}>`);
                 _push2(ssrRenderComponent_1(_component_UiButton, {
-                  icon: "\u{1F4BE}",
+                  icon: "💾",
                   onClick: salvarDadosProfissionais,
                   disabled: vueExports.unref(salvando)
                 }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(`${ssrInterpolate_1(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es")}`);
+                      _push3(`${ssrInterpolate_1(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações")}`);
                     } else {
                       return [
-                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es"), 1)
+                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações"), 1)
                       ];
                     }
                   }),
@@ -29000,7 +28853,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   class: "mb-6"
                 }, {
                   default: vueExports.withCtx(() => [
-                    vueExports.createTextVNode(" Estes dados s\xE3o gerenciados pelo RH e n\xE3o podem ser alterados por voc\xEA. ")
+                    vueExports.createTextVNode(" Estes dados são gerenciados pelo RH e não podem ser alterados por você. ")
                   ]),
                   _: 1
                 })) : (vueExports.openBlock(), vueExports.createBlock(_component_UiAlert, {
@@ -29009,14 +28862,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   class: "mb-6"
                 }, {
                   default: vueExports.withCtx(() => [
-                    vueExports.createTextVNode(" Como administrador, voc\xEA pode editar seus pr\xF3prios dados profissionais. ")
+                    vueExports.createTextVNode(" Como administrador, você pode editar seus próprios dados profissionais. ")
                   ]),
                   _: 1
                 })),
                 vueExports.createVNode("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-6" }, [
                   !vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais) ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 0 }, [
                     vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Cargo"),
-                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl" }, vueExports.toDisplayString(obterNomeCargo((_f = vueExports.unref(dadosOriginais)) == null ? void 0 : _f.cargo_id)), 1)
+                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl" }, vueExports.toDisplayString(obterNomeCargo(vueExports.unref(dadosOriginais)?.cargo_id) || vueExports.unref(user)?.cargo || "--"), 1)
                   ])) : (vueExports.openBlock(), vueExports.createBlock(_component_UiSelect, {
                     key: 1,
                     modelValue: vueExports.unref(dadosProfissionais).cargo,
@@ -29027,7 +28880,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "options"])),
                   !vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais) ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 2 }, [
                     vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Departamento"),
-                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl" }, vueExports.toDisplayString(obterNomeDepartamento((_h = vueExports.unref(dadosOriginais)) == null ? void 0 : _h.departamento_id)), 1)
+                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl" }, vueExports.toDisplayString(obterNomeDepartamento(vueExports.unref(dadosOriginais)?.departamento_id) || vueExports.unref(user)?.departamento || "--"), 1)
                   ])) : (vueExports.openBlock(), vueExports.createBlock(_component_UiSelect, {
                     key: 3,
                     modelValue: vueExports.unref(dadosProfissionais).departamento,
@@ -29037,14 +28890,14 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                     placeholder: "Selecione um departamento..."
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "options"])),
                   !vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais) ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 4 }, [
-                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Data de Admiss\xE3o"),
+                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Data de Admissão"),
                     vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl" }, vueExports.toDisplayString(formatarData(vueExports.unref(dadosProfissionais).dataAdmissao)), 1)
                   ])) : (vueExports.openBlock(), vueExports.createBlock(_component_UiInput, {
                     key: 5,
                     modelValue: vueExports.unref(dadosProfissionais).dataAdmissao,
                     "onUpdate:modelValue": ($event) => vueExports.unref(dadosProfissionais).dataAdmissao = $event,
                     type: "date",
-                    label: "Data de Admiss\xE3o"
+                    label: "Data de Admissão"
                   }, null, 8, ["modelValue", "onUpdate:modelValue"])),
                   !vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais) ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 6 }, [
                     vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Tipo de Contrato"),
@@ -29058,7 +28911,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   }, null, 8, ["modelValue", "onUpdate:modelValue"])),
                   !vueExports.unref(isAdmin) || !vueExports.unref(editandoDadosProfissionais) ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 8 }, [
                     vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Empresa"),
-                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl" }, vueExports.toDisplayString(obterNomeEmpresa((_j = vueExports.unref(dadosOriginais)) == null ? void 0 : _j.empresa_id)), 1)
+                    vueExports.createVNode("p", { class: "text-lg font-semibold text-gray-800 p-3 bg-gray-50 rounded-xl" }, vueExports.toDisplayString(obterNomeEmpresa(vueExports.unref(dadosOriginais)?.empresa_id) || "--"), 1)
                   ])) : (vueExports.openBlock(), vueExports.createBlock(_component_UiSelect, {
                     key: 9,
                     modelValue: vueExports.unref(dadosProfissionais).empresa,
@@ -29073,12 +28926,12 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   class: "mt-6 flex justify-end"
                 }, [
                   vueExports.createVNode(_component_UiButton, {
-                    icon: "\u{1F4BE}",
+                    icon: "💾",
                     onClick: salvarDadosProfissionais,
                     disabled: vueExports.unref(salvando)
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações"), 1)
                     ]),
                     _: 1
                   }, 8, ["disabled"])
@@ -29089,7 +28942,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
           _: 1
         }, _parent));
         _push(ssrRenderComponent_1(_component_UiCard, {
-          title: "\u{1F4B0} Dados Financeiros",
+          title: "💰 Dados Financeiros",
           class: "mb-6"
         }, {
           header: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
@@ -29100,10 +28953,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`${ssrInterpolate_1(vueExports.unref(editandoPagamento) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar")}`);
+                    _push3(`${ssrInterpolate_1(vueExports.unref(editandoPagamento) ? "✕ Cancelar" : "✏️ Editar")}`);
                   } else {
                     return [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoPagamento) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoPagamento) ? "✕ Cancelar" : "✏️ Editar"), 1)
                     ];
                   }
                 }),
@@ -29116,7 +28969,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   onClick: ($event) => editandoPagamento.value = !vueExports.unref(editandoPagamento)
                 }, {
                   default: vueExports.withCtx(() => [
-                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoPagamento) ? "\u2715 Cancelar" : "\u270F\uFE0F Editar"), 1)
+                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(editandoPagamento) ? "✕ Cancelar" : "✏️ Editar"), 1)
                   ]),
                   _: 1
                 }, 8, ["onClick"])
@@ -29125,13 +28978,13 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
           }),
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(`<div class="grid grid-cols-1 md:grid-cols-2 gap-6"${_scopeId}><div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Sal\xE1rio Base (R$)</label><div class="p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"${_scopeId}><div class="flex items-center justify-between"${_scopeId}><p class="text-lg font-bold text-green-700"${_scopeId}>${ssrInterpolate_1(vueExports.unref(mostrarSalario) ? formatarMoeda(vueExports.unref(dadosFinanceiros).salario_base) : "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022")}</p><svg class="${ssrRenderClass_1([{ "text-green-600": vueExports.unref(mostrarSalario) }, "w-5 h-5 text-gray-400"])}" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}>`);
+              _push2(`<div class="grid grid-cols-1 md:grid-cols-2 gap-6"${_scopeId}><div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Salário Base (R$)</label><div class="p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"${_scopeId}><div class="flex items-center justify-between"${_scopeId}><p class="text-lg font-bold text-green-700"${_scopeId}>${ssrInterpolate_1(vueExports.unref(mostrarSalario) ? formatarMoeda(vueExports.unref(dadosFinanceiros).salario_base) : "••••••••")}</p><svg class="${ssrRenderClass_1([{ "text-green-600": vueExports.unref(mostrarSalario) }, "w-5 h-5 text-gray-400"])}" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}>`);
               if (!vueExports.unref(mostrarSalario)) {
                 _push2(`<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"${_scopeId}></path>`);
               } else {
                 _push2(`<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"${_scopeId}></path>`);
               }
-              _push2(`</svg></div><p class="text-xs text-gray-500 mt-1 flex items-center gap-1"${_scopeId}><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"${_scopeId}></path></svg> ${ssrInterpolate_1(vueExports.unref(mostrarSalario) ? "Clique para ocultar" : "Clique para revelar")} \u2022 Campo bloqueado para edi\xE7\xE3o </p></div></div>`);
+              _push2(`</svg></div><p class="text-xs text-gray-500 mt-1 flex items-center gap-1"${_scopeId}><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"${_scopeId}></path></svg> ${ssrInterpolate_1(vueExports.unref(mostrarSalario) ? "Clique para ocultar" : "Clique para revelar")} • Campo bloqueado para edição </p></div></div>`);
               _push2(ssrRenderComponent_1(_component_UiSelect, {
                 modelValue: vueExports.unref(dadosFinanceiros).forma_pagamento,
                 "onUpdate:modelValue": ($event) => vueExports.unref(dadosFinanceiros).forma_pagamento = $event,
@@ -29156,7 +29009,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               _push2(ssrRenderComponent_1(_component_UiInput, {
                 modelValue: vueExports.unref(dadosFinanceiros).agencia,
                 "onUpdate:modelValue": ($event) => vueExports.unref(dadosFinanceiros).agencia = $event,
-                label: "Ag\xEAncia",
+                label: "Agência",
                 disabled: !vueExports.unref(editandoPagamento)
               }, null, _parent2, _scopeId));
               _push2(ssrRenderComponent_1(_component_UiInput, {
@@ -29170,7 +29023,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   modelValue: vueExports.unref(dadosFinanceiros).chave_pix,
                   "onUpdate:modelValue": ($event) => vueExports.unref(dadosFinanceiros).chave_pix = $event,
                   label: "Chave PIX",
-                  placeholder: "Digite sua chave PIX (CPF, email, telefone ou chave aleat\xF3ria)",
+                  placeholder: "Digite sua chave PIX (CPF, email, telefone ou chave aleatória)",
                   disabled: !vueExports.unref(editandoPagamento)
                 }, null, _parent2, _scopeId));
               } else {
@@ -29180,16 +29033,16 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               if (vueExports.unref(editandoPagamento)) {
                 _push2(`<div class="mt-6 flex justify-end"${_scopeId}>`);
                 _push2(ssrRenderComponent_1(_component_UiButton, {
-                  icon: "\u{1F4BE}",
+                  icon: "💾",
                   onClick: salvarDadosFinanceiros,
                   disabled: vueExports.unref(salvando)
                 }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(`${ssrInterpolate_1(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es")}`);
+                      _push3(`${ssrInterpolate_1(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações")}`);
                     } else {
                       return [
-                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es"), 1)
+                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações"), 1)
                       ];
                     }
                   }),
@@ -29203,13 +29056,13 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               return [
                 vueExports.createVNode("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-6" }, [
                   vueExports.createVNode("div", null, [
-                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Sal\xE1rio Base (R$)"),
+                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Salário Base (R$)"),
                     vueExports.createVNode("div", {
                       class: "p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors",
                       onClick: ($event) => mostrarSalario.value = !vueExports.unref(mostrarSalario)
                     }, [
                       vueExports.createVNode("div", { class: "flex items-center justify-between" }, [
-                        vueExports.createVNode("p", { class: "text-lg font-bold text-green-700" }, vueExports.toDisplayString(vueExports.unref(mostrarSalario) ? formatarMoeda(vueExports.unref(dadosFinanceiros).salario_base) : "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"), 1),
+                        vueExports.createVNode("p", { class: "text-lg font-bold text-green-700" }, vueExports.toDisplayString(vueExports.unref(mostrarSalario) ? formatarMoeda(vueExports.unref(dadosFinanceiros).salario_base) : "••••••••"), 1),
                         (vueExports.openBlock(), vueExports.createBlock("svg", {
                           class: ["w-5 h-5 text-gray-400", { "text-green-600": vueExports.unref(mostrarSalario) }],
                           fill: "none",
@@ -29245,7 +29098,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                             d: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                           })
                         ])),
-                        vueExports.createTextVNode(" " + vueExports.toDisplayString(vueExports.unref(mostrarSalario) ? "Clique para ocultar" : "Clique para revelar") + " \u2022 Campo bloqueado para edi\xE7\xE3o ", 1)
+                        vueExports.createTextVNode(" " + vueExports.toDisplayString(vueExports.unref(mostrarSalario) ? "Clique para ocultar" : "Clique para revelar") + " • Campo bloqueado para edição ", 1)
                       ])
                     ], 8, ["onClick"])
                   ]),
@@ -29273,7 +29126,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   vueExports.createVNode(_component_UiInput, {
                     modelValue: vueExports.unref(dadosFinanceiros).agencia,
                     "onUpdate:modelValue": ($event) => vueExports.unref(dadosFinanceiros).agencia = $event,
-                    label: "Ag\xEAncia",
+                    label: "Agência",
                     disabled: !vueExports.unref(editandoPagamento)
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "disabled"]),
                   vueExports.createVNode(_component_UiInput, {
@@ -29287,7 +29140,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                     modelValue: vueExports.unref(dadosFinanceiros).chave_pix,
                     "onUpdate:modelValue": ($event) => vueExports.unref(dadosFinanceiros).chave_pix = $event,
                     label: "Chave PIX",
-                    placeholder: "Digite sua chave PIX (CPF, email, telefone ou chave aleat\xF3ria)",
+                    placeholder: "Digite sua chave PIX (CPF, email, telefone ou chave aleatória)",
                     disabled: !vueExports.unref(editandoPagamento)
                   }, null, 8, ["modelValue", "onUpdate:modelValue", "disabled"])) : vueExports.createCommentVNode("", true)
                 ]),
@@ -29296,12 +29149,12 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   class: "mt-6 flex justify-end"
                 }, [
                   vueExports.createVNode(_component_UiButton, {
-                    icon: "\u{1F4BE}",
+                    icon: "💾",
                     onClick: salvarDadosFinanceiros,
                     disabled: vueExports.unref(salvando)
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Altera\xE7\xF5es"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(salvando) ? "Salvando..." : "Salvar Alterações"), 1)
                     ]),
                     _: 1
                   }, 8, ["disabled"])
@@ -29312,7 +29165,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
           _: 1
         }, _parent));
         _push(ssrRenderComponent_1(_component_UiCard, {
-          title: "\u{1F381} Benef\xEDcios",
+          title: "🎁 Benefícios",
           class: "mb-6"
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
@@ -29323,10 +29176,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` Estes benef\xEDcios s\xE3o gerenciados pelo RH e n\xE3o podem ser alterados por voc\xEA. `);
+                    _push3(` Estes benefícios são gerenciados pelo RH e não podem ser alterados por você. `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" Estes benef\xEDcios s\xE3o gerenciados pelo RH e n\xE3o podem ser alterados por voc\xEA. ")
+                      vueExports.createTextVNode(" Estes benefícios são gerenciados pelo RH e não podem ser alterados por você. ")
                     ];
                   }
                 }),
@@ -29334,28 +29187,28 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               }, _parent2, _scopeId));
               _push2(`<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"${_scopeId}>`);
               if (vueExports.unref(beneficiosAtivos).vale_transporte) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Vale Transporte</label><div class="p-3 bg-green-50 rounded-xl border border-green-200"${_scopeId}><p class="text-lg font-semibold text-green-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).vale_transporte.valor))}</p><p class="text-xs text-green-600 mt-1"${_scopeId}>\u2713 Ativo \u2022 Gerenciado pelo RH</p></div></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Vale Transporte</label><div class="p-3 bg-green-50 rounded-xl border border-green-200"${_scopeId}><p class="text-lg font-semibold text-green-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).vale_transporte.valor))}</p><p class="text-xs text-green-600 mt-1"${_scopeId}>✓ Ativo • Gerenciado pelo RH</p></div></div>`);
               } else {
                 _push2(`<!---->`);
               }
               if (vueExports.unref(beneficiosAtivos).cesta_basica) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Cesta B\xE1sica</label><div class="p-3 bg-blue-50 rounded-xl border border-blue-200"${_scopeId}><p class="text-lg font-semibold text-blue-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).cesta_basica.valor))}</p><p class="text-xs text-blue-600 mt-1"${_scopeId}>\u2713 Ativo \u2022 Gerenciado pelo RH</p></div></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Cesta Básica</label><div class="p-3 bg-blue-50 rounded-xl border border-blue-200"${_scopeId}><p class="text-lg font-semibold text-blue-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).cesta_basica.valor))}</p><p class="text-xs text-blue-600 mt-1"${_scopeId}>✓ Ativo • Gerenciado pelo RH</p></div></div>`);
               } else {
                 _push2(`<!---->`);
               }
               if (vueExports.unref(beneficiosAtivos).plano_saude) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Plano de Sa\xFAde</label><div class="p-3 bg-purple-50 rounded-xl border border-purple-200"${_scopeId}><p class="text-lg font-semibold text-purple-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).plano_saude.valor_funcionario))}</p><p class="text-xs text-purple-600 mt-1"${_scopeId}>\u2713 Ativo \u2022 Gerenciado pelo RH</p></div></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Plano de Saúde</label><div class="p-3 bg-purple-50 rounded-xl border border-purple-200"${_scopeId}><p class="text-lg font-semibold text-purple-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).plano_saude.valor_funcionario))}</p><p class="text-xs text-purple-600 mt-1"${_scopeId}>✓ Ativo • Gerenciado pelo RH</p></div></div>`);
               } else {
                 _push2(`<!---->`);
               }
               if (vueExports.unref(beneficiosAtivos).plano_odonto) {
-                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Plano Odontol\xF3gico</label><div class="p-3 bg-indigo-50 rounded-xl border border-indigo-200"${_scopeId}><p class="text-lg font-semibold text-indigo-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).plano_odonto.valor_funcionario))}</p><p class="text-xs text-indigo-600 mt-1"${_scopeId}>\u2713 Ativo \u2022 Gerenciado pelo RH</p></div></div>`);
+                _push2(`<div${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>Plano Odontológico</label><div class="p-3 bg-indigo-50 rounded-xl border border-indigo-200"${_scopeId}><p class="text-lg font-semibold text-indigo-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(vueExports.unref(beneficiosAtivos).plano_odonto.valor_funcionario))}</p><p class="text-xs text-indigo-600 mt-1"${_scopeId}>✓ Ativo • Gerenciado pelo RH</p></div></div>`);
               } else {
                 _push2(`<!---->`);
               }
               _push2(`<!--[-->`);
               ssrRenderList_1(vueExports.unref(beneficiosPersonalizadosAtivos), (beneficio) => {
-                _push2(`<div class="beneficio-personalizado"${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>${ssrInterpolate_1(beneficio.nome)}</label><div class="p-3 bg-orange-50 rounded-xl border border-orange-200"${_scopeId}><div class="flex items-center gap-2 mb-1"${_scopeId}><span class="text-lg"${_scopeId}>${ssrInterpolate_1(beneficio.icone || "\u{1F3AF}")}</span><p class="text-lg font-semibold text-orange-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(beneficio.valor))}</p></div><p class="text-xs text-orange-600"${_scopeId}>\u2713 Ativo \u2022 Gerenciado pelo RH</p>`);
+                _push2(`<div class="beneficio-personalizado"${_scopeId}><label class="block text-sm font-medium text-gray-500 mb-1"${_scopeId}>${ssrInterpolate_1(beneficio.nome)}</label><div class="p-3 bg-orange-50 rounded-xl border border-orange-200"${_scopeId}><div class="flex items-center gap-2 mb-1"${_scopeId}><span class="text-lg"${_scopeId}>${ssrInterpolate_1(beneficio.icone || "🎯")}</span><p class="text-lg font-semibold text-orange-800"${_scopeId}>${ssrInterpolate_1(formatarMoeda(beneficio.valor))}</p></div><p class="text-xs text-orange-600"${_scopeId}>✓ Ativo • Gerenciado pelo RH</p>`);
                 if (beneficio.descricao) {
                   _push2(`<p class="text-xs text-gray-600 mt-1"${_scopeId}>${ssrInterpolate_1(beneficio.descricao)}</p>`);
                 } else {
@@ -29365,7 +29218,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
               });
               _push2(`<!--]-->`);
               if (!vueExports.unref(temBeneficios)) {
-                _push2(`<div class="col-span-full"${_scopeId}><div class="text-center py-8 bg-gray-50 rounded-xl border border-gray-200"${_scopeId}><svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"${_scopeId}></path></svg><p class="text-gray-600 font-medium"${_scopeId}>Nenhum benef\xEDcio configurado</p><p class="text-sm text-gray-500 mt-1"${_scopeId}>Entre em contato com o RH para mais informa\xE7\xF5es</p></div></div>`);
+                _push2(`<div class="col-span-full"${_scopeId}><div class="text-center py-8 bg-gray-50 rounded-xl border border-gray-200"${_scopeId}><svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"${_scopeId}></path></svg><p class="text-gray-600 font-medium"${_scopeId}>Nenhum benefício configurado</p><p class="text-sm text-gray-500 mt-1"${_scopeId}>Entre em contato com o RH para mais informações</p></div></div>`);
               } else {
                 _push2(`<!---->`);
               }
@@ -29377,7 +29230,7 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                   class: "mb-6"
                 }, {
                   default: vueExports.withCtx(() => [
-                    vueExports.createTextVNode(" Estes benef\xEDcios s\xE3o gerenciados pelo RH e n\xE3o podem ser alterados por voc\xEA. ")
+                    vueExports.createTextVNode(" Estes benefícios são gerenciados pelo RH e não podem ser alterados por você. ")
                   ]),
                   _: 1
                 }),
@@ -29386,28 +29239,28 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Vale Transporte"),
                     vueExports.createVNode("div", { class: "p-3 bg-green-50 rounded-xl border border-green-200" }, [
                       vueExports.createVNode("p", { class: "text-lg font-semibold text-green-800" }, vueExports.toDisplayString(formatarMoeda(vueExports.unref(beneficiosAtivos).vale_transporte.valor)), 1),
-                      vueExports.createVNode("p", { class: "text-xs text-green-600 mt-1" }, "\u2713 Ativo \u2022 Gerenciado pelo RH")
+                      vueExports.createVNode("p", { class: "text-xs text-green-600 mt-1" }, "✓ Ativo • Gerenciado pelo RH")
                     ])
                   ])) : vueExports.createCommentVNode("", true),
                   vueExports.unref(beneficiosAtivos).cesta_basica ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 1 }, [
-                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Cesta B\xE1sica"),
+                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Cesta Básica"),
                     vueExports.createVNode("div", { class: "p-3 bg-blue-50 rounded-xl border border-blue-200" }, [
                       vueExports.createVNode("p", { class: "text-lg font-semibold text-blue-800" }, vueExports.toDisplayString(formatarMoeda(vueExports.unref(beneficiosAtivos).cesta_basica.valor)), 1),
-                      vueExports.createVNode("p", { class: "text-xs text-blue-600 mt-1" }, "\u2713 Ativo \u2022 Gerenciado pelo RH")
+                      vueExports.createVNode("p", { class: "text-xs text-blue-600 mt-1" }, "✓ Ativo • Gerenciado pelo RH")
                     ])
                   ])) : vueExports.createCommentVNode("", true),
                   vueExports.unref(beneficiosAtivos).plano_saude ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 2 }, [
-                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Plano de Sa\xFAde"),
+                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Plano de Saúde"),
                     vueExports.createVNode("div", { class: "p-3 bg-purple-50 rounded-xl border border-purple-200" }, [
                       vueExports.createVNode("p", { class: "text-lg font-semibold text-purple-800" }, vueExports.toDisplayString(formatarMoeda(vueExports.unref(beneficiosAtivos).plano_saude.valor_funcionario)), 1),
-                      vueExports.createVNode("p", { class: "text-xs text-purple-600 mt-1" }, "\u2713 Ativo \u2022 Gerenciado pelo RH")
+                      vueExports.createVNode("p", { class: "text-xs text-purple-600 mt-1" }, "✓ Ativo • Gerenciado pelo RH")
                     ])
                   ])) : vueExports.createCommentVNode("", true),
                   vueExports.unref(beneficiosAtivos).plano_odonto ? (vueExports.openBlock(), vueExports.createBlock("div", { key: 3 }, [
-                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Plano Odontol\xF3gico"),
+                    vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, "Plano Odontológico"),
                     vueExports.createVNode("div", { class: "p-3 bg-indigo-50 rounded-xl border border-indigo-200" }, [
                       vueExports.createVNode("p", { class: "text-lg font-semibold text-indigo-800" }, vueExports.toDisplayString(formatarMoeda(vueExports.unref(beneficiosAtivos).plano_odonto.valor_funcionario)), 1),
-                      vueExports.createVNode("p", { class: "text-xs text-indigo-600 mt-1" }, "\u2713 Ativo \u2022 Gerenciado pelo RH")
+                      vueExports.createVNode("p", { class: "text-xs text-indigo-600 mt-1" }, "✓ Ativo • Gerenciado pelo RH")
                     ])
                   ])) : vueExports.createCommentVNode("", true),
                   (vueExports.openBlock(true), vueExports.createBlock(vueExports.Fragment, null, vueExports.renderList(vueExports.unref(beneficiosPersonalizadosAtivos), (beneficio) => {
@@ -29418,10 +29271,10 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                       vueExports.createVNode("label", { class: "block text-sm font-medium text-gray-500 mb-1" }, vueExports.toDisplayString(beneficio.nome), 1),
                       vueExports.createVNode("div", { class: "p-3 bg-orange-50 rounded-xl border border-orange-200" }, [
                         vueExports.createVNode("div", { class: "flex items-center gap-2 mb-1" }, [
-                          vueExports.createVNode("span", { class: "text-lg" }, vueExports.toDisplayString(beneficio.icone || "\u{1F3AF}"), 1),
+                          vueExports.createVNode("span", { class: "text-lg" }, vueExports.toDisplayString(beneficio.icone || "🎯"), 1),
                           vueExports.createVNode("p", { class: "text-lg font-semibold text-orange-800" }, vueExports.toDisplayString(formatarMoeda(beneficio.valor)), 1)
                         ]),
-                        vueExports.createVNode("p", { class: "text-xs text-orange-600" }, "\u2713 Ativo \u2022 Gerenciado pelo RH"),
+                        vueExports.createVNode("p", { class: "text-xs text-orange-600" }, "✓ Ativo • Gerenciado pelo RH"),
                         beneficio.descricao ? (vueExports.openBlock(), vueExports.createBlock("p", {
                           key: 0,
                           class: "text-xs text-gray-600 mt-1"
@@ -29447,8 +29300,8 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
                           d: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
                         })
                       ])),
-                      vueExports.createVNode("p", { class: "text-gray-600 font-medium" }, "Nenhum benef\xEDcio configurado"),
-                      vueExports.createVNode("p", { class: "text-sm text-gray-500 mt-1" }, "Entre em contato com o RH para mais informa\xE7\xF5es")
+                      vueExports.createVNode("p", { class: "text-gray-600 font-medium" }, "Nenhum benefício configurado"),
+                      vueExports.createVNode("p", { class: "text-sm text-gray-500 mt-1" }, "Entre em contato com o RH para mais informações")
                     ])
                   ])) : vueExports.createCommentVNode("", true)
                 ])
@@ -29466,8 +29319,8 @@ const _sfc_main$e = /* @__PURE__ */ vueExports.defineComponent({
         }, null, _parent));
         _push(ssrRenderComponent_1(_component_UiAvatarSelector, {
           show: vueExports.unref(mostrarSeletorAvatar),
-          "user-name": ((_a = vueExports.unref(dadosOriginais)) == null ? void 0 : _a.nome_completo) || ((_b = vueExports.unref(user)) == null ? void 0 : _b.nome) || "",
-          "current-avatar": (_c = vueExports.unref(dadosOriginais)) == null ? void 0 : _c.avatar,
+          "user-name": vueExports.unref(dadosOriginais)?.nome_completo || vueExports.unref(user)?.nome || "",
+          "current-avatar": vueExports.unref(dadosOriginais)?.avatar,
           onClose: ($event) => mostrarSeletorAvatar.value = false,
           onSave: salvarAvatar
         }, null, _parent));
@@ -29554,7 +29407,6 @@ const useCargos = () => {
     }
   };
   const salvarCargo = async (cargo) => {
-    var _a;
     loading.value = true;
     try {
       const response = await $fetch("/api/cargos", {
@@ -29568,7 +29420,7 @@ const useCargos = () => {
       return { success: false, message: "Erro ao salvar cargo" };
     } catch (err) {
       console.error("Erro ao salvar cargo:", err);
-      return { success: false, message: ((_a = err.data) == null ? void 0 : _a.message) || "Erro ao salvar cargo" };
+      return { success: false, message: err.data?.message || "Erro ao salvar cargo" };
     } finally {
       loading.value = false;
     }
@@ -29651,7 +29503,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
           if (_push2) {
             _push2(ssrRenderComponent_1(_component_UiButton, {
               size: "lg",
-              icon: "\u2795",
+              icon: "➕",
               onClick: ($event) => abrirModal()
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
@@ -29669,7 +29521,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
             return [
               vueExports.createVNode(_component_UiButton, {
                 size: "lg",
-                icon: "\u2795",
+                icon: "➕",
                 onClick: ($event) => abrirModal()
               }, {
                 default: vueExports.withCtx(() => [
@@ -29692,7 +29544,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
             if (_push2) {
               _push2(`<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"${_scopeId}><div class="flex items-center gap-4"${_scopeId}><div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center"${_scopeId}><svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"${_scopeId}></path></svg></div><div${_scopeId}><h3 class="text-xl font-bold text-gray-800"${_scopeId}>${ssrInterpolate_1(cargo.nome)}</h3><p class="text-gray-500"${_scopeId}>${ssrInterpolate_1(cargo.descricao)}</p>`);
               if (cargo.nivel) {
-                _push2(`<p class="text-sm text-gray-400 mt-1"${_scopeId}> N\xEDvel: ${ssrInterpolate_1(cargo.nivel)}</p>`);
+                _push2(`<p class="text-sm text-gray-400 mt-1"${_scopeId}> Nível: ${ssrInterpolate_1(cargo.nivel)}</p>`);
               } else {
                 _push2(`<!---->`);
               }
@@ -29703,10 +29555,10 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`\u270F\uFE0F Editar`);
+                    _push3(`✏️ Editar`);
                   } else {
                     return [
-                      vueExports.createTextVNode("\u270F\uFE0F Editar")
+                      vueExports.createTextVNode("✏️ Editar")
                     ];
                   }
                 }),
@@ -29738,7 +29590,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
                       cargo.nivel ? (vueExports.openBlock(), vueExports.createBlock("p", {
                         key: 0,
                         class: "text-sm text-gray-400 mt-1"
-                      }, " N\xEDvel: " + vueExports.toDisplayString(cargo.nivel), 1)) : vueExports.createCommentVNode("", true)
+                      }, " Nível: " + vueExports.toDisplayString(cargo.nivel), 1)) : vueExports.createCommentVNode("", true)
                     ])
                   ]),
                   vueExports.createVNode(_component_UiButton, {
@@ -29746,7 +29598,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
                     onClick: ($event) => abrirModal(cargo)
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode("\u270F\uFE0F Editar")
+                      vueExports.createTextVNode("✏️ Editar")
                     ]),
                     _: 1
                   }, 8, ["onClick"])
@@ -29775,7 +29627,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiTextarea, {
               modelValue: vueExports.unref(form).descricao,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).descricao = $event,
-              label: "Descri\xE7\xE3o"
+              label: "Descrição"
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiSelect, {
               modelValue: vueExports.unref(form).nivel,
@@ -29802,7 +29654,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
             }, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiButton, {
               type: "submit",
-              icon: "\u{1F4BE}",
+              icon: "💾",
               disabled: vueExports.unref(loading)
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
@@ -29832,7 +29684,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.createVNode(_component_UiTextarea, {
                   modelValue: vueExports.unref(form).descricao,
                   "onUpdate:modelValue": ($event) => vueExports.unref(form).descricao = $event,
-                  label: "Descri\xE7\xE3o"
+                  label: "Descrição"
                 }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                 vueExports.createVNode(_component_UiSelect, {
                   modelValue: vueExports.unref(form).nivel,
@@ -29853,7 +29705,7 @@ const _sfc_main$c = /* @__PURE__ */ vueExports.defineComponent({
                   }, 8, ["onClick"]),
                   vueExports.createVNode(_component_UiButton, {
                     type: "submit",
-                    icon: "\u{1F4BE}",
+                    icon: "💾",
                     disabled: vueExports.unref(loading)
                   }, {
                     default: vueExports.withCtx(() => [
@@ -29934,14 +29786,14 @@ const useEmpresas = () => {
       logradouro: "Rua Exemplo",
       numero: "123",
       bairro: "Centro",
-      municipio: "S\xE3o Paulo",
+      municipio: "São Paulo",
       uf: "SP",
       cep: "01234-567",
-      endereco_completo: "Rua Exemplo, 123 - Centro - S\xE3o Paulo/SP - CEP: 01234-567",
+      endereco_completo: "Rua Exemplo, 123 - Centro - São Paulo/SP - CEP: 01234-567",
       telefone: "(11) 3333-4444",
       email_holerites: "rh@empresa.com",
       situacao_cadastral: "ATIVA",
-      atividade_principal: "Atividades de consultoria em gest\xE3o empresarial",
+      atividade_principal: "Atividades de consultoria em gestão empresarial",
       porte: "DEMAIS",
       logo_url: "",
       funcionarios_count: 12,
@@ -29985,7 +29837,7 @@ const useEmpresas = () => {
       telefone: "(31) 1111-2222",
       email_holerites: "rh@consultoriaabc.com",
       situacao_cadastral: "BAIXADA",
-      atividade_principal: "Atividades de consultoria em gest\xE3o empresarial",
+      atividade_principal: "Atividades de consultoria em gestão empresarial",
       porte: "ME",
       logo_url: "",
       funcionarios_count: 8,
@@ -30009,7 +29861,6 @@ const useEmpresas = () => {
     }
   };
   const salvarEmpresa = async (empresa) => {
-    var _a;
     loading.value = true;
     try {
       const response = await $fetch("/api/empresas", {
@@ -30023,13 +29874,12 @@ const useEmpresas = () => {
       return { success: false, message: "Erro ao salvar empresa" };
     } catch (err) {
       console.error("Erro ao salvar empresa:", err);
-      return { success: false, message: ((_a = err.data) == null ? void 0 : _a.message) || "Erro ao salvar empresa" };
+      return { success: false, message: err.data?.message || "Erro ao salvar empresa" };
     } finally {
       loading.value = false;
     }
   };
   const deletarEmpresa = async (empresaId) => {
-    var _a;
     try {
       const response = await $fetch(`/api/empresas/${empresaId}`, {
         method: "DELETE"
@@ -30039,12 +29889,12 @@ const useEmpresas = () => {
         if (index !== -1) {
           empresas.value.splice(index, 1);
         }
-        return { success: true, message: "Empresa exclu\xEDda com sucesso!" };
+        return { success: true, message: "Empresa excluída com sucesso!" };
       }
       return { success: false, message: "Erro ao excluir empresa" };
     } catch (err) {
       console.error("Erro ao excluir empresa:", err);
-      return { success: false, message: ((_a = err.data) == null ? void 0 : _a.message) || "Erro ao excluir empresa" };
+      return { success: false, message: err.data?.message || "Erro ao excluir empresa" };
     }
   };
   const obterEmpresaPorId = (id) => {
@@ -30076,21 +29926,20 @@ const useCNPJ = () => {
   const loading = vueExports.ref(false);
   const error = vueExports.ref("");
   const consultarCNPJ = async (cnpj) => {
-    var _a, _b, _c;
     loading.value = true;
     error.value = "";
     try {
       const cnpjLimpo = cnpj.replace(/[^\d]/g, "");
       if (!cnpjLimpo) {
-        throw new Error("CNPJ \xE9 obrigat\xF3rio");
+        throw new Error("CNPJ é obrigatório");
       }
       if (cnpjLimpo.length !== 14) {
-        throw new Error("CNPJ deve ter 14 d\xEDgitos");
+        throw new Error("CNPJ deve ter 14 dígitos");
       }
       if (!validarCNPJ(cnpjLimpo)) {
-        throw new Error("CNPJ inv\xE1lido");
+        throw new Error("CNPJ inválido");
       }
-      console.log("\u{1F50D} Consultando CNPJ:", cnpjLimpo);
+      console.log("🔍 Consultando CNPJ:", cnpjLimpo);
       const response = await $fetch("/api/consulta-cnpj", {
         method: "POST",
         body: { cnpj: cnpjLimpo },
@@ -30101,9 +29950,9 @@ const useCNPJ = () => {
         retry: 1,
         retryDelay: 1e3
       });
-      console.log("\u{1F4E6} Resposta recebida:", response);
+      console.log("📦 Resposta recebida:", response);
       if (response.success) {
-        console.log("\u{1F3E2} Inscri\xE7\xE3o Estadual:", ((_a = response.data) == null ? void 0 : _a.inscricao_estadual) || "N\xE3o informada");
+        console.log("🏢 Inscrição Estadual:", response.data?.inscricao_estadual || "Não informada");
         return {
           success: true,
           data: response.data,
@@ -30113,20 +29962,20 @@ const useCNPJ = () => {
         throw new Error("Erro na consulta");
       }
     } catch (err) {
-      console.error("\u274C Erro na consulta CNPJ:", err);
+      console.error("❌ Erro na consulta CNPJ:", err);
       let mensagem = "Erro ao consultar CNPJ";
       if (err.statusCode === 404) {
-        mensagem = "CNPJ n\xE3o encontrado na Receita Federal";
+        mensagem = "CNPJ não encontrado na Receita Federal";
       } else if (err.statusCode === 400) {
-        mensagem = ((_b = err.data) == null ? void 0 : _b.message) || err.message || "CNPJ inv\xE1lido";
+        mensagem = err.data?.message || err.message || "CNPJ inválido";
       } else if (err.statusCode === 429) {
         mensagem = "Muitas consultas realizadas. Aguarde alguns minutos e tente novamente.";
       } else if (err.statusCode === 503) {
-        mensagem = "Servi\xE7o temporariamente indispon\xEDvel. Tente novamente em alguns minutos.";
+        mensagem = "Serviço temporariamente indisponível. Tente novamente em alguns minutos.";
       } else if (err.name === "FetchError") {
-        mensagem = "Erro de conex\xE3o. Verifique sua internet e tente novamente.";
+        mensagem = "Erro de conexão. Verifique sua internet e tente novamente.";
       } else {
-        mensagem = ((_c = err.data) == null ? void 0 : _c.message) || err.message || "Erro interno do servidor";
+        mensagem = err.data?.message || err.message || "Erro interno do servidor";
       }
       error.value = mensagem;
       return {
@@ -30226,7 +30075,7 @@ const _sfc_main$1$5 = /* @__PURE__ */ vueExports.defineComponent({
         vueExports.unref(consultando) ? "bg-blue-50" : ""
       ])}">`);
       if (vueExports.unref(cnpjValido) && !vueExports.unref(consultando)) {
-        _push(`<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"> \u{1F50D} Buscar </button>`);
+        _push(`<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"> 🔍 Buscar </button>`);
       } else {
         _push(`<!---->`);
       }
@@ -30314,45 +30163,45 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
       mostrar_detalhes_irrf: false
     });
     const tabelaINSS = [
-      { id: 1, faixa: "At\xE9 R$ 1.518,00", aliquota: 7.5 },
+      { id: 1, faixa: "Até R$ 1.518,00", aliquota: 7.5 },
       { id: 2, faixa: "R$ 1.518,01 a R$ 2.793,88", aliquota: 9 },
       { id: 3, faixa: "R$ 2.793,89 a R$ 4.190,83", aliquota: 12 },
       { id: 4, faixa: "R$ 4.190,84 a R$ 8.157,41", aliquota: 14 }
     ];
     const tabelaIRRF = [
-      { id: 1, faixa: "At\xE9 R$ 2.428,80", aliquota: "Isento" },
+      { id: 1, faixa: "Até R$ 2.428,80", aliquota: "Isento" },
       { id: 2, faixa: "R$ 2.428,81 a R$ 3.051,00", aliquota: "7,5%" },
       { id: 3, faixa: "R$ 3.051,01 a R$ 4.052,00", aliquota: "15%" },
       { id: 4, faixa: "R$ 4.052,01 a R$ 5.050,00", aliquota: "22,5%" },
       { id: 5, faixa: "Acima de R$ 5.050,00", aliquota: "27,5%" },
-      { id: 6, faixa: "Lei 15.270/2025", aliquota: "Redu\xE7\xE3o at\xE9 R$ 7.350" }
+      { id: 6, faixa: "Lei 15.270/2025", aliquota: "Redução até R$ 7.350" }
     ];
     const ufOptions = [
       { value: "AC", label: "Acre" },
       { value: "AL", label: "Alagoas" },
-      { value: "AP", label: "Amap\xE1" },
+      { value: "AP", label: "Amapá" },
       { value: "AM", label: "Amazonas" },
       { value: "BA", label: "Bahia" },
-      { value: "CE", label: "Cear\xE1" },
+      { value: "CE", label: "Ceará" },
       { value: "DF", label: "Distrito Federal" },
-      { value: "ES", label: "Esp\xEDrito Santo" },
-      { value: "GO", label: "Goi\xE1s" },
-      { value: "MA", label: "Maranh\xE3o" },
+      { value: "ES", label: "Espírito Santo" },
+      { value: "GO", label: "Goiás" },
+      { value: "MA", label: "Maranhão" },
       { value: "MT", label: "Mato Grosso" },
       { value: "MS", label: "Mato Grosso do Sul" },
       { value: "MG", label: "Minas Gerais" },
-      { value: "PA", label: "Par\xE1" },
-      { value: "PB", label: "Para\xEDba" },
-      { value: "PR", label: "Paran\xE1" },
+      { value: "PA", label: "Pará" },
+      { value: "PB", label: "Paraíba" },
+      { value: "PR", label: "Paraná" },
       { value: "PE", label: "Pernambuco" },
-      { value: "PI", label: "Piau\xED" },
+      { value: "PI", label: "Piauí" },
       { value: "RJ", label: "Rio de Janeiro" },
       { value: "RN", label: "Rio Grande do Norte" },
       { value: "RS", label: "Rio Grande do Sul" },
-      { value: "RO", label: "Rond\xF4nia" },
+      { value: "RO", label: "Rondônia" },
       { value: "RR", label: "Roraima" },
       { value: "SC", label: "Santa Catarina" },
-      { value: "SP", label: "S\xE3o Paulo" },
+      { value: "SP", label: "São Paulo" },
       { value: "SE", label: "Sergipe" },
       { value: "TO", label: "Tocantins" }
     ];
@@ -30411,7 +30260,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
       }
     };
     const deletar = async (empresa) => {
-      if (!confirm(`Tem certeza que deseja excluir a empresa "${empresa.nome}"? Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
+      if (!confirm(`Tem certeza que deseja excluir a empresa "${empresa.nome}"? Esta ação não pode ser desfeita.`)) {
         return;
       }
       const resultado = await deletarEmpresa(empresa.id);
@@ -30434,7 +30283,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
       if (empresa.municipio) partes.push(empresa.municipio);
       if (empresa.uf) partes.push(empresa.uf);
       if (empresa.cep) partes.push(`CEP: ${empresa.cep}`);
-      return partes.join(", ") || empresa.endereco || "Endere\xE7o n\xE3o informado";
+      return partes.join(", ") || empresa.endereco || "Endereço não informado";
     };
     const preencherDadosEmpresa = (dados) => {
       if (dados.nome && !form.value.nome) {
@@ -30521,7 +30370,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(`<div class="flex gap-3"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiButton, {
               variant: "ghost",
-              icon: "\u{1F4CA}",
+              icon: "📊",
               onClick: ($event) => modalTabelasAberto.value = true
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
@@ -30537,7 +30386,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             }, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiButton, {
               size: "lg",
-              icon: "\u2795",
+              icon: "➕",
               onClick: ($event) => abrirModal()
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
@@ -30557,7 +30406,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               vueExports.createVNode("div", { class: "flex gap-3" }, [
                 vueExports.createVNode(_component_UiButton, {
                   variant: "ghost",
-                  icon: "\u{1F4CA}",
+                  icon: "📊",
                   onClick: ($event) => modalTabelasAberto.value = true
                 }, {
                   default: vueExports.withCtx(() => [
@@ -30567,7 +30416,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                 }, 8, ["onClick"]),
                 vueExports.createVNode(_component_UiButton, {
                   size: "lg",
-                  icon: "\u2795",
+                  icon: "➕",
                   onClick: ($event) => abrirModal()
                 }, {
                   default: vueExports.withCtx(() => [
@@ -30611,10 +30460,10 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               _push2(ssrRenderComponent_1(_component_UiBadge, { variant: "info" }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`${ssrInterpolate_1(empresa.funcionarios_count)} funcion\xE1rios`);
+                    _push3(`${ssrInterpolate_1(empresa.funcionarios_count)} funcionários`);
                   } else {
                     return [
-                      vueExports.createTextVNode(vueExports.toDisplayString(empresa.funcionarios_count) + " funcion\xE1rios", 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(empresa.funcionarios_count) + " funcionários", 1)
                     ];
                   }
                 }),
@@ -30645,10 +30494,10 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`\u270F\uFE0F Editar`);
+                    _push3(`✏️ Editar`);
                   } else {
                     return [
-                      vueExports.createTextVNode("\u270F\uFE0F Editar")
+                      vueExports.createTextVNode("✏️ Editar")
                     ];
                   }
                 }),
@@ -30660,10 +30509,10 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`\u{1F465} Funcion\xE1rios`);
+                    _push3(`👥 Funcionários`);
                   } else {
                     return [
-                      vueExports.createTextVNode("\u{1F465} Funcion\xE1rios")
+                      vueExports.createTextVNode("👥 Funcionários")
                     ];
                   }
                 }),
@@ -30675,10 +30524,10 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u{1F5D1}\uFE0F Excluir `);
+                    _push3(` 🗑️ Excluir `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u{1F5D1}\uFE0F Excluir ")
+                      vueExports.createTextVNode(" 🗑️ Excluir ")
                     ];
                   }
                 }),
@@ -30715,7 +30564,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                       vueExports.createVNode("div", { class: "flex gap-2 mt-2" }, [
                         vueExports.createVNode(_component_UiBadge, { variant: "info" }, {
                           default: vueExports.withCtx(() => [
-                            vueExports.createTextVNode(vueExports.toDisplayString(empresa.funcionarios_count) + " funcion\xE1rios", 1)
+                            vueExports.createTextVNode(vueExports.toDisplayString(empresa.funcionarios_count) + " funcionários", 1)
                           ]),
                           _: 2
                         }, 1024),
@@ -30737,7 +30586,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => abrirModal(empresa)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode("\u270F\uFE0F Editar")
+                        vueExports.createTextVNode("✏️ Editar")
                       ]),
                       _: 1
                     }, 8, ["onClick"]),
@@ -30746,7 +30595,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => verFuncionarios(empresa)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode("\u{1F465} Funcion\xE1rios")
+                        vueExports.createTextVNode("👥 Funcionários")
                       ]),
                       _: 1
                     }, 8, ["onClick"]),
@@ -30755,7 +30604,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => deletar(empresa)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u{1F5D1}\uFE0F Excluir ")
+                        vueExports.createTextVNode(" 🗑️ Excluir ")
                       ]),
                       _: 1
                     }, 8, ["onClick"])
@@ -30776,7 +30625,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(`<form class="space-y-6"${_scopeId}><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>\u{1F3E2} Dados da Empresa</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"${_scopeId}><div class="md:col-span-2"${_scopeId}>`);
+            _push2(`<form class="space-y-6"${_scopeId}><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>🏢 Dados da Empresa</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"${_scopeId}><div class="md:col-span-2"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiInputCNPJ, {
               modelValue: vueExports.unref(form).cnpj,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).cnpj = $event,
@@ -30788,7 +30637,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiInput, {
               modelValue: vueExports.unref(form).nome,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).nome = $event,
-              label: "Nome Empresarial (Raz\xE3o Social)",
+              label: "Nome Empresarial (Razão Social)",
               required: ""
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiInput, {
@@ -30799,15 +30648,15 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiInput, {
               modelValue: vueExports.unref(form).inscricao_estadual,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).inscricao_estadual = $event,
-              label: "Inscri\xE7\xE3o Estadual"
+              label: "Inscrição Estadual"
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiInput, {
               modelValue: vueExports.unref(form).situacao_cadastral,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).situacao_cadastral = $event,
-              label: "Situa\xE7\xE3o Cadastral",
+              label: "Situação Cadastral",
               disabled: ""
             }, null, _parent2, _scopeId));
-            _push2(`<div class="md:col-span-2"${_scopeId}><h4 class="text-md font-semibold text-gray-700 mb-3 mt-4"${_scopeId}>\u{1F4CD} Endere\xE7o</h4></div>`);
+            _push2(`<div class="md:col-span-2"${_scopeId}><h4 class="text-md font-semibold text-gray-700 mb-3 mt-4"${_scopeId}>📍 Endereço</h4></div>`);
             _push2(ssrRenderComponent_1(_component_UiInput, {
               modelValue: vueExports.unref(form).logradouro,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).logradouro = $event,
@@ -30817,7 +30666,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiInput, {
               modelValue: vueExports.unref(form).numero,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).numero = $event,
-              label: "N\xFAmero",
+              label: "Número",
               placeholder: "123"
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiInput, {
@@ -30834,7 +30683,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiInput, {
               modelValue: vueExports.unref(form).municipio,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).municipio = $event,
-              label: "Munic\xEDpio"
+              label: "Município"
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiSelect, {
               modelValue: vueExports.unref(form).uf,
@@ -30849,7 +30698,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               label: "CEP",
               placeholder: "00000-000"
             }, null, _parent2, _scopeId));
-            _push2(`<div class="md:col-span-2"${_scopeId}><h4 class="text-md font-semibold text-gray-700 mb-3 mt-4"${_scopeId}>\u{1F4DE} Contatos</h4></div>`);
+            _push2(`<div class="md:col-span-2"${_scopeId}><h4 class="text-md font-semibold text-gray-700 mb-3 mt-4"${_scopeId}>📞 Contatos</h4></div>`);
             _push2(ssrRenderComponent_1(_component_UiInput, {
               modelValue: vueExports.unref(form).telefone,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).telefone = $event,
@@ -30863,11 +30712,11 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               label: "Email para Holerites",
               placeholder: "rh@empresa.com"
             }, null, _parent2, _scopeId));
-            _push2(`<div class="md:col-span-2"${_scopeId}><h4 class="text-md font-semibold text-gray-700 mb-3 mt-4"${_scopeId}>\u{1F5BC}\uFE0F Logo da Empresa</h4><div class="flex items-center gap-4"${_scopeId}><div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center"${_scopeId}>`);
+            _push2(`<div class="md:col-span-2"${_scopeId}><h4 class="text-md font-semibold text-gray-700 mb-3 mt-4"${_scopeId}>🖼️ Logo da Empresa</h4><div class="flex items-center gap-4"${_scopeId}><div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center"${_scopeId}>`);
             if (vueExports.unref(form).logo_url) {
               _push2(`<img${ssrRenderAttr_1("src", vueExports.unref(form).logo_url)}${ssrRenderAttr_1("alt", vueExports.unref(form).nome)} class="w-full h-full object-cover rounded-xl"${_scopeId}>`);
             } else {
-              _push2(`<span class="text-gray-400 text-2xl"${_scopeId}>\u{1F3E2}</span>`);
+              _push2(`<span class="text-gray-400 text-2xl"${_scopeId}>🏢</span>`);
             }
             _push2(`</div><div class="flex-1"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiInput, {
@@ -30876,7 +30725,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               label: "URL da Logo",
               placeholder: "https://exemplo.com/logo.png"
             }, null, _parent2, _scopeId));
-            _push2(`</div></div></div></div></div><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>\u{1F4C4} Configura\xE7\xF5es de Holerites</h3><div class="space-y-4"${_scopeId}>`);
+            _push2(`</div></div></div></div></div><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>📄 Configurações de Holerites</h3><div class="space-y-4"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: vueExports.unref(form).mostrar_logo,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).mostrar_logo = $event,
@@ -30885,7 +30734,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: vueExports.unref(form).mostrar_endereco,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).mostrar_endereco = $event,
-              label: "Mostrar endere\xE7o nos holerites"
+              label: "Mostrar endereço nos holerites"
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: vueExports.unref(form).mostrar_cnpj,
@@ -30895,12 +30744,12 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: vueExports.unref(form).mostrar_detalhes_inss,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).mostrar_detalhes_inss = $event,
-              label: "Mostrar detalhamento do c\xE1lculo de INSS"
+              label: "Mostrar detalhamento do cálculo de INSS"
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: vueExports.unref(form).mostrar_detalhes_irrf,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).mostrar_detalhes_irrf = $event,
-              label: "Mostrar detalhamento do c\xE1lculo de IRRF"
+              label: "Mostrar detalhamento do cálculo de IRRF"
             }, null, _parent2, _scopeId));
             _push2(`</div></div><div class="flex justify-end gap-3 pt-4 border-t"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiButton, {
@@ -30920,7 +30769,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             }, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiButton, {
               type: "submit",
-              icon: "\u{1F4BE}"
+              icon: "💾"
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
@@ -30941,7 +30790,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                 class: "space-y-6"
               }, [
                 vueExports.createVNode("div", null, [
-                  vueExports.createVNode("h3", { class: "text-lg font-bold text-gray-800 mb-4" }, "\u{1F3E2} Dados da Empresa"),
+                  vueExports.createVNode("h3", { class: "text-lg font-bold text-gray-800 mb-4" }, "🏢 Dados da Empresa"),
                   vueExports.createVNode("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-4" }, [
                     vueExports.createVNode("div", { class: "md:col-span-2" }, [
                       vueExports.createVNode(_component_UiInputCNPJ, {
@@ -30955,7 +30804,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode(_component_UiInput, {
                       modelValue: vueExports.unref(form).nome,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).nome = $event,
-                      label: "Nome Empresarial (Raz\xE3o Social)",
+                      label: "Nome Empresarial (Razão Social)",
                       required: ""
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode(_component_UiInput, {
@@ -30966,16 +30815,16 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode(_component_UiInput, {
                       modelValue: vueExports.unref(form).inscricao_estadual,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).inscricao_estadual = $event,
-                      label: "Inscri\xE7\xE3o Estadual"
+                      label: "Inscrição Estadual"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode(_component_UiInput, {
                       modelValue: vueExports.unref(form).situacao_cadastral,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).situacao_cadastral = $event,
-                      label: "Situa\xE7\xE3o Cadastral",
+                      label: "Situação Cadastral",
                       disabled: ""
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode("div", { class: "md:col-span-2" }, [
-                      vueExports.createVNode("h4", { class: "text-md font-semibold text-gray-700 mb-3 mt-4" }, "\u{1F4CD} Endere\xE7o")
+                      vueExports.createVNode("h4", { class: "text-md font-semibold text-gray-700 mb-3 mt-4" }, "📍 Endereço")
                     ]),
                     vueExports.createVNode(_component_UiInput, {
                       modelValue: vueExports.unref(form).logradouro,
@@ -30986,7 +30835,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode(_component_UiInput, {
                       modelValue: vueExports.unref(form).numero,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).numero = $event,
-                      label: "N\xFAmero",
+                      label: "Número",
                       placeholder: "123"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode(_component_UiInput, {
@@ -31003,7 +30852,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode(_component_UiInput, {
                       modelValue: vueExports.unref(form).municipio,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).municipio = $event,
-                      label: "Munic\xEDpio"
+                      label: "Município"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode(_component_UiSelect, {
                       modelValue: vueExports.unref(form).uf,
@@ -31019,7 +30868,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                       placeholder: "00000-000"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode("div", { class: "md:col-span-2" }, [
-                      vueExports.createVNode("h4", { class: "text-md font-semibold text-gray-700 mb-3 mt-4" }, "\u{1F4DE} Contatos")
+                      vueExports.createVNode("h4", { class: "text-md font-semibold text-gray-700 mb-3 mt-4" }, "📞 Contatos")
                     ]),
                     vueExports.createVNode(_component_UiInput, {
                       modelValue: vueExports.unref(form).telefone,
@@ -31035,7 +30884,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                       placeholder: "rh@empresa.com"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode("div", { class: "md:col-span-2" }, [
-                      vueExports.createVNode("h4", { class: "text-md font-semibold text-gray-700 mb-3 mt-4" }, "\u{1F5BC}\uFE0F Logo da Empresa"),
+                      vueExports.createVNode("h4", { class: "text-md font-semibold text-gray-700 mb-3 mt-4" }, "🖼️ Logo da Empresa"),
                       vueExports.createVNode("div", { class: "flex items-center gap-4" }, [
                         vueExports.createVNode("div", { class: "w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center" }, [
                           vueExports.unref(form).logo_url ? (vueExports.openBlock(), vueExports.createBlock("img", {
@@ -31046,7 +30895,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                           }, null, 8, ["src", "alt"])) : (vueExports.openBlock(), vueExports.createBlock("span", {
                             key: 1,
                             class: "text-gray-400 text-2xl"
-                          }, "\u{1F3E2}"))
+                          }, "🏢"))
                         ]),
                         vueExports.createVNode("div", { class: "flex-1" }, [
                           vueExports.createVNode(_component_UiInput, {
@@ -31061,7 +30910,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                   ])
                 ]),
                 vueExports.createVNode("div", null, [
-                  vueExports.createVNode("h3", { class: "text-lg font-bold text-gray-800 mb-4" }, "\u{1F4C4} Configura\xE7\xF5es de Holerites"),
+                  vueExports.createVNode("h3", { class: "text-lg font-bold text-gray-800 mb-4" }, "📄 Configurações de Holerites"),
                   vueExports.createVNode("div", { class: "space-y-4" }, [
                     vueExports.createVNode(_component_UiCheckbox, {
                       modelValue: vueExports.unref(form).mostrar_logo,
@@ -31071,7 +30920,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode(_component_UiCheckbox, {
                       modelValue: vueExports.unref(form).mostrar_endereco,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).mostrar_endereco = $event,
-                      label: "Mostrar endere\xE7o nos holerites"
+                      label: "Mostrar endereço nos holerites"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode(_component_UiCheckbox, {
                       modelValue: vueExports.unref(form).mostrar_cnpj,
@@ -31081,12 +30930,12 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                     vueExports.createVNode(_component_UiCheckbox, {
                       modelValue: vueExports.unref(form).mostrar_detalhes_inss,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).mostrar_detalhes_inss = $event,
-                      label: "Mostrar detalhamento do c\xE1lculo de INSS"
+                      label: "Mostrar detalhamento do cálculo de INSS"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                     vueExports.createVNode(_component_UiCheckbox, {
                       modelValue: vueExports.unref(form).mostrar_detalhes_irrf,
                       "onUpdate:modelValue": ($event) => vueExports.unref(form).mostrar_detalhes_irrf = $event,
-                      label: "Mostrar detalhamento do c\xE1lculo de IRRF"
+                      label: "Mostrar detalhamento do cálculo de IRRF"
                     }, null, 8, ["modelValue", "onUpdate:modelValue"])
                   ])
                 ]),
@@ -31102,7 +30951,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                   }, 8, ["onClick"]),
                   vueExports.createVNode(_component_UiButton, {
                     type: "submit",
-                    icon: "\u{1F4BE}"
+                    icon: "💾"
                   }, {
                     default: vueExports.withCtx(() => [
                       vueExports.createTextVNode("Salvar Empresa")
@@ -31119,7 +30968,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
       _push(ssrRenderComponent_1(_component_UiModal, {
         modelValue: vueExports.unref(modalTabelasAberto),
         "onUpdate:modelValue": ($event) => vueExports.isRef(modalTabelasAberto) ? modalTabelasAberto.value = $event : null,
-        title: "\u{1F4CA} Tabelas de INSS e IRRF (2026)",
+        title: "📊 Tabelas de INSS e IRRF (2026)",
         "max-width": "max-w-4xl"
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
@@ -31128,20 +30977,20 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiAlert, { variant: "info" }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(` As tabelas de INSS e IRRF s\xE3o atualizadas anualmente pelo governo. O sistema permite atualiza\xE7\xE3o f\xE1cil sem necessidade de altera\xE7\xE3o no c\xF3digo. `);
+                  _push3(` As tabelas de INSS e IRRF são atualizadas anualmente pelo governo. O sistema permite atualização fácil sem necessidade de alteração no código. `);
                 } else {
                   return [
-                    vueExports.createTextVNode(" As tabelas de INSS e IRRF s\xE3o atualizadas anualmente pelo governo. O sistema permite atualiza\xE7\xE3o f\xE1cil sem necessidade de altera\xE7\xE3o no c\xF3digo. ")
+                    vueExports.createTextVNode(" As tabelas de INSS e IRRF são atualizadas anualmente pelo governo. O sistema permite atualização fácil sem necessidade de alteração no código. ")
                   ];
                 }
               }),
               _: 1
             }, _parent2, _scopeId));
-            _push2(`<div class="grid grid-cols-1 lg:grid-cols-2 gap-6"${_scopeId}><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>INSS - Tabela Progressiva</h3><div class="border rounded-xl overflow-hidden"${_scopeId}><table class="w-full text-sm"${_scopeId}><thead class="bg-gray-50"${_scopeId}><tr${_scopeId}><th class="px-4 py-3 text-left font-semibold text-gray-600"${_scopeId}>Faixa Salarial</th><th class="px-4 py-3 text-right font-semibold text-gray-600"${_scopeId}>Al\xEDquota</th></tr></thead><tbody class="divide-y"${_scopeId}><!--[-->`);
+            _push2(`<div class="grid grid-cols-1 lg:grid-cols-2 gap-6"${_scopeId}><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>INSS - Tabela Progressiva</h3><div class="border rounded-xl overflow-hidden"${_scopeId}><table class="w-full text-sm"${_scopeId}><thead class="bg-gray-50"${_scopeId}><tr${_scopeId}><th class="px-4 py-3 text-left font-semibold text-gray-600"${_scopeId}>Faixa Salarial</th><th class="px-4 py-3 text-right font-semibold text-gray-600"${_scopeId}>Alíquota</th></tr></thead><tbody class="divide-y"${_scopeId}><!--[-->`);
             ssrRenderList_1(tabelaINSS, (faixa) => {
               _push2(`<tr${_scopeId}><td class="px-4 py-3"${_scopeId}>${ssrInterpolate_1(faixa.faixa)}</td><td class="px-4 py-3 text-right font-semibold"${_scopeId}>${ssrInterpolate_1(faixa.aliquota)}%</td></tr>`);
             });
-            _push2(`<!--]--></tbody></table></div></div><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>IRRF - Tabela Progressiva</h3><div class="border rounded-xl overflow-hidden"${_scopeId}><table class="w-full text-sm"${_scopeId}><thead class="bg-gray-50"${_scopeId}><tr${_scopeId}><th class="px-4 py-3 text-left font-semibold text-gray-600"${_scopeId}>Base de C\xE1lculo</th><th class="px-4 py-3 text-right font-semibold text-gray-600"${_scopeId}>Al\xEDquota</th></tr></thead><tbody class="divide-y"${_scopeId}><!--[-->`);
+            _push2(`<!--]--></tbody></table></div></div><div${_scopeId}><h3 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>IRRF - Tabela Progressiva</h3><div class="border rounded-xl overflow-hidden"${_scopeId}><table class="w-full text-sm"${_scopeId}><thead class="bg-gray-50"${_scopeId}><tr${_scopeId}><th class="px-4 py-3 text-left font-semibold text-gray-600"${_scopeId}>Base de Cálculo</th><th class="px-4 py-3 text-right font-semibold text-gray-600"${_scopeId}>Alíquota</th></tr></thead><tbody class="divide-y"${_scopeId}><!--[-->`);
             ssrRenderList_1(tabelaIRRF, (faixa) => {
               _push2(`<tr${_scopeId}><td class="px-4 py-3"${_scopeId}>${ssrInterpolate_1(faixa.faixa)}</td><td class="px-4 py-3 text-right font-semibold"${_scopeId}>${ssrInterpolate_1(faixa.aliquota)}</td></tr>`);
             });
@@ -31149,10 +30998,10 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiBadge, { variant: "success" }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(`\u2713 Tabelas Atualizadas para 2026`);
+                  _push3(`✓ Tabelas Atualizadas para 2026`);
                 } else {
                   return [
-                    vueExports.createTextVNode("\u2713 Tabelas Atualizadas para 2026")
+                    vueExports.createTextVNode("✓ Tabelas Atualizadas para 2026")
                   ];
                 }
               }),
@@ -31179,7 +31028,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
               vueExports.createVNode("div", { class: "space-y-6" }, [
                 vueExports.createVNode(_component_UiAlert, { variant: "info" }, {
                   default: vueExports.withCtx(() => [
-                    vueExports.createTextVNode(" As tabelas de INSS e IRRF s\xE3o atualizadas anualmente pelo governo. O sistema permite atualiza\xE7\xE3o f\xE1cil sem necessidade de altera\xE7\xE3o no c\xF3digo. ")
+                    vueExports.createTextVNode(" As tabelas de INSS e IRRF são atualizadas anualmente pelo governo. O sistema permite atualização fácil sem necessidade de alteração no código. ")
                   ]),
                   _: 1
                 }),
@@ -31191,7 +31040,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                         vueExports.createVNode("thead", { class: "bg-gray-50" }, [
                           vueExports.createVNode("tr", null, [
                             vueExports.createVNode("th", { class: "px-4 py-3 text-left font-semibold text-gray-600" }, "Faixa Salarial"),
-                            vueExports.createVNode("th", { class: "px-4 py-3 text-right font-semibold text-gray-600" }, "Al\xEDquota")
+                            vueExports.createVNode("th", { class: "px-4 py-3 text-right font-semibold text-gray-600" }, "Alíquota")
                           ])
                         ]),
                         vueExports.createVNode("tbody", { class: "divide-y" }, [
@@ -31213,8 +31062,8 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                       vueExports.createVNode("table", { class: "w-full text-sm" }, [
                         vueExports.createVNode("thead", { class: "bg-gray-50" }, [
                           vueExports.createVNode("tr", null, [
-                            vueExports.createVNode("th", { class: "px-4 py-3 text-left font-semibold text-gray-600" }, "Base de C\xE1lculo"),
-                            vueExports.createVNode("th", { class: "px-4 py-3 text-right font-semibold text-gray-600" }, "Al\xEDquota")
+                            vueExports.createVNode("th", { class: "px-4 py-3 text-left font-semibold text-gray-600" }, "Base de Cálculo"),
+                            vueExports.createVNode("th", { class: "px-4 py-3 text-right font-semibold text-gray-600" }, "Alíquota")
                           ])
                         ]),
                         vueExports.createVNode("tbody", { class: "divide-y" }, [
@@ -31234,7 +31083,7 @@ const _sfc_main$a = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.createVNode("div", { class: "flex justify-between pt-4 border-t" }, [
                   vueExports.createVNode(_component_UiBadge, { variant: "success" }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode("\u2713 Tabelas Atualizadas para 2026")
+                      vueExports.createTextVNode("✓ Tabelas Atualizadas para 2026")
                     ]),
                     _: 1
                   }),
@@ -31283,31 +31132,30 @@ const useJornadas = () => {
   const error = vueExports.ref("");
   const diasSemana = [
     { id: 1, nome: "Segunda-feira", abrev: "Seg" },
-    { id: 2, nome: "Ter\xE7a-feira", abrev: "Ter" },
+    { id: 2, nome: "Terça-feira", abrev: "Ter" },
     { id: 3, nome: "Quarta-feira", abrev: "Qua" },
     { id: 4, nome: "Quinta-feira", abrev: "Qui" },
     { id: 5, nome: "Sexta-feira", abrev: "Sex" },
-    { id: 6, nome: "S\xE1bado", abrev: "S\xE1b" },
+    { id: 6, nome: "Sábado", abrev: "Sáb" },
     { id: 7, nome: "Domingo", abrev: "Dom" }
   ];
   const carregarJornadas = async () => {
-    var _a;
-    console.log("\u{1F4E1} [useJornadas] Carregando jornadas...");
+    console.log("📡 [useJornadas] Carregando jornadas...");
     loading.value = true;
     error.value = "";
     try {
       const response = await $fetch("/api/jornadas");
-      console.log("\u2705 [useJornadas] Resposta recebida:", response);
+      console.log("✅ [useJornadas] Resposta recebida:", response);
       if (response.success && response.data) {
         jornadas.value = response.data;
-        console.log("\u2705 [useJornadas] Jornadas carregadas:", jornadas.value.length);
+        console.log("✅ [useJornadas] Jornadas carregadas:", jornadas.value.length);
         return { success: true, message: "Jornadas carregadas com sucesso!" };
       }
-      console.log("\u26A0\uFE0F [useJornadas] Resposta sem sucesso");
+      console.log("⚠️ [useJornadas] Resposta sem sucesso");
       return { success: false, message: "Erro ao carregar jornadas" };
     } catch (err) {
-      error.value = ((_a = err.data) == null ? void 0 : _a.message) || "Erro ao carregar jornadas";
-      console.error("\u274C [useJornadas] Erro ao carregar jornadas:", err);
+      error.value = err.data?.message || "Erro ao carregar jornadas";
+      console.error("❌ [useJornadas] Erro ao carregar jornadas:", err);
       jornadas.value = [
         {
           id: "1",
@@ -31322,14 +31170,13 @@ const useJornadas = () => {
           horarios: []
         }
       ];
-      console.log("\u{1F527} [useJornadas] Usando dados de fallback");
+      console.log("🔧 [useJornadas] Usando dados de fallback");
       return { success: false, message: error.value };
     } finally {
       loading.value = false;
     }
   };
   const salvarJornada = async (jornada) => {
-    var _a;
     loading.value = true;
     try {
       const response = await $fetch("/api/jornadas", {
@@ -31343,7 +31190,7 @@ const useJornadas = () => {
       return { success: false, message: "Erro ao salvar jornada" };
     } catch (err) {
       console.error("Erro ao salvar jornada:", err);
-      return { success: false, message: ((_a = err.data) == null ? void 0 : _a.message) || "Erro ao salvar jornada" };
+      return { success: false, message: err.data?.message || "Erro ao salvar jornada" };
     } finally {
       loading.value = false;
     }
@@ -31392,14 +31239,14 @@ const useJornadas = () => {
     horarios.forEach((horario) => {
       if (!horario.trabalha) return;
       if (horario.entrada >= horario.saida) {
-        erros.push(`${obterNomeDia(horario.dia_semana)}: Hor\xE1rio de entrada deve ser anterior ao de sa\xEDda`);
+        erros.push(`${obterNomeDia(horario.dia_semana)}: Horário de entrada deve ser anterior ao de saída`);
       }
       if (horario.intervalo_inicio && horario.intervalo_fim) {
         if (horario.intervalo_inicio >= horario.intervalo_fim) {
-          erros.push(`${obterNomeDia(horario.dia_semana)}: In\xEDcio do intervalo deve ser anterior ao fim`);
+          erros.push(`${obterNomeDia(horario.dia_semana)}: Início do intervalo deve ser anterior ao fim`);
         }
         if (horario.intervalo_inicio <= horario.entrada || horario.intervalo_fim >= horario.saida) {
-          erros.push(`${obterNomeDia(horario.dia_semana)}: Intervalo deve estar dentro do hor\xE1rio de trabalho`);
+          erros.push(`${obterNomeDia(horario.dia_semana)}: Intervalo deve estar dentro do horário de trabalho`);
         }
       }
     });
@@ -31457,15 +31304,15 @@ const _sfc_main$2$2 = /* @__PURE__ */ vueExports.defineComponent({
     return (_ctx, _push, _parent, _attrs) => {
       const _component_UiBadge = __nuxt_component_2$2;
       const _component_UiCard = __nuxt_component_2$1;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-6" }, _attrs))}><div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200"><div class="flex items-center justify-between"><div><h3 class="text-xl font-bold text-gray-800 flex items-center gap-2"> \u{1F550} ${ssrInterpolate_1(__props.jornada.nome)} `);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-6" }, _attrs))}><div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200"><div class="flex items-center justify-between"><div><h3 class="text-xl font-bold text-gray-800 flex items-center gap-2"> 🕐 ${ssrInterpolate_1(__props.jornada.nome)} `);
       if (__props.jornada.padrao) {
         _push(ssrRenderComponent_1(_component_UiBadge, { variant: "primary" }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(`Padr\xE3o`);
+              _push2(`Padrão`);
             } else {
               return [
-                vueExports.createTextVNode("Padr\xE3o")
+                vueExports.createTextVNode("Padrão")
               ];
             }
           }),
@@ -31478,7 +31325,7 @@ const _sfc_main$2$2 = /* @__PURE__ */ vueExports.defineComponent({
       _push(ssrRenderComponent_1(_component_UiCard, null, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(`<div class="p-6"${_scopeId}><h4 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>\u{1F4C5} Hor\xE1rios Detalhados</h4><div class="space-y-3"${_scopeId}><!--[-->`);
+            _push2(`<div class="p-6"${_scopeId}><h4 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>📅 Horários Detalhados</h4><div class="space-y-3"${_scopeId}><!--[-->`);
             ssrRenderList_1(vueExports.unref(horariosOrdenados), (horario) => {
               _push2(`<div class="${ssrRenderClass_1([
                 "flex items-center justify-between p-4 rounded-xl border-2 transition-colors",
@@ -31488,9 +31335,9 @@ const _sfc_main$2$2 = /* @__PURE__ */ vueExports.defineComponent({
                 horario.trabalha ? "bg-green-500 text-white" : "bg-gray-400 text-white"
               ])}"${_scopeId}>${ssrInterpolate_1(vueExports.unref(obterAbrevDia)(horario.dia_semana))}</div><div${_scopeId}><div class="font-semibold text-gray-800"${_scopeId}>${ssrInterpolate_1(vueExports.unref(obterNomeDia)(horario.dia_semana))}</div>`);
               if (!horario.trabalha) {
-                _push2(`<div class="text-sm text-gray-500"${_scopeId}> N\xE3o trabalha </div>`);
+                _push2(`<div class="text-sm text-gray-500"${_scopeId}> Não trabalha </div>`);
               } else {
-                _push2(`<div class="text-sm text-gray-600"${_scopeId}>${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas))} l\xEDquidas </div>`);
+                _push2(`<div class="text-sm text-gray-600"${_scopeId}>${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas))} líquidas </div>`);
               }
               _push2(`</div></div>`);
               if (horario.trabalha) {
@@ -31510,7 +31357,7 @@ const _sfc_main$2$2 = /* @__PURE__ */ vueExports.defineComponent({
           } else {
             return [
               vueExports.createVNode("div", { class: "p-6" }, [
-                vueExports.createVNode("h4", { class: "text-lg font-bold text-gray-800 mb-4" }, "\u{1F4C5} Hor\xE1rios Detalhados"),
+                vueExports.createVNode("h4", { class: "text-lg font-bold text-gray-800 mb-4" }, "📅 Horários Detalhados"),
                 vueExports.createVNode("div", { class: "space-y-3" }, [
                   (vueExports.openBlock(true), vueExports.createBlock(vueExports.Fragment, null, vueExports.renderList(vueExports.unref(horariosOrdenados), (horario) => {
                     return vueExports.openBlock(), vueExports.createBlock("div", {
@@ -31532,10 +31379,10 @@ const _sfc_main$2$2 = /* @__PURE__ */ vueExports.defineComponent({
                           !horario.trabalha ? (vueExports.openBlock(), vueExports.createBlock("div", {
                             key: 0,
                             class: "text-sm text-gray-500"
-                          }, " N\xE3o trabalha ")) : (vueExports.openBlock(), vueExports.createBlock("div", {
+                          }, " Não trabalha ")) : (vueExports.openBlock(), vueExports.createBlock("div", {
                             key: 1,
                             class: "text-sm text-gray-600"
-                          }, vueExports.toDisplayString(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas)) + " l\xEDquidas ", 1))
+                          }, vueExports.toDisplayString(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas)) + " líquidas ", 1))
                         ])
                       ]),
                       horario.trabalha ? (vueExports.openBlock(), vueExports.createBlock("div", {
@@ -31589,27 +31436,27 @@ const _sfc_main$2$2 = /* @__PURE__ */ vueExports.defineComponent({
         _push(ssrRenderComponent_1(_component_UiCard, null, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(`<div class="p-6"${_scopeId}><h4 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>\u{1F4DD} Observa\xE7\xF5es</h4><div class="space-y-3 text-sm"${_scopeId}><div class="flex items-start gap-2"${_scopeId}><span class="text-blue-500"${_scopeId}>\u2139\uFE0F</span><span${_scopeId}>O intervalo de almo\xE7o n\xE3o \xE9 contabilizado na carga hor\xE1ria.</span></div><div class="flex items-start gap-2"${_scopeId}><span class="text-green-500"${_scopeId}>\u2705</span><span${_scopeId}>Sexta-feira possui jornada reduzida conforme configura\xE7\xE3o.</span></div><div class="flex items-start gap-2"${_scopeId}><span class="text-orange-500"${_scopeId}>\u26A0\uFE0F</span><span${_scopeId}>Esta jornada \xE9 configurada pelo RH e n\xE3o pode ser alterada pelo funcion\xE1rio.</span></div><div class="flex items-start gap-2"${_scopeId}><span class="text-purple-500"${_scopeId}>\u{1F4CA}</span><span${_scopeId}>O c\xE1lculo mensal considera 4,33 semanas por m\xEAs em m\xE9dia.</span></div></div></div>`);
+              _push2(`<div class="p-6"${_scopeId}><h4 class="text-lg font-bold text-gray-800 mb-4"${_scopeId}>📝 Observações</h4><div class="space-y-3 text-sm"${_scopeId}><div class="flex items-start gap-2"${_scopeId}><span class="text-blue-500"${_scopeId}>ℹ️</span><span${_scopeId}>O intervalo de almoço não é contabilizado na carga horária.</span></div><div class="flex items-start gap-2"${_scopeId}><span class="text-green-500"${_scopeId}>✅</span><span${_scopeId}>Sexta-feira possui jornada reduzida conforme configuração.</span></div><div class="flex items-start gap-2"${_scopeId}><span class="text-orange-500"${_scopeId}>⚠️</span><span${_scopeId}>Esta jornada é configurada pelo RH e não pode ser alterada pelo funcionário.</span></div><div class="flex items-start gap-2"${_scopeId}><span class="text-purple-500"${_scopeId}>📊</span><span${_scopeId}>O cálculo mensal considera 4,33 semanas por mês em média.</span></div></div></div>`);
             } else {
               return [
                 vueExports.createVNode("div", { class: "p-6" }, [
-                  vueExports.createVNode("h4", { class: "text-lg font-bold text-gray-800 mb-4" }, "\u{1F4DD} Observa\xE7\xF5es"),
+                  vueExports.createVNode("h4", { class: "text-lg font-bold text-gray-800 mb-4" }, "📝 Observações"),
                   vueExports.createVNode("div", { class: "space-y-3 text-sm" }, [
                     vueExports.createVNode("div", { class: "flex items-start gap-2" }, [
-                      vueExports.createVNode("span", { class: "text-blue-500" }, "\u2139\uFE0F"),
-                      vueExports.createVNode("span", null, "O intervalo de almo\xE7o n\xE3o \xE9 contabilizado na carga hor\xE1ria.")
+                      vueExports.createVNode("span", { class: "text-blue-500" }, "ℹ️"),
+                      vueExports.createVNode("span", null, "O intervalo de almoço não é contabilizado na carga horária.")
                     ]),
                     vueExports.createVNode("div", { class: "flex items-start gap-2" }, [
-                      vueExports.createVNode("span", { class: "text-green-500" }, "\u2705"),
-                      vueExports.createVNode("span", null, "Sexta-feira possui jornada reduzida conforme configura\xE7\xE3o.")
+                      vueExports.createVNode("span", { class: "text-green-500" }, "✅"),
+                      vueExports.createVNode("span", null, "Sexta-feira possui jornada reduzida conforme configuração.")
                     ]),
                     vueExports.createVNode("div", { class: "flex items-start gap-2" }, [
-                      vueExports.createVNode("span", { class: "text-orange-500" }, "\u26A0\uFE0F"),
-                      vueExports.createVNode("span", null, "Esta jornada \xE9 configurada pelo RH e n\xE3o pode ser alterada pelo funcion\xE1rio.")
+                      vueExports.createVNode("span", { class: "text-orange-500" }, "⚠️"),
+                      vueExports.createVNode("span", null, "Esta jornada é configurada pelo RH e não pode ser alterada pelo funcionário.")
                     ]),
                     vueExports.createVNode("div", { class: "flex items-start gap-2" }, [
-                      vueExports.createVNode("span", { class: "text-purple-500" }, "\u{1F4CA}"),
-                      vueExports.createVNode("span", null, "O c\xE1lculo mensal considera 4,33 semanas por m\xEAs em m\xE9dia.")
+                      vueExports.createVNode("span", { class: "text-purple-500" }, "📊"),
+                      vueExports.createVNode("span", null, "O cálculo mensal considera 4,33 semanas por mês em média.")
                     ])
                   ])
                 ])
@@ -31724,7 +31571,7 @@ const _sfc_main$1$4 = /* @__PURE__ */ vueExports.defineComponent({
       const validacao = validarJornada(form.value.horarios);
       const erros = [...validacao.erros];
       if (!form.value.nome.trim()) {
-        erros.push("Nome da jornada \xE9 obrigat\xF3rio");
+        erros.push("Nome da jornada é obrigatório");
       }
       if (totalSemanal.value === 0) {
         erros.push("A jornada deve ter pelo menos um dia de trabalho");
@@ -31737,7 +31584,7 @@ const _sfc_main$1$4 = /* @__PURE__ */ vueExports.defineComponent({
       const _component_UiCheckbox = __nuxt_component_0$2;
       const _component_UiAlert = __nuxt_component_1$1;
       const _component_UiButton = __nuxt_component_1$4;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-6" }, _attrs))}><form><div class="space-y-4"><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F4CB} Informa\xE7\xF5es B\xE1sicas</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-6" }, _attrs))}><form><div class="space-y-4"><h3 class="text-lg font-bold text-gray-800 mb-4">📋 Informações Básicas</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: vueExports.unref(form).nome,
         "onUpdate:modelValue": ($event) => vueExports.unref(form).nome = $event,
@@ -31754,23 +31601,23 @@ const _sfc_main$1$4 = /* @__PURE__ */ vueExports.defineComponent({
       _push(ssrRenderComponent_1(_component_UiCheckbox, {
         modelValue: vueExports.unref(form).padrao,
         "onUpdate:modelValue": ($event) => vueExports.unref(form).padrao = $event,
-        label: "Jornada Padr\xE3o"
+        label: "Jornada Padrão"
       }, null, _parent));
       _push(`</div></div>`);
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: vueExports.unref(form).descricao,
         "onUpdate:modelValue": ($event) => vueExports.unref(form).descricao = $event,
-        label: "Descri\xE7\xE3o",
-        placeholder: "Descreva as caracter\xEDsticas desta jornada"
+        label: "Descrição",
+        placeholder: "Descreva as características desta jornada"
       }, null, _parent));
-      _push(`</div><div class="space-y-4 mt-8"><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F550} Hor\xE1rios por Dia da Semana</h3><div class="space-y-4"><!--[-->`);
+      _push(`</div><div class="space-y-4 mt-8"><h3 class="text-lg font-bold text-gray-800 mb-4">🕐 Horários por Dia da Semana</h3><div class="space-y-4"><!--[-->`);
       ssrRenderList_1(vueExports.unref(form).horarios, (horario, index) => {
         _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-4"><div class="flex items-center gap-3"><div class="${ssrRenderClass_1([
           "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm",
           horario.trabalha ? "bg-green-500 text-white" : "bg-gray-400 text-white"
         ])}">${ssrInterpolate_1(vueExports.unref(obterAbrevDia)(horario.dia_semana))}</div><div><h4 class="font-semibold text-gray-800">${ssrInterpolate_1(vueExports.unref(obterNomeDia)(horario.dia_semana))}</h4>`);
         if (horario.trabalha) {
-          _push(`<p class="text-sm text-gray-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas))} l\xEDquidas </p>`);
+          _push(`<p class="text-sm text-gray-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas))} líquidas </p>`);
         } else {
           _push(`<!---->`);
         }
@@ -31796,7 +31643,7 @@ const _sfc_main$1$4 = /* @__PURE__ */ vueExports.defineComponent({
             modelValue: horario.saida,
             "onUpdate:modelValue": ($event) => horario.saida = $event,
             type: "time",
-            label: "Sa\xEDda",
+            label: "Saída",
             required: "",
             onChange: ($event) => recalcularHoras(index)
           }, null, _parent));
@@ -31804,7 +31651,7 @@ const _sfc_main$1$4 = /* @__PURE__ */ vueExports.defineComponent({
             "model-value": horario.intervalo_inicio || "",
             "onUpdate:modelValue": ($event) => horario.intervalo_inicio = $event || void 0,
             type: "time",
-            label: "In\xEDcio Intervalo",
+            label: "Início Intervalo",
             onChange: ($event) => recalcularHoras(index)
           }, null, _parent));
           _push(ssrRenderComponent_1(_component_UiInput, {
@@ -31819,18 +31666,18 @@ const _sfc_main$1$4 = /* @__PURE__ */ vueExports.defineComponent({
           _push(`<!---->`);
         }
         if (horario.trabalha) {
-          _push(`<div class="mt-4 p-3 bg-gray-50 rounded-lg"><div class="grid grid-cols-3 gap-4 text-center text-sm"><div><div class="font-semibold text-blue-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_brutas))}</div><div class="text-gray-500">Horas Brutas</div></div><div><div class="font-semibold text-orange-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_intervalo))}</div><div class="text-gray-500">Intervalo</div></div><div><div class="font-semibold text-green-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas))}</div><div class="text-gray-500">Horas L\xEDquidas</div></div></div></div>`);
+          _push(`<div class="mt-4 p-3 bg-gray-50 rounded-lg"><div class="grid grid-cols-3 gap-4 text-center text-sm"><div><div class="font-semibold text-blue-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_brutas))}</div><div class="text-gray-500">Horas Brutas</div></div><div><div class="font-semibold text-orange-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_intervalo))}</div><div class="text-gray-500">Intervalo</div></div><div><div class="font-semibold text-green-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(horario.horas_liquidas))}</div><div class="text-gray-500">Horas Líquidas</div></div></div></div>`);
         } else {
           _push(`<!---->`);
         }
         _push(`</div>`);
       });
-      _push(`<!--]--></div></div><div class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200"><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F4CA} Resumo Total</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center"><div><div class="text-2xl font-bold text-blue-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(vueExports.unref(totalSemanal)))}</div><div class="text-sm text-gray-600">Horas Semanais</div></div><div><div class="text-2xl font-bold text-green-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(vueExports.unref(totalMensal)))}</div><div class="text-sm text-gray-600">Horas Mensais</div></div><div><div class="text-2xl font-bold text-purple-600">${ssrInterpolate_1(vueExports.unref(diasTrabalhados))}/7 </div><div class="text-sm text-gray-600">Dias por Semana</div></div></div></div>`);
+      _push(`<!--]--></div></div><div class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200"><h3 class="text-lg font-bold text-gray-800 mb-4">📊 Resumo Total</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center"><div><div class="text-2xl font-bold text-blue-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(vueExports.unref(totalSemanal)))}</div><div class="text-sm text-gray-600">Horas Semanais</div></div><div><div class="text-2xl font-bold text-green-600">${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(vueExports.unref(totalMensal)))}</div><div class="text-sm text-gray-600">Horas Mensais</div></div><div><div class="text-2xl font-bold text-purple-600">${ssrInterpolate_1(vueExports.unref(diasTrabalhados))}/7 </div><div class="text-sm text-gray-600">Dias por Semana</div></div></div></div>`);
       if (vueExports.unref(errosValidacao).length > 0) {
         _push(`<div class="mt-6">`);
         _push(ssrRenderComponent_1(_component_UiAlert, {
           variant: "error",
-          title: "Erros de Valida\xE7\xE3o"
+          title: "Erros de Validação"
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
@@ -31877,10 +31724,10 @@ const _sfc_main$1$4 = /* @__PURE__ */ vueExports.defineComponent({
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F4BE} ${ssrInterpolate_1(__props.jornada ? "Atualizar" : "Criar")} Jornada `);
+            _push2(` 💾 ${ssrInterpolate_1(__props.jornada ? "Atualizar" : "Criar")} Jornada `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F4BE} " + vueExports.toDisplayString(__props.jornada ? "Atualizar" : "Criar") + " Jornada ", 1)
+              vueExports.createTextVNode(" 💾 " + vueExports.toDisplayString(__props.jornada ? "Atualizar" : "Criar") + " Jornada ", 1)
             ];
           }
         }),
@@ -31970,7 +31817,6 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
       return mock[jornadaId] || 0;
     };
     return (_ctx, _push, _parent, _attrs) => {
-      var _a;
       const _component_UiPageHeader = __nuxt_component_0$3;
       const _component_UiButton = __nuxt_component_1$4;
       const _component_UiCard = __nuxt_component_2$1;
@@ -31980,13 +31826,13 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
       _push(`<div${ssrRenderAttrs_1(_attrs)}>`);
       _push(ssrRenderComponent_1(_component_UiPageHeader, {
         title: "Jornadas de Trabalho",
-        description: "Gerencie as jornadas e cargas hor\xE1rias dos funcion\xE1rios"
+        description: "Gerencie as jornadas e cargas horárias dos funcionários"
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
             _push2(ssrRenderComponent_1(_component_UiButton, {
               size: "lg",
-              icon: "\u2795",
+              icon: "➕",
               onClick: ($event) => abrirModal()
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
@@ -32004,7 +31850,7 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
             return [
               vueExports.createVNode(_component_UiButton, {
                 size: "lg",
-                icon: "\u2795",
+                icon: "➕",
                 onClick: ($event) => abrirModal()
               }, {
                 default: vueExports.withCtx(() => [
@@ -32025,15 +31871,15 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(`<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"${_scopeId}><div class="flex items-center gap-4"${_scopeId}><div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center"${_scopeId}><span class="text-blue-700 font-bold text-2xl"${_scopeId}>\u{1F550}</span></div><div${_scopeId}><div class="flex items-center gap-2"${_scopeId}><h3 class="text-xl font-bold text-gray-800"${_scopeId}>${ssrInterpolate_1(jornada.nome)}</h3>`);
+              _push2(`<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"${_scopeId}><div class="flex items-center gap-4"${_scopeId}><div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center"${_scopeId}><span class="text-blue-700 font-bold text-2xl"${_scopeId}>🕐</span></div><div${_scopeId}><div class="flex items-center gap-2"${_scopeId}><h3 class="text-xl font-bold text-gray-800"${_scopeId}>${ssrInterpolate_1(jornada.nome)}</h3>`);
               if (jornada.padrao) {
                 _push2(ssrRenderComponent_1(_component_UiBadge, { variant: "primary" }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(`Padr\xE3o`);
+                      _push3(`Padrão`);
                     } else {
                       return [
-                        vueExports.createTextVNode("Padr\xE3o")
+                        vueExports.createTextVNode("Padrão")
                       ];
                     }
                   }),
@@ -32056,17 +31902,17 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
                 }),
                 _: 2
               }, _parent2, _scopeId));
-              _push2(`</div><p class="text-gray-600 mt-1"${_scopeId}>${ssrInterpolate_1(jornada.descricao)}</p><div class="flex gap-4 mt-2 text-sm text-gray-500"${_scopeId}><span${_scopeId}>\u{1F4C5} ${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(jornada.horas_semanais))} semanais</span><span${_scopeId}>\u{1F4CA} ${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(jornada.horas_mensais))} mensais</span><span${_scopeId}>\u{1F465} ${ssrInterpolate_1(contarFuncionarios(jornada.id))} funcion\xE1rios</span></div></div></div><div class="flex gap-2"${_scopeId}>`);
+              _push2(`</div><p class="text-gray-600 mt-1"${_scopeId}>${ssrInterpolate_1(jornada.descricao)}</p><div class="flex gap-4 mt-2 text-sm text-gray-500"${_scopeId}><span${_scopeId}>📅 ${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(jornada.horas_semanais))} semanais</span><span${_scopeId}>📊 ${ssrInterpolate_1(vueExports.unref(formatarHorasDecimais)(jornada.horas_mensais))} mensais</span><span${_scopeId}>👥 ${ssrInterpolate_1(contarFuncionarios(jornada.id))} funcionários</span></div></div></div><div class="flex gap-2"${_scopeId}>`);
               _push2(ssrRenderComponent_1(_component_UiButton, {
                 variant: "ghost",
                 onClick: ($event) => visualizarJornada(jornada)
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u{1F441}\uFE0F Visualizar `);
+                    _push3(` 👁️ Visualizar `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u{1F441}\uFE0F Visualizar ")
+                      vueExports.createTextVNode(" 👁️ Visualizar ")
                     ];
                   }
                 }),
@@ -32078,10 +31924,10 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u270F\uFE0F Editar `);
+                    _push3(` ✏️ Editar `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u270F\uFE0F Editar ")
+                      vueExports.createTextVNode(" ✏️ Editar ")
                     ];
                   }
                 }),
@@ -32093,10 +31939,10 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`${ssrInterpolate_1(jornada.ativa ? "\u{1F6AB} Inativar" : "\u2713 Ativar")}`);
+                    _push3(`${ssrInterpolate_1(jornada.ativa ? "🚫 Inativar" : "✓ Ativar")}`);
                   } else {
                     return [
-                      vueExports.createTextVNode(vueExports.toDisplayString(jornada.ativa ? "\u{1F6AB} Inativar" : "\u2713 Ativar"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(jornada.ativa ? "🚫 Inativar" : "✓ Ativar"), 1)
                     ];
                   }
                 }),
@@ -32108,7 +31954,7 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.createVNode("div", { class: "flex flex-col lg:flex-row lg:items-center justify-between gap-4" }, [
                   vueExports.createVNode("div", { class: "flex items-center gap-4" }, [
                     vueExports.createVNode("div", { class: "w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center" }, [
-                      vueExports.createVNode("span", { class: "text-blue-700 font-bold text-2xl" }, "\u{1F550}")
+                      vueExports.createVNode("span", { class: "text-blue-700 font-bold text-2xl" }, "🕐")
                     ]),
                     vueExports.createVNode("div", null, [
                       vueExports.createVNode("div", { class: "flex items-center gap-2" }, [
@@ -32118,7 +31964,7 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
                           variant: "primary"
                         }, {
                           default: vueExports.withCtx(() => [
-                            vueExports.createTextVNode("Padr\xE3o")
+                            vueExports.createTextVNode("Padrão")
                           ]),
                           _: 1
                         })) : vueExports.createCommentVNode("", true),
@@ -32133,9 +31979,9 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
                       ]),
                       vueExports.createVNode("p", { class: "text-gray-600 mt-1" }, vueExports.toDisplayString(jornada.descricao), 1),
                       vueExports.createVNode("div", { class: "flex gap-4 mt-2 text-sm text-gray-500" }, [
-                        vueExports.createVNode("span", null, "\u{1F4C5} " + vueExports.toDisplayString(vueExports.unref(formatarHorasDecimais)(jornada.horas_semanais)) + " semanais", 1),
-                        vueExports.createVNode("span", null, "\u{1F4CA} " + vueExports.toDisplayString(vueExports.unref(formatarHorasDecimais)(jornada.horas_mensais)) + " mensais", 1),
-                        vueExports.createVNode("span", null, "\u{1F465} " + vueExports.toDisplayString(contarFuncionarios(jornada.id)) + " funcion\xE1rios", 1)
+                        vueExports.createVNode("span", null, "📅 " + vueExports.toDisplayString(vueExports.unref(formatarHorasDecimais)(jornada.horas_semanais)) + " semanais", 1),
+                        vueExports.createVNode("span", null, "📊 " + vueExports.toDisplayString(vueExports.unref(formatarHorasDecimais)(jornada.horas_mensais)) + " mensais", 1),
+                        vueExports.createVNode("span", null, "👥 " + vueExports.toDisplayString(contarFuncionarios(jornada.id)) + " funcionários", 1)
                       ])
                     ])
                   ]),
@@ -32145,7 +31991,7 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => visualizarJornada(jornada)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u{1F441}\uFE0F Visualizar ")
+                        vueExports.createTextVNode(" 👁️ Visualizar ")
                       ]),
                       _: 1
                     }, 8, ["onClick"]),
@@ -32154,7 +32000,7 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => editarJornada(jornada)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u270F\uFE0F Editar ")
+                        vueExports.createTextVNode(" ✏️ Editar ")
                       ]),
                       _: 1
                     }, 8, ["onClick"]),
@@ -32163,7 +32009,7 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => toggleStatus(jornada)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(vueExports.toDisplayString(jornada.ativa ? "\u{1F6AB} Inativar" : "\u2713 Ativar"), 1)
+                        vueExports.createTextVNode(vueExports.toDisplayString(jornada.ativa ? "🚫 Inativar" : "✓ Ativar"), 1)
                       ]),
                       _: 2
                     }, 1032, ["variant", "onClick"])
@@ -32179,7 +32025,7 @@ const _sfc_main$9 = /* @__PURE__ */ vueExports.defineComponent({
       _push(ssrRenderComponent_1(_component_UiModal, {
         modelValue: vueExports.unref(modalVisualizacao),
         "onUpdate:modelValue": ($event) => vueExports.isRef(modalVisualizacao) ? modalVisualizacao.value = $event : null,
-        title: `Jornada: ${((_a = vueExports.unref(jornadaSelecionada)) == null ? void 0 : _a.nome) || ""}`,
+        title: `Jornada: ${vueExports.unref(jornadaSelecionada)?.nome || ""}`,
         "max-width": "max-w-4xl"
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
@@ -32265,10 +32111,10 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
     const itensPersonalizados = vueExports.ref([]);
     const mostrarFormNovoItem = vueExports.ref(false);
     const tabs = [
-      { id: "basicos", label: "Dados B\xE1sicos", icon: "\u{1F4CB}" },
-      { id: "proventos", label: "Proventos", icon: "\u{1F4B0}" },
-      { id: "descontos", label: "Descontos", icon: "\u{1F4C9}" },
-      { id: "personalizados", label: "Itens Personalizados", icon: "\u2699\uFE0F" }
+      { id: "basicos", label: "Dados Básicos", icon: "📋" },
+      { id: "proventos", label: "Proventos", icon: "💰" },
+      { id: "descontos", label: "Descontos", icon: "📉" },
+      { id: "personalizados", label: "Itens Personalizados", icon: "⚙️" }
     ];
     const form = vueExports.ref({
       salario_base: props.holerite.salario_base || 0,
@@ -32300,28 +32146,26 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
       observacoes: ""
     });
     const carregarItensPersonalizados = async (funcId) => {
-      var _a, _b;
       try {
         const response = await $fetch(`/api/holerites/itens-personalizados/${funcId}`);
         if (response.warning) {
-          console.warn("\u26A0\uFE0F", response.warning);
+          console.warn("⚠️", response.warning);
         }
         itensPersonalizados.value = response.data || [];
       } catch (error) {
         console.error("Erro ao carregar itens personalizados:", error);
         itensPersonalizados.value = [];
-        if (((_a = error.message) == null ? void 0 : _a.includes("PGRST205")) || ((_b = error.message) == null ? void 0 : _b.includes("not exist"))) {
-          console.error("\u274C A tabela holerite_itens_personalizados n\xE3o existe!");
-          console.error("\u{1F4CB} Execute o arquivo: EXECUTAR-ITENS-PERSONALIZADOS.sql no Supabase SQL Editor");
+        if (error.message?.includes("PGRST205") || error.message?.includes("not exist")) {
+          console.error("❌ A tabela holerite_itens_personalizados não existe!");
+          console.error("📋 Execute o arquivo: EXECUTAR-ITENS-PERSONALIZADOS.sql no Supabase SQL Editor");
         }
       }
     };
     const adicionarItem = async () => {
-      var _a, _b, _c;
       try {
-        const funcId = props.holerite.funcionario_id || ((_a = props.holerite.funcionario) == null ? void 0 : _a.id);
+        const funcId = props.holerite.funcionario_id || props.holerite.funcionario?.id;
         if (!novoItem.value.descricao || !novoItem.value.valor || !novoItem.value.data_inicio) {
-          alert("\u26A0\uFE0F Preencha todos os campos obrigat\xF3rios");
+          alert("⚠️ Preencha todos os campos obrigatórios");
           return;
         }
         const dataFim = novoItem.value.vigencia_tipo === "unico" ? novoItem.value.data_inicio : novoItem.value.data_fim || null;
@@ -32340,13 +32184,13 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
         });
         await carregarItensPersonalizados(funcId);
         cancelarNovoItem();
-        alert("\u2705 Item adicionado com sucesso!");
+        alert("✅ Item adicionado com sucesso!");
       } catch (error) {
         console.error("Erro ao adicionar item:", error);
-        if (((_b = error.message) == null ? void 0 : _b.includes("n\xE3o existe")) || ((_c = error.message) == null ? void 0 : _c.includes("EXECUTAR-ITENS-PERSONALIZADOS"))) {
-          alert("\u274C Erro: A tabela n\xE3o existe no banco de dados.\n\n\u{1F4CB} Execute o arquivo EXECUTAR-ITENS-PERSONALIZADOS.sql no Supabase SQL Editor.\n\nVeja a documenta\xE7\xE3o em: docs/CORRECAO-ITENS-PERSONALIZADOS.md");
+        if (error.message?.includes("não existe") || error.message?.includes("EXECUTAR-ITENS-PERSONALIZADOS")) {
+          alert("❌ Erro: A tabela não existe no banco de dados.\n\n📋 Execute o arquivo EXECUTAR-ITENS-PERSONALIZADOS.sql no Supabase SQL Editor.\n\nVeja a documentação em: docs/CORRECAO-ITENS-PERSONALIZADOS.md");
         } else {
-          alert("\u274C Erro ao adicionar item: " + error.message);
+          alert("❌ Erro ao adicionar item: " + error.message);
         }
       }
     };
@@ -32389,22 +32233,21 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
       emit("save", form.value);
     };
     return (_ctx, _push, _parent, _attrs) => {
-      var _a;
       const _component_UiInput = __nuxt_component_4;
       const _component_UiAlert = __nuxt_component_1$1;
       const _component_UiButton = __nuxt_component_1$4;
       _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-6" }, _attrs))}><div class="bg-gray-50 rounded-xl p-4"><h3 class="font-semibold text-gray-900 mb-2">${ssrInterpolate_1(__props.holerite.funcionario.nome_completo)}</h3>`);
       if (vueExports.unref(carregandoDados)) {
-        _push(`<div class="text-sm text-gray-500"> \u23F3 Carregando informa\xE7\xF5es... </div>`);
+        _push(`<div class="text-sm text-gray-500"> ⏳ Carregando informações... </div>`);
       } else {
-        _push(`<div class="grid grid-cols-2 gap-2 text-sm"><div><span class="text-gray-600">Cargo:</span><span class="ml-2 font-medium">${ssrInterpolate_1(__props.holerite.funcionario.cargo)}</span></div><div><span class="text-gray-600">Empresa:</span><span class="ml-2 font-medium">${ssrInterpolate_1(vueExports.unref(empresaInfo) ? vueExports.unref(empresaInfo).nome_fantasia || vueExports.unref(empresaInfo).nome || "N\xE3o definida" : "N\xE3o encontrada")}</span></div>`);
-        if ((_a = vueExports.unref(empresaInfo)) == null ? void 0 : _a.cnpj) {
+        _push(`<div class="grid grid-cols-2 gap-2 text-sm"><div><span class="text-gray-600">Cargo:</span><span class="ml-2 font-medium">${ssrInterpolate_1(__props.holerite.funcionario.cargo)}</span></div><div><span class="text-gray-600">Empresa:</span><span class="ml-2 font-medium">${ssrInterpolate_1(vueExports.unref(empresaInfo) ? vueExports.unref(empresaInfo).nome_fantasia || vueExports.unref(empresaInfo).nome || "Não definida" : "Não encontrada")}</span></div>`);
+        if (vueExports.unref(empresaInfo)?.cnpj) {
           _push(`<div class="col-span-2"><span class="text-gray-600">CNPJ:</span><span class="ml-2 font-medium">${ssrInterpolate_1(formatarCNPJ(vueExports.unref(empresaInfo).cnpj))}</span></div>`);
         } else {
           _push(`<!---->`);
         }
         if (vueExports.unref(horasPadrao) > 0) {
-          _push(`<div class="col-span-2"><span class="text-gray-600">Horas Padr\xE3o do M\xEAs:</span><span class="ml-2 font-medium">${ssrInterpolate_1(vueExports.unref(horasPadrao))}h</span></div>`);
+          _push(`<div class="col-span-2"><span class="text-gray-600">Horas Padrão do Mês:</span><span class="ml-2 font-medium">${ssrInterpolate_1(vueExports.unref(horasPadrao))}h</span></div>`);
         } else {
           _push(`<!---->`);
         }
@@ -32424,7 +32267,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           modelValue: vueExports.unref(form).salario_base,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).salario_base = $event,
           type: "number",
-          label: "Sal\xE1rio Base",
+          label: "Salário Base",
           placeholder: "0.00",
           step: "0.01"
         }, null, _parent));
@@ -32432,8 +32275,8 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           modelValue: vueExports.unref(form).horas_trabalhadas,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).horas_trabalhadas = $event,
           type: "number",
-          label: "Horas Trabalhadas no M\xEAs",
-          placeholder: `Padr\xE3o: ${vueExports.unref(horasPadrao)}h`,
+          label: "Horas Trabalhadas no Mês",
+          placeholder: `Padrão: ${vueExports.unref(horasPadrao)}h`,
           step: "0.01"
         }, null, _parent));
         _push(`</div><div class="grid grid-cols-2 gap-4">`);
@@ -32446,8 +32289,8 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
         _push(ssrRenderComponent_1(_component_UiInput, {
           modelValue: vueExports.unref(form).observacoes,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).observacoes = $event,
-          label: "Observa\xE7\xF5es",
-          placeholder: "Observa\xE7\xF5es sobre este holerite"
+          label: "Observações",
+          placeholder: "Observações sobre este holerite"
         }, null, _parent));
         _push(`</div></div>`);
       } else {
@@ -32459,7 +32302,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           modelValue: vueExports.unref(form).bonus,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).bonus = $event,
           type: "number",
-          label: "B\xF4nus",
+          label: "Bônus",
           placeholder: "0.00",
           step: "0.01"
         }, null, _parent));
@@ -32501,7 +32344,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           modelValue: vueExports.unref(form).comissoes,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).comissoes = $event,
           type: "number",
-          label: "Comiss\xF5es",
+          label: "Comissões",
           placeholder: "0.00",
           step: "0.01"
         }, null, _parent));
@@ -32540,7 +32383,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           modelValue: vueExports.unref(form).vale_refeicao_desconto,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).vale_refeicao_desconto = $event,
           type: "number",
-          label: "Vale Refei\xE7\xE3o",
+          label: "Vale Refeição",
           placeholder: "0.00",
           step: "0.01"
         }, null, _parent));
@@ -32549,7 +32392,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           modelValue: vueExports.unref(form).plano_saude,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).plano_saude = $event,
           type: "number",
-          label: "Plano de Sa\xFAde",
+          label: "Plano de Saúde",
           placeholder: "0.00",
           step: "0.01"
         }, null, _parent));
@@ -32557,7 +32400,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           modelValue: vueExports.unref(form).plano_odontologico,
           "onUpdate:modelValue": ($event) => vueExports.unref(form).plano_odontologico = $event,
           type: "number",
-          label: "Plano Odontol\xF3gico",
+          label: "Plano Odontológico",
           placeholder: "0.00",
           step: "0.01"
         }, null, _parent));
@@ -32590,10 +32433,10 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(` Adicione benef\xEDcios ou descontos personalizados que ser\xE3o aplicados automaticamente nos holerites do funcion\xE1rio durante o per\xEDodo definido. `);
+              _push2(` Adicione benefícios ou descontos personalizados que serão aplicados automaticamente nos holerites do funcionário durante o período definido. `);
             } else {
               return [
-                vueExports.createTextVNode(" Adicione benef\xEDcios ou descontos personalizados que ser\xE3o aplicados automaticamente nos holerites do funcion\xE1rio durante o per\xEDodo definido. ")
+                vueExports.createTextVNode(" Adicione benefícios ou descontos personalizados que serão aplicados automaticamente nos holerites do funcionário durante o período definido. ")
               ];
             }
           }),
@@ -32605,16 +32448,16 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
             _push(`<div class="bg-white border rounded-lg p-4"><div class="flex justify-between items-start"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><span class="${ssrRenderClass_1([
               "px-2 py-1 rounded text-xs font-semibold",
               item.tipo === "beneficio" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-            ])}">${ssrInterpolate_1(item.tipo === "beneficio" ? "\u{1F4B0} Benef\xEDcio" : "\u{1F4C9} Desconto")}</span><span class="${ssrRenderClass_1([
+            ])}">${ssrInterpolate_1(item.tipo === "beneficio" ? "💰 Benefício" : "📉 Desconto")}</span><span class="${ssrRenderClass_1([
               "px-2 py-1 rounded text-xs font-semibold",
               item.vigencia_tipo === "unico" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
-            ])}">${ssrInterpolate_1(item.vigencia_tipo === "unico" ? "\u{1F4C5} \xDAnico" : "\u{1F504} Recorrente")}</span></div><p class="font-semibold text-gray-900">${ssrInterpolate_1(item.descricao)}</p><p class="${ssrRenderClass_1([item.tipo === "beneficio" ? "text-green-600" : "text-red-600", "text-lg font-bold"])}">${ssrInterpolate_1(formatarMoeda(item.valor))}</p><p class="text-sm text-gray-500 mt-1"> Vig\xEAncia: ${ssrInterpolate_1(formatarData(item.data_inicio))} ${ssrInterpolate_1(item.data_fim ? `at\xE9 ${formatarData(item.data_fim)}` : "(sem data fim)")}</p>`);
+            ])}">${ssrInterpolate_1(item.vigencia_tipo === "unico" ? "📅 Único" : "🔄 Recorrente")}</span></div><p class="font-semibold text-gray-900">${ssrInterpolate_1(item.descricao)}</p><p class="${ssrRenderClass_1([item.tipo === "beneficio" ? "text-green-600" : "text-red-600", "text-lg font-bold"])}">${ssrInterpolate_1(formatarMoeda(item.valor))}</p><p class="text-sm text-gray-500 mt-1"> Vigência: ${ssrInterpolate_1(formatarData(item.data_inicio))} ${ssrInterpolate_1(item.data_fim ? `até ${formatarData(item.data_fim)}` : "(sem data fim)")}</p>`);
             if (item.observacoes) {
               _push(`<p class="text-sm text-gray-400 mt-1">${ssrInterpolate_1(item.observacoes)}</p>`);
             } else {
               _push(`<!---->`);
             }
-            _push(`</div><button class="text-red-500 hover:text-red-700 p-2" title="Remover item"> \u{1F5D1}\uFE0F </button></div></div>`);
+            _push(`</div><button class="text-red-500 hover:text-red-700 p-2" title="Remover item"> 🗑️ </button></div></div>`);
           });
           _push(`<!--]--></div>`);
         } else {
@@ -32628,10 +32471,10 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u2795 Adicionar Novo Item `);
+                _push2(` ➕ Adicionar Novo Item `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u2795 Adicionar Novo Item ")
+                  vueExports.createTextVNode(" ➕ Adicionar Novo Item ")
                 ];
               }
             }),
@@ -32641,12 +32484,12 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           _push(`<!---->`);
         }
         if (vueExports.unref(mostrarFormNovoItem)) {
-          _push(`<div class="bg-gray-50 rounded-lg p-4 space-y-4"><h4 class="font-semibold text-gray-700">Novo Item Personalizado</h4><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"><option value="beneficio"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).tipo, "beneficio") : ssrLooseEqual_1(vueExports.unref(novoItem).tipo, "beneficio")) ? " selected" : ""}>\u{1F4B0} Benef\xEDcio (Provento)</option><option value="desconto"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).tipo, "desconto") : ssrLooseEqual_1(vueExports.unref(novoItem).tipo, "desconto")) ? " selected" : ""}>\u{1F4C9} Desconto</option></select></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Vig\xEAncia</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"><option value="unico"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).vigencia_tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).vigencia_tipo, "unico") : ssrLooseEqual_1(vueExports.unref(novoItem).vigencia_tipo, "unico")) ? " selected" : ""}>\u{1F4C5} \xDAnico (apenas este m\xEAs)</option><option value="recorrente"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).vigencia_tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).vigencia_tipo, "recorrente") : ssrLooseEqual_1(vueExports.unref(novoItem).vigencia_tipo, "recorrente")) ? " selected" : ""}>\u{1F504} Recorrente (v\xE1rios meses)</option></select></div></div>`);
+          _push(`<div class="bg-gray-50 rounded-lg p-4 space-y-4"><h4 class="font-semibold text-gray-700">Novo Item Personalizado</h4><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"><option value="beneficio"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).tipo, "beneficio") : ssrLooseEqual_1(vueExports.unref(novoItem).tipo, "beneficio")) ? " selected" : ""}>💰 Benefício (Provento)</option><option value="desconto"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).tipo, "desconto") : ssrLooseEqual_1(vueExports.unref(novoItem).tipo, "desconto")) ? " selected" : ""}>📉 Desconto</option></select></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Vigência</label><select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"><option value="unico"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).vigencia_tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).vigencia_tipo, "unico") : ssrLooseEqual_1(vueExports.unref(novoItem).vigencia_tipo, "unico")) ? " selected" : ""}>📅 Único (apenas este mês)</option><option value="recorrente"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(novoItem).vigencia_tipo) ? ssrLooseContain_1(vueExports.unref(novoItem).vigencia_tipo, "recorrente") : ssrLooseEqual_1(vueExports.unref(novoItem).vigencia_tipo, "recorrente")) ? " selected" : ""}>🔄 Recorrente (vários meses)</option></select></div></div>`);
           _push(ssrRenderComponent_1(_component_UiInput, {
             modelValue: vueExports.unref(novoItem).descricao,
             "onUpdate:modelValue": ($event) => vueExports.unref(novoItem).descricao = $event,
-            label: "Descri\xE7\xE3o",
-            placeholder: "Ex: B\xF4nus de produtividade, Desconto de uniforme..."
+            label: "Descrição",
+            placeholder: "Ex: Bônus de produtividade, Desconto de uniforme..."
           }, null, _parent));
           _push(ssrRenderComponent_1(_component_UiInput, {
             modelValue: vueExports.unref(novoItem).valor,
@@ -32661,7 +32504,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
             modelValue: vueExports.unref(novoItem).data_inicio,
             "onUpdate:modelValue": ($event) => vueExports.unref(novoItem).data_inicio = $event,
             type: "date",
-            label: "Data In\xEDcio"
+            label: "Data Início"
           }, null, _parent));
           _push(ssrRenderComponent_1(_component_UiInput, {
             modelValue: vueExports.unref(novoItem).data_fim,
@@ -32674,8 +32517,8 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           _push(ssrRenderComponent_1(_component_UiInput, {
             modelValue: vueExports.unref(novoItem).observacoes,
             "onUpdate:modelValue": ($event) => vueExports.unref(novoItem).observacoes = $event,
-            label: "Observa\xE7\xF5es (opcional)",
-            placeholder: "Informa\xE7\xF5es adicionais..."
+            label: "Observações (opcional)",
+            placeholder: "Informações adicionais..."
           }, null, _parent));
           _push(`<div class="flex gap-3">`);
           _push(ssrRenderComponent_1(_component_UiButton, {
@@ -32684,10 +32527,10 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u2705 Adicionar `);
+                _push2(` ✅ Adicionar `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u2705 Adicionar ")
+                  vueExports.createTextVNode(" ✅ Adicionar ")
                 ];
               }
             }),
@@ -32700,10 +32543,10 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u274C Cancelar `);
+                _push2(` ❌ Cancelar `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u274C Cancelar ")
+                  vueExports.createTextVNode(" ❌ Cancelar ")
                 ];
               }
             }),
@@ -32717,7 +32560,7 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
       } else {
         _push(`<!---->`);
       }
-      _push(`<div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200"><div class="space-y-2"><div class="flex justify-between text-sm"><span class="text-gray-700">Total Proventos:</span><span class="font-semibold text-green-600">${ssrInterpolate_1(formatarMoeda(calcularTotalProventos()))}</span></div><div class="flex justify-between text-sm"><span class="text-gray-700">Total Descontos:</span><span class="font-semibold text-red-600">- ${ssrInterpolate_1(formatarMoeda(calcularTotalDescontos()))}</span></div><div class="border-t border-blue-300 pt-2 flex justify-between"><span class="font-bold text-blue-900">Sal\xE1rio L\xEDquido:</span><span class="text-2xl font-bold text-blue-900">${ssrInterpolate_1(formatarMoeda(calcularSalarioLiquido()))}</span></div></div></div><div class="flex justify-end gap-3 pt-4 border-t">`);
+      _push(`<div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200"><div class="space-y-2"><div class="flex justify-between text-sm"><span class="text-gray-700">Total Proventos:</span><span class="font-semibold text-green-600">${ssrInterpolate_1(formatarMoeda(calcularTotalProventos()))}</span></div><div class="flex justify-between text-sm"><span class="text-gray-700">Total Descontos:</span><span class="font-semibold text-red-600">- ${ssrInterpolate_1(formatarMoeda(calcularTotalDescontos()))}</span></div><div class="border-t border-blue-300 pt-2 flex justify-between"><span class="font-bold text-blue-900">Salário Líquido:</span><span class="text-2xl font-bold text-blue-900">${ssrInterpolate_1(formatarMoeda(calcularSalarioLiquido()))}</span></div></div></div><div class="flex justify-end gap-3 pt-4 border-t">`);
       _push(ssrRenderComponent_1(_component_UiButton, {
         variant: "secondary",
         onClick: ($event) => _ctx.$emit("cancel")
@@ -32736,10 +32579,10 @@ const _sfc_main$1$3 = /* @__PURE__ */ vueExports.defineComponent({
       _push(ssrRenderComponent_1(_component_UiButton, { onClick: salvar }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F4BE} Salvar Altera\xE7\xF5es `);
+            _push2(` 💾 Salvar Alterações `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F4BE} Salvar Altera\xE7\xF5es ")
+              vueExports.createTextVNode(" 💾 Salvar Alterações ")
             ];
           }
         }),
@@ -32790,7 +32633,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       }))
     ]);
     const mesesOptions = vueExports.computed(() => {
-      const opcoes = [{ value: "", label: "Todos os per\xEDodos" }];
+      const opcoes = [{ value: "", label: "Todos os períodos" }];
       const hoje = /* @__PURE__ */ new Date();
       for (let i = 0; i < 12; i++) {
         const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
@@ -32853,7 +32696,6 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       await disponibilizarHolerites();
     };
     const disponibilizarHolerites = async () => {
-      var _a;
       loading.value = true;
       try {
         let holeritesFiltrados = [];
@@ -32899,7 +32741,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
         }
         const tipoTexto = tipoDisponibilizar.value === "adiantamento" ? "adiantamentos" : tipoDisponibilizar.value === "mensal" ? "folhas mensais" : "holerites";
         notificacao.value = {
-          title: "Disponibiliza\xE7\xE3o Conclu\xEDda!",
+          title: "Disponibilização Concluída!",
           message: `${disponibilizados} ${tipoTexto} disponibilizado(s) no perfil${erros > 0 ? ` (${erros} erro(s))` : ""}`,
           variant: erros > 0 ? "warning" : "success"
         };
@@ -32908,7 +32750,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       } catch (error) {
         notificacao.value = {
           title: "Erro!",
-          message: ((_a = error.data) == null ? void 0 : _a.message) || "Erro ao disponibilizar holerites",
+          message: error.data?.message || "Erro ao disponibilizar holerites",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -32938,7 +32780,6 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       }
     };
     const gerarHoleritesAutomaticos = async () => {
-      var _a;
       loading.value = true;
       try {
         const hoje = /* @__PURE__ */ new Date();
@@ -32972,7 +32813,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       } catch (error) {
         notificacao.value = {
           title: "Erro!",
-          message: ((_a = error.data) == null ? void 0 : _a.message) || "Erro ao gerar holerites automaticamente",
+          message: error.data?.message || "Erro ao gerar holerites automaticamente",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -32989,7 +32830,6 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       await enviarHoleritesPorTipo();
     };
     const enviarHoleritesPorTipo = async () => {
-      var _a;
       loading.value = true;
       try {
         let holeritesFiltrados = [];
@@ -33031,7 +32871,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
         }
         const tipoTexto = tipoEnvio.value === "adiantamento" ? "adiantamentos" : tipoEnvio.value === "mensal" ? "folhas mensais" : "holerites";
         notificacao.value = {
-          title: "Envio Conclu\xEDdo!",
+          title: "Envio Concluído!",
           message: `${enviados} ${tipoTexto} enviado(s) com sucesso${erros > 0 ? ` (${erros} erro(s))` : ""}`,
           variant: erros > 0 ? "warning" : "success"
         };
@@ -33040,7 +32880,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       } catch (error) {
         notificacao.value = {
           title: "Erro!",
-          message: ((_a = error.data) == null ? void 0 : _a.message) || "Erro ao enviar holerites",
+          message: error.data?.message || "Erro ao enviar holerites",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -33057,7 +32897,6 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       modalEdicao.value = true;
     };
     const enviarHolerite = async (holerite) => {
-      var _a, _b;
       try {
         loading.value = true;
         const resultado = await $fetch(`/api/holerites/${holerite.id}/enviar-email`, {
@@ -33066,7 +32905,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
         holerite.status = "enviado";
         notificacao.value = {
           title: "Enviado!",
-          message: `Holerite enviado para ${((_a = holerite.funcionario) == null ? void 0 : _a.nome_completo) || "funcion\xE1rio"} (${resultado.email})`,
+          message: `Holerite enviado para ${holerite.funcionario?.nome_completo || "funcionário"} (${resultado.email})`,
           variant: "success"
         };
         mostrarNotificacao.value = true;
@@ -33074,7 +32913,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       } catch (error) {
         notificacao.value = {
           title: "Erro!",
-          message: ((_b = error.data) == null ? void 0 : _b.message) || "Erro ao enviar holerite",
+          message: error.data?.message || "Erro ao enviar holerite",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -33083,7 +32922,6 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       }
     };
     const salvarEdicaoHolerite = async (dadosAtualizados) => {
-      var _a;
       if (!holeriteSelecionado.value) return;
       try {
         loading.value = true;
@@ -33102,7 +32940,7 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       } catch (error) {
         notificacao.value = {
           title: "Erro!",
-          message: ((_a = error.data) == null ? void 0 : _a.message) || "Erro ao salvar altera\xE7\xF5es",
+          message: error.data?.message || "Erro ao salvar alterações",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -33114,10 +32952,9 @@ const _sfc_main$8 = /* @__PURE__ */ vueExports.defineComponent({
       carregarHolerites();
     };
     const excluirHolerite = async (holerite) => {
-      var _a, _b, _c;
-      if (!confirm(`Tem certeza que deseja excluir o holerite de ${((_a = holerite.funcionario) == null ? void 0 : _a.nome_completo) || "funcion\xE1rio"}?
+      if (!confirm(`Tem certeza que deseja excluir o holerite de ${holerite.funcionario?.nome_completo || "funcionário"}?
 
-Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
+Esta ação não pode ser desfeita.`)) {
         return;
       }
       try {
@@ -33126,8 +32963,8 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
           method: "DELETE"
         });
         notificacao.value = {
-          title: "Exclu\xEDdo!",
-          message: `Holerite de ${((_b = holerite.funcionario) == null ? void 0 : _b.nome_completo) || "funcion\xE1rio"} exclu\xEDdo com sucesso`,
+          title: "Excluído!",
+          message: `Holerite de ${holerite.funcionario?.nome_completo || "funcionário"} excluído com sucesso`,
           variant: "success"
         };
         mostrarNotificacao.value = true;
@@ -33135,7 +32972,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       } catch (error) {
         notificacao.value = {
           title: "Erro!",
-          message: ((_c = error.data) == null ? void 0 : _c.message) || "Erro ao excluir holerite",
+          message: error.data?.message || "Erro ao excluir holerite",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -33168,7 +33005,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       const _component_UiEmptyState = __nuxt_component_2;
       const _component_UiModal = __nuxt_component_3;
       const _component_UiNotification = __nuxt_component_7;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-6" }, _attrs))}><div class="flex items-center justify-between"><div><h1 class="text-2xl font-bold text-gray-900">\u{1F4C4} Gest\xE3o de Holerites</h1><p class="text-gray-600">Gerencie e envie holerites para os funcion\xE1rios</p></div><div class="flex gap-3">`);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-6" }, _attrs))}><div class="flex items-center justify-between"><div><h1 class="text-2xl font-bold text-gray-900">📄 Gestão de Holerites</h1><p class="text-gray-600">Gerencie e envie holerites para os funcionários</p></div><div class="flex gap-3">`);
       _push(ssrRenderComponent_1(_component_UiButton, {
         variant: "secondary",
         onClick: ($event) => abrirModalGerar("adiantamento"),
@@ -33176,10 +33013,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F4B0} Gerar Adiantamento (40%) `);
+            _push2(` 💰 Gerar Adiantamento (40%) `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F4B0} Gerar Adiantamento (40%) ")
+              vueExports.createTextVNode(" 💰 Gerar Adiantamento (40%) ")
             ];
           }
         }),
@@ -33191,10 +33028,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F4C4} Gerar Folha Mensal `);
+            _push2(` 📄 Gerar Folha Mensal `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F4C4} Gerar Folha Mensal ")
+              vueExports.createTextVNode(" 📄 Gerar Folha Mensal ")
             ];
           }
         }),
@@ -33207,10 +33044,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F464} Disponibilizar no Perfil `);
+            _push2(` 👤 Disponibilizar no Perfil `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F464} Disponibilizar no Perfil ")
+              vueExports.createTextVNode(" 👤 Disponibilizar no Perfil ")
             ];
           }
         }),
@@ -33223,10 +33060,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F4E7} Enviar por Email `);
+            _push2(` 📧 Enviar por Email `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F4E7} Enviar por Email ")
+              vueExports.createTextVNode(" 📧 Enviar por Email ")
             ];
           }
         }),
@@ -33244,8 +33081,8 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
         modelValue: vueExports.unref(filtros).mes,
         "onUpdate:modelValue": ($event) => vueExports.unref(filtros).mes = $event,
         options: vueExports.unref(mesesOptions),
-        label: "M\xEAs/Ano",
-        placeholder: "Selecione o per\xEDodo"
+        label: "Mês/Ano",
+        placeholder: "Selecione o período"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiSelect, {
         modelValue: vueExports.unref(filtros).status,
@@ -33262,10 +33099,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F50D} Filtrar `);
+            _push2(` 🔍 Filtrar `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F50D} Filtrar ")
+              vueExports.createTextVNode(" 🔍 Filtrar ")
             ];
           }
         }),
@@ -33278,15 +33115,14 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
         _push(`<div class="p-8">`);
         _push(ssrRenderComponent_1(_component_UiEmptyState, {
           title: "Nenhum holerite encontrado",
-          description: "Gere holerites autom\xE1ticos ou ajuste os filtros",
+          description: "Gere holerites automáticos ou ajuste os filtros",
           icon: "document"
         }, null, _parent));
         _push(`</div>`);
       } else {
         _push(`<div class="divide-y divide-gray-200"><!--[-->`);
         ssrRenderList_1(vueExports.unref(holerites), (holerite) => {
-          var _a, _b, _c, _d, _e;
-          _push(`<div class="p-6 hover:bg-gray-50 transition-colors"><div class="flex items-center justify-between"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"><span class="text-blue-600 font-semibold">${ssrInterpolate_1(((_b = (_a = holerite.funcionario) == null ? void 0 : _a.nome_completo) == null ? void 0 : _b.charAt(0)) || "?")}</span></div><div><h3 class="font-semibold text-gray-900">${ssrInterpolate_1(((_c = holerite.funcionario) == null ? void 0 : _c.nome_completo) || "Nome n\xE3o dispon\xEDvel")}</h3><p class="text-sm text-gray-600">${ssrInterpolate_1(((_d = holerite.funcionario) == null ? void 0 : _d.cargo) || "Cargo n\xE3o definido")}</p><p class="text-xs text-gray-500">${ssrInterpolate_1(((_e = holerite.funcionario) == null ? void 0 : _e.empresa) || "Empresa n\xE3o definida")}</p></div></div><div class="flex items-center gap-4"><div class="text-right"><p class="font-semibold text-gray-900">${ssrInterpolate_1(formatarMoeda(holerite.salario_liquido))}</p><p class="text-sm text-gray-600">${ssrInterpolate_1(formatarPeriodo(holerite.periodo_inicio, holerite.periodo_fim))}</p><span class="${ssrRenderClass_1([
+          _push(`<div class="p-6 hover:bg-gray-50 transition-colors"><div class="flex items-center justify-between"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"><span class="text-blue-600 font-semibold">${ssrInterpolate_1(holerite.funcionario?.nome_completo?.charAt(0) || "?")}</span></div><div><h3 class="font-semibold text-gray-900">${ssrInterpolate_1(holerite.funcionario?.nome_completo || "Nome não disponível")}</h3><p class="text-sm text-gray-600">${ssrInterpolate_1(holerite.funcionario?.cargo || "Cargo não definido")}</p><p class="text-xs text-gray-500">${ssrInterpolate_1(holerite.funcionario?.empresa || "Empresa não definida")}</p></div></div><div class="flex items-center gap-4"><div class="text-right"><p class="font-semibold text-gray-900">${ssrInterpolate_1(formatarMoeda(holerite.salario_liquido))}</p><p class="text-sm text-gray-600">${ssrInterpolate_1(formatarPeriodo(holerite.periodo_inicio, holerite.periodo_fim))}</p><span class="${ssrRenderClass_1([
             "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
             holerite.status === "enviado" ? "bg-green-100 text-green-800" : holerite.status === "gerado" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"
           ])}">${ssrInterpolate_1(getStatusLabel(holerite.status))}</span></div><div class="flex gap-2">`);
@@ -33297,10 +33133,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u{1F441}\uFE0F Ver `);
+                _push2(` 👁️ Ver `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u{1F441}\uFE0F Ver ")
+                  vueExports.createTextVNode(" 👁️ Ver ")
                 ];
               }
             }),
@@ -33313,10 +33149,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u270F\uFE0F Editar `);
+                _push2(` ✏️ Editar `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u270F\uFE0F Editar ")
+                  vueExports.createTextVNode(" ✏️ Editar ")
                 ];
               }
             }),
@@ -33329,10 +33165,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u{1F4E7} Enviar `);
+                _push2(` 📧 Enviar `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u{1F4E7} Enviar ")
+                  vueExports.createTextVNode(" 📧 Enviar ")
                 ];
               }
             }),
@@ -33345,10 +33181,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u{1F5D1}\uFE0F Excluir `);
+                _push2(` 🗑️ Excluir `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u{1F5D1}\uFE0F Excluir ")
+                  vueExports.createTextVNode(" 🗑️ Excluir ")
                 ];
               }
             }),
@@ -33427,11 +33263,11 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
           if (_push2) {
             _push2(`<div class="space-y-4"${_scopeId}>`);
             if (vueExports.unref(tipoGeracao) === "adiantamento") {
-              _push2(`<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800"${_scopeId}><strong${_scopeId}>\u{1F4B0} Adiantamento Salarial (40%):</strong><br${_scopeId}> \u2022 Gerar adiantamento de 40% do sal\xE1rio base<br${_scopeId}> \u2022 Per\xEDodo: Primeira quinzena do m\xEAs atual<br${_scopeId}> \u2022 O valor ser\xE1 descontado automaticamente na folha mensal<br${_scopeId}> \u2022 Sem c\xE1lculo de INSS e IRRF (apenas adiantamento) </p></div>`);
+              _push2(`<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800"${_scopeId}><strong${_scopeId}>💰 Adiantamento Salarial (40%):</strong><br${_scopeId}> • Gerar adiantamento de 40% do salário base<br${_scopeId}> • Período: Primeira quinzena do mês atual<br${_scopeId}> • O valor será descontado automaticamente na folha mensal<br${_scopeId}> • Sem cálculo de INSS e IRRF (apenas adiantamento) </p></div>`);
             } else {
-              _push2(`<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800"${_scopeId}><strong${_scopeId}>\u{1F4C4} Folha de Pagamento Mensal:</strong><br${_scopeId}> \u2022 Gerar holerites completos para todos os funcion\xE1rios ativos<br${_scopeId}> \u2022 Per\xEDodo: M\xEAs completo<br${_scopeId}> \u2022 C\xE1lculos autom\xE1ticos de INSS, IRRF e descontos<br${_scopeId}> \u2022 Desconto autom\xE1tico de adiantamentos j\xE1 pagos </p></div>`);
+              _push2(`<div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800"${_scopeId}><strong${_scopeId}>📄 Folha de Pagamento Mensal:</strong><br${_scopeId}> • Gerar holerites completos para todos os funcionários ativos<br${_scopeId}> • Período: Mês completo<br${_scopeId}> • Cálculos automáticos de INSS, IRRF e descontos<br${_scopeId}> • Desconto automático de adiantamentos já pagos </p></div>`);
             }
-            _push2(`<div class="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"${_scopeId}><input type="checkbox" id="recriar"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(opcoesGeracao).recriar) ? ssrLooseContain_1(vueExports.unref(opcoesGeracao).recriar, null) : vueExports.unref(opcoesGeracao).recriar) ? " checked" : ""} class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"${_scopeId}><label for="recriar" class="text-sm text-yellow-800 cursor-pointer"${_scopeId}><strong${_scopeId}>\u{1F504} Recriar holerites existentes</strong><br${_scopeId}><span class="text-xs"${_scopeId}>Se marcado, holerites j\xE1 gerados para este per\xEDodo ser\xE3o exclu\xEDdos e recriados</span></label></div><div class="flex gap-3 justify-end pt-4 border-t"${_scopeId}>`);
+            _push2(`<div class="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"${_scopeId}><input type="checkbox" id="recriar"${ssrIncludeBooleanAttr(Array.isArray(vueExports.unref(opcoesGeracao).recriar) ? ssrLooseContain_1(vueExports.unref(opcoesGeracao).recriar, null) : vueExports.unref(opcoesGeracao).recriar) ? " checked" : ""} class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"${_scopeId}><label for="recriar" class="text-sm text-yellow-800 cursor-pointer"${_scopeId}><strong${_scopeId}>🔄 Recriar holerites existentes</strong><br${_scopeId}><span class="text-xs"${_scopeId}>Se marcado, holerites já gerados para este período serão excluídos e recriados</span></label></div><div class="flex gap-3 justify-end pt-4 border-t"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiButton, {
               variant: "secondary",
               onClick: ($event) => mostrarModalGerar.value = false
@@ -33453,10 +33289,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(`${ssrInterpolate_1(vueExports.unref(loading) ? "Gerando..." : "\u2713 Confirmar Gera\xE7\xE3o")}`);
+                  _push3(`${ssrInterpolate_1(vueExports.unref(loading) ? "Gerando..." : "✓ Confirmar Geração")}`);
                 } else {
                   return [
-                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Gerando..." : "\u2713 Confirmar Gera\xE7\xE3o"), 1)
+                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Gerando..." : "✓ Confirmar Geração"), 1)
                   ];
                 }
               }),
@@ -33471,30 +33307,30 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                   class: "bg-blue-50 border border-blue-200 rounded-lg p-4"
                 }, [
                   vueExports.createVNode("p", { class: "text-sm text-blue-800" }, [
-                    vueExports.createVNode("strong", null, "\u{1F4B0} Adiantamento Salarial (40%):"),
+                    vueExports.createVNode("strong", null, "💰 Adiantamento Salarial (40%):"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 Gerar adiantamento de 40% do sal\xE1rio base"),
+                    vueExports.createTextVNode(" • Gerar adiantamento de 40% do salário base"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 Per\xEDodo: Primeira quinzena do m\xEAs atual"),
+                    vueExports.createTextVNode(" • Período: Primeira quinzena do mês atual"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 O valor ser\xE1 descontado automaticamente na folha mensal"),
+                    vueExports.createTextVNode(" • O valor será descontado automaticamente na folha mensal"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 Sem c\xE1lculo de INSS e IRRF (apenas adiantamento) ")
+                    vueExports.createTextVNode(" • Sem cálculo de INSS e IRRF (apenas adiantamento) ")
                   ])
                 ])) : (vueExports.openBlock(), vueExports.createBlock("div", {
                   key: 1,
                   class: "bg-blue-50 border border-blue-200 rounded-lg p-4"
                 }, [
                   vueExports.createVNode("p", { class: "text-sm text-blue-800" }, [
-                    vueExports.createVNode("strong", null, "\u{1F4C4} Folha de Pagamento Mensal:"),
+                    vueExports.createVNode("strong", null, "📄 Folha de Pagamento Mensal:"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 Gerar holerites completos para todos os funcion\xE1rios ativos"),
+                    vueExports.createTextVNode(" • Gerar holerites completos para todos os funcionários ativos"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 Per\xEDodo: M\xEAs completo"),
+                    vueExports.createTextVNode(" • Período: Mês completo"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 C\xE1lculos autom\xE1ticos de INSS, IRRF e descontos"),
+                    vueExports.createTextVNode(" • Cálculos automáticos de INSS, IRRF e descontos"),
                     vueExports.createVNode("br"),
-                    vueExports.createTextVNode(" \u2022 Desconto autom\xE1tico de adiantamentos j\xE1 pagos ")
+                    vueExports.createTextVNode(" • Desconto automático de adiantamentos já pagos ")
                   ])
                 ])),
                 vueExports.createVNode("div", { class: "flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg" }, [
@@ -33510,9 +33346,9 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                     for: "recriar",
                     class: "text-sm text-yellow-800 cursor-pointer"
                   }, [
-                    vueExports.createVNode("strong", null, "\u{1F504} Recriar holerites existentes"),
+                    vueExports.createVNode("strong", null, "🔄 Recriar holerites existentes"),
                     vueExports.createVNode("br"),
-                    vueExports.createVNode("span", { class: "text-xs" }, "Se marcado, holerites j\xE1 gerados para este per\xEDodo ser\xE3o exclu\xEDdos e recriados")
+                    vueExports.createVNode("span", { class: "text-xs" }, "Se marcado, holerites já gerados para este período serão excluídos e recriados")
                   ])
                 ]),
                 vueExports.createVNode("div", { class: "flex gap-3 justify-end pt-4 border-t" }, [
@@ -33530,7 +33366,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                     disabled: vueExports.unref(loading)
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Gerando..." : "\u2713 Confirmar Gera\xE7\xE3o"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Gerando..." : "✓ Confirmar Geração"), 1)
                     ]),
                     _: 1
                   }, 8, ["disabled"])
@@ -33549,7 +33385,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(`<div class="space-y-4"${_scopeId}><div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800 mb-3"${_scopeId}><strong${_scopeId}>\u{1F4E7} Selecione o tipo de holerite para enviar:</strong></p><div class="space-y-3"${_scopeId}><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="enviar-adiantamento" value="adiantamento"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoEnvio), "adiantamento")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="enviar-adiantamento" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>\u{1F4B0} Apenas Adiantamentos</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Enviar apenas holerites de adiantamento (primeira quinzena)</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="enviar-mensal" value="mensal"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoEnvio), "mensal")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="enviar-mensal" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>\u{1F4C4} Apenas Folhas Mensais</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Enviar apenas holerites mensais completos</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="enviar-todos" value="todos"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoEnvio), "todos")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="enviar-todos" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>\u{1F4E7} Todos os Holerites</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Enviar todos os holerites listados</span></label></div></div></div><div class="bg-gray-50 border border-gray-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-gray-700"${_scopeId}><strong${_scopeId}>Total a enviar:</strong> ${ssrInterpolate_1(contarHoleritesPorTipo())} holerite(s) </p></div><div class="flex gap-3 justify-end pt-4 border-t"${_scopeId}>`);
+            _push2(`<div class="space-y-4"${_scopeId}><div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800 mb-3"${_scopeId}><strong${_scopeId}>📧 Selecione o tipo de holerite para enviar:</strong></p><div class="space-y-3"${_scopeId}><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="enviar-adiantamento" value="adiantamento"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoEnvio), "adiantamento")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="enviar-adiantamento" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>💰 Apenas Adiantamentos</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Enviar apenas holerites de adiantamento (primeira quinzena)</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="enviar-mensal" value="mensal"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoEnvio), "mensal")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="enviar-mensal" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>📄 Apenas Folhas Mensais</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Enviar apenas holerites mensais completos</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="enviar-todos" value="todos"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoEnvio), "todos")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="enviar-todos" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>📧 Todos os Holerites</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Enviar todos os holerites listados</span></label></div></div></div><div class="bg-gray-50 border border-gray-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-gray-700"${_scopeId}><strong${_scopeId}>Total a enviar:</strong> ${ssrInterpolate_1(contarHoleritesPorTipo())} holerite(s) </p></div><div class="flex gap-3 justify-end pt-4 border-t"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiButton, {
               variant: "secondary",
               onClick: ($event) => mostrarModalEnvio.value = false
@@ -33571,10 +33407,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(`${ssrInterpolate_1(vueExports.unref(loading) ? "Enviando..." : "\u2713 Confirmar Envio")}`);
+                  _push3(`${ssrInterpolate_1(vueExports.unref(loading) ? "Enviando..." : "✓ Confirmar Envio")}`);
                 } else {
                   return [
-                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Enviando..." : "\u2713 Confirmar Envio"), 1)
+                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Enviando..." : "✓ Confirmar Envio"), 1)
                   ];
                 }
               }),
@@ -33586,7 +33422,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
               vueExports.createVNode("div", { class: "space-y-4" }, [
                 vueExports.createVNode("div", { class: "bg-blue-50 border border-blue-200 rounded-lg p-4" }, [
                   vueExports.createVNode("p", { class: "text-sm text-blue-800 mb-3" }, [
-                    vueExports.createVNode("strong", null, "\u{1F4E7} Selecione o tipo de holerite para enviar:")
+                    vueExports.createVNode("strong", null, "📧 Selecione o tipo de holerite para enviar:")
                   ]),
                   vueExports.createVNode("div", { class: "space-y-3" }, [
                     vueExports.createVNode("div", { class: "flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200" }, [
@@ -33603,7 +33439,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                         for: "enviar-adiantamento",
                         class: "flex-1 cursor-pointer"
                       }, [
-                        vueExports.createVNode("strong", { class: "text-gray-900" }, "\u{1F4B0} Apenas Adiantamentos"),
+                        vueExports.createVNode("strong", { class: "text-gray-900" }, "💰 Apenas Adiantamentos"),
                         vueExports.createVNode("br"),
                         vueExports.createVNode("span", { class: "text-xs text-gray-600" }, "Enviar apenas holerites de adiantamento (primeira quinzena)")
                       ])
@@ -33622,7 +33458,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                         for: "enviar-mensal",
                         class: "flex-1 cursor-pointer"
                       }, [
-                        vueExports.createVNode("strong", { class: "text-gray-900" }, "\u{1F4C4} Apenas Folhas Mensais"),
+                        vueExports.createVNode("strong", { class: "text-gray-900" }, "📄 Apenas Folhas Mensais"),
                         vueExports.createVNode("br"),
                         vueExports.createVNode("span", { class: "text-xs text-gray-600" }, "Enviar apenas holerites mensais completos")
                       ])
@@ -33641,7 +33477,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                         for: "enviar-todos",
                         class: "flex-1 cursor-pointer"
                       }, [
-                        vueExports.createVNode("strong", { class: "text-gray-900" }, "\u{1F4E7} Todos os Holerites"),
+                        vueExports.createVNode("strong", { class: "text-gray-900" }, "📧 Todos os Holerites"),
                         vueExports.createVNode("br"),
                         vueExports.createVNode("span", { class: "text-xs text-gray-600" }, "Enviar todos os holerites listados")
                       ])
@@ -33669,7 +33505,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                     disabled: vueExports.unref(loading) || contarHoleritesPorTipo() === 0
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Enviando..." : "\u2713 Confirmar Envio"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Enviando..." : "✓ Confirmar Envio"), 1)
                     ]),
                     _: 1
                   }, 8, ["disabled"])
@@ -33688,7 +33524,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(`<div class="space-y-4"${_scopeId}><div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800 mb-3"${_scopeId}><strong${_scopeId}>\u{1F464} Selecione o tipo de holerite para disponibilizar:</strong><br${_scopeId}><span class="text-xs"${_scopeId}>Os holerites ficar\xE3o dispon\xEDveis para visualiza\xE7\xE3o no perfil do funcion\xE1rio</span></p><div class="space-y-3"${_scopeId}><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="disp-adiantamento" value="adiantamento"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoDisponibilizar), "adiantamento")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="disp-adiantamento" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>\u{1F4B0} Apenas Adiantamentos</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Disponibilizar apenas holerites de adiantamento</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="disp-mensal" value="mensal"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoDisponibilizar), "mensal")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="disp-mensal" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>\u{1F4C4} Apenas Folhas Mensais</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Disponibilizar apenas holerites mensais completos</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="disp-todos" value="todos"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoDisponibilizar), "todos")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="disp-todos" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>\u{1F4CB} Todos os Holerites</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Disponibilizar todos os holerites listados</span></label></div></div></div><div class="bg-gray-50 border border-gray-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-gray-700"${_scopeId}><strong${_scopeId}>Total a disponibilizar:</strong> ${ssrInterpolate_1(contarHoleritesPorTipoDisp())} holerite(s) </p><p class="text-xs text-gray-500 mt-2"${_scopeId}> Os funcion\xE1rios poder\xE3o visualizar e baixar seus holerites na \xE1rea &quot;Meus Holerites&quot; </p></div><div class="flex gap-3 justify-end pt-4 border-t"${_scopeId}>`);
+            _push2(`<div class="space-y-4"${_scopeId}><div class="bg-blue-50 border border-blue-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-blue-800 mb-3"${_scopeId}><strong${_scopeId}>👤 Selecione o tipo de holerite para disponibilizar:</strong><br${_scopeId}><span class="text-xs"${_scopeId}>Os holerites ficarão disponíveis para visualização no perfil do funcionário</span></p><div class="space-y-3"${_scopeId}><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="disp-adiantamento" value="adiantamento"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoDisponibilizar), "adiantamento")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="disp-adiantamento" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>💰 Apenas Adiantamentos</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Disponibilizar apenas holerites de adiantamento</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="disp-mensal" value="mensal"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoDisponibilizar), "mensal")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="disp-mensal" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>📄 Apenas Folhas Mensais</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Disponibilizar apenas holerites mensais completos</span></label></div><div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200"${_scopeId}><input type="radio" id="disp-todos" value="todos"${ssrIncludeBooleanAttr(ssrLooseEqual_1(vueExports.unref(tipoDisponibilizar), "todos")) ? " checked" : ""} class="w-4 h-4 text-blue-600"${_scopeId}><label for="disp-todos" class="flex-1 cursor-pointer"${_scopeId}><strong class="text-gray-900"${_scopeId}>📋 Todos os Holerites</strong><br${_scopeId}><span class="text-xs text-gray-600"${_scopeId}>Disponibilizar todos os holerites listados</span></label></div></div></div><div class="bg-gray-50 border border-gray-200 rounded-lg p-4"${_scopeId}><p class="text-sm text-gray-700"${_scopeId}><strong${_scopeId}>Total a disponibilizar:</strong> ${ssrInterpolate_1(contarHoleritesPorTipoDisp())} holerite(s) </p><p class="text-xs text-gray-500 mt-2"${_scopeId}> Os funcionários poderão visualizar e baixar seus holerites na área &quot;Meus Holerites&quot; </p></div><div class="flex gap-3 justify-end pt-4 border-t"${_scopeId}>`);
             _push2(ssrRenderComponent_1(_component_UiButton, {
               variant: "secondary",
               onClick: ($event) => mostrarModalDisponibilizar.value = false
@@ -33710,10 +33546,10 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(`${ssrInterpolate_1(vueExports.unref(loading) ? "Disponibilizando..." : "\u2713 Confirmar")}`);
+                  _push3(`${ssrInterpolate_1(vueExports.unref(loading) ? "Disponibilizando..." : "✓ Confirmar")}`);
                 } else {
                   return [
-                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Disponibilizando..." : "\u2713 Confirmar"), 1)
+                    vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Disponibilizando..." : "✓ Confirmar"), 1)
                   ];
                 }
               }),
@@ -33725,9 +33561,9 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
               vueExports.createVNode("div", { class: "space-y-4" }, [
                 vueExports.createVNode("div", { class: "bg-blue-50 border border-blue-200 rounded-lg p-4" }, [
                   vueExports.createVNode("p", { class: "text-sm text-blue-800 mb-3" }, [
-                    vueExports.createVNode("strong", null, "\u{1F464} Selecione o tipo de holerite para disponibilizar:"),
+                    vueExports.createVNode("strong", null, "👤 Selecione o tipo de holerite para disponibilizar:"),
                     vueExports.createVNode("br"),
-                    vueExports.createVNode("span", { class: "text-xs" }, "Os holerites ficar\xE3o dispon\xEDveis para visualiza\xE7\xE3o no perfil do funcion\xE1rio")
+                    vueExports.createVNode("span", { class: "text-xs" }, "Os holerites ficarão disponíveis para visualização no perfil do funcionário")
                   ]),
                   vueExports.createVNode("div", { class: "space-y-3" }, [
                     vueExports.createVNode("div", { class: "flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200" }, [
@@ -33744,7 +33580,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                         for: "disp-adiantamento",
                         class: "flex-1 cursor-pointer"
                       }, [
-                        vueExports.createVNode("strong", { class: "text-gray-900" }, "\u{1F4B0} Apenas Adiantamentos"),
+                        vueExports.createVNode("strong", { class: "text-gray-900" }, "💰 Apenas Adiantamentos"),
                         vueExports.createVNode("br"),
                         vueExports.createVNode("span", { class: "text-xs text-gray-600" }, "Disponibilizar apenas holerites de adiantamento")
                       ])
@@ -33763,7 +33599,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                         for: "disp-mensal",
                         class: "flex-1 cursor-pointer"
                       }, [
-                        vueExports.createVNode("strong", { class: "text-gray-900" }, "\u{1F4C4} Apenas Folhas Mensais"),
+                        vueExports.createVNode("strong", { class: "text-gray-900" }, "📄 Apenas Folhas Mensais"),
                         vueExports.createVNode("br"),
                         vueExports.createVNode("span", { class: "text-xs text-gray-600" }, "Disponibilizar apenas holerites mensais completos")
                       ])
@@ -33782,7 +33618,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                         for: "disp-todos",
                         class: "flex-1 cursor-pointer"
                       }, [
-                        vueExports.createVNode("strong", { class: "text-gray-900" }, "\u{1F4CB} Todos os Holerites"),
+                        vueExports.createVNode("strong", { class: "text-gray-900" }, "📋 Todos os Holerites"),
                         vueExports.createVNode("br"),
                         vueExports.createVNode("span", { class: "text-xs text-gray-600" }, "Disponibilizar todos os holerites listados")
                       ])
@@ -33794,7 +33630,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                     vueExports.createVNode("strong", null, "Total a disponibilizar:"),
                     vueExports.createTextVNode(" " + vueExports.toDisplayString(contarHoleritesPorTipoDisp()) + " holerite(s) ", 1)
                   ]),
-                  vueExports.createVNode("p", { class: "text-xs text-gray-500 mt-2" }, ' Os funcion\xE1rios poder\xE3o visualizar e baixar seus holerites na \xE1rea "Meus Holerites" ')
+                  vueExports.createVNode("p", { class: "text-xs text-gray-500 mt-2" }, ' Os funcionários poderão visualizar e baixar seus holerites na área "Meus Holerites" ')
                 ]),
                 vueExports.createVNode("div", { class: "flex gap-3 justify-end pt-4 border-t" }, [
                   vueExports.createVNode(_component_UiButton, {
@@ -33811,7 +33647,7 @@ Esta a\xE7\xE3o n\xE3o pode ser desfeita.`)) {
                     disabled: vueExports.unref(loading) || contarHoleritesPorTipoDisp() === 0
                   }, {
                     default: vueExports.withCtx(() => [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Disponibilizando..." : "\u2713 Confirmar"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(loading) ? "Disponibilizando..." : "✓ Confirmar"), 1)
                     ]),
                     _: 1
                   }, 8, ["disabled"])
@@ -33950,9 +33786,8 @@ vueExports.defineComponent({
     }
     vueExports.provide(clientOnlySymbol, true);
     return () => {
-      var _a;
       if (mounted.value) {
-        const vnodes = (_a = slots.default) == null ? void 0 : _a.call(slots);
+        const vnodes = slots.default?.();
         if (vnodes && vnodes.length === 1) {
           return [vueExports.cloneVNode(vnodes[0], attrs)];
         }
@@ -33969,7 +33804,6 @@ vueExports.defineComponent({
   }
 });
 function useAsyncData(...args) {
-  var _a, _b, _c, _d, _e, _f, _g;
   const autoKey = typeof args[args.length - 1] === "string" ? args.pop() : void 0;
   if (_isAutoKeyNeeded(args[0], args[1])) {
     args.unshift(autoKey);
@@ -33983,19 +33817,18 @@ function useAsyncData(...args) {
     throw new TypeError("[nuxt] [useAsyncData] handler must be a function.");
   }
   const nuxtApp = useNuxtApp();
-  (_a = options.server) != null ? _a : options.server = true;
-  (_b = options.default) != null ? _b : options.default = getDefault;
-  (_c = options.getCachedData) != null ? _c : options.getCachedData = getDefaultCachedData;
-  (_d = options.lazy) != null ? _d : options.lazy = false;
-  (_e = options.immediate) != null ? _e : options.immediate = true;
-  (_f = options.deep) != null ? _f : options.deep = asyncDataDefaults.deep;
-  (_g = options.dedupe) != null ? _g : options.dedupe = "cancel";
+  options.server ??= true;
+  options.default ??= getDefault;
+  options.getCachedData ??= getDefaultCachedData;
+  options.lazy ??= false;
+  options.immediate ??= true;
+  options.deep ??= asyncDataDefaults.deep;
+  options.dedupe ??= "cancel";
   options._functionName || "useAsyncData";
   nuxtApp._asyncData[key.value];
   function createInitialFetch() {
-    var _a2;
     const initialFetchOptions = { cause: "initial", dedupe: options.dedupe };
-    if (!((_a2 = nuxtApp._asyncData[key.value]) == null ? void 0 : _a2._init)) {
+    if (!nuxtApp._asyncData[key.value]?._init) {
       initialFetchOptions.cachedData = options.getCachedData(key.value, nuxtApp, { cause: "initial" });
       nuxtApp._asyncData[key.value] = createAsyncData(nuxtApp, key.value, _handler, options, initialFetchOptions.cachedData);
     }
@@ -34016,25 +33849,12 @@ function useAsyncData(...args) {
     }
   }
   const asyncReturn = {
-    data: writableComputedRef(() => {
-      var _a2;
-      return (_a2 = nuxtApp._asyncData[key.value]) == null ? void 0 : _a2.data;
-    }),
-    pending: writableComputedRef(() => {
-      var _a2;
-      return (_a2 = nuxtApp._asyncData[key.value]) == null ? void 0 : _a2.pending;
-    }),
-    status: writableComputedRef(() => {
-      var _a2;
-      return (_a2 = nuxtApp._asyncData[key.value]) == null ? void 0 : _a2.status;
-    }),
-    error: writableComputedRef(() => {
-      var _a2;
-      return (_a2 = nuxtApp._asyncData[key.value]) == null ? void 0 : _a2.error;
-    }),
+    data: writableComputedRef(() => nuxtApp._asyncData[key.value]?.data),
+    pending: writableComputedRef(() => nuxtApp._asyncData[key.value]?.pending),
+    status: writableComputedRef(() => nuxtApp._asyncData[key.value]?.status),
+    error: writableComputedRef(() => nuxtApp._asyncData[key.value]?.error),
     refresh: (...args2) => {
-      var _a2;
-      if (!((_a2 = nuxtApp._asyncData[key.value]) == null ? void 0 : _a2._init)) {
+      if (!nuxtApp._asyncData[key.value]?._init) {
         const initialFetch2 = createInitialFetch();
         return initialFetch2();
       }
@@ -34043,7 +33863,7 @@ function useAsyncData(...args) {
     execute: (...args2) => asyncReturn.refresh(...args2),
     clear: () => {
       const entry = nuxtApp._asyncData[key.value];
-      if (entry == null ? void 0 : entry._abortController) {
+      if (entry?._abortController) {
         try {
           entry._abortController.abort(new DOMException("AsyncData aborted by user.", "AbortError"));
         } finally {
@@ -34060,8 +33880,7 @@ function useAsyncData(...args) {
 function writableComputedRef(getter) {
   return vueExports.computed({
     get() {
-      var _a;
-      return (_a = getter()) == null ? void 0 : _a.value;
+      return getter()?.value;
     },
     set(value) {
       const ref2 = getter();
@@ -34107,8 +33926,7 @@ function pick(obj, keys) {
   return newObj;
 }
 function createAsyncData(nuxtApp, key, _handler, options, initialCachedData) {
-  var _a, _b;
-  (_b = (_a = nuxtApp.payload._errors)[key]) != null ? _b : _a[key] = void 0;
+  nuxtApp.payload._errors[key] ??= void 0;
   const hasCustomGetCachedData = options.getCachedData !== getDefaultCachedData;
   const handler = _handler ;
   const _ref = options.deep ? vueExports.ref : vueExports.shallowRef;
@@ -34124,16 +33942,15 @@ function createAsyncData(nuxtApp, key, _handler, options, initialCachedData) {
     error: vueExports.toRef(nuxtApp.payload._errors, key),
     status: vueExports.shallowRef("idle"),
     execute: (...args) => {
-      var _a2, _b2;
       const [_opts, newValue = void 0] = args;
       const opts = _opts && newValue === void 0 && typeof _opts === "object" ? _opts : {};
       if (nuxtApp._asyncDataPromises[key]) {
-        if (((_a2 = opts.dedupe) != null ? _a2 : options.dedupe) === "defer") {
+        if ((opts.dedupe ?? options.dedupe) === "defer") {
           return nuxtApp._asyncDataPromises[key];
         }
       }
       {
-        const cachedData = "cachedData" in opts ? opts.cachedData : options.getCachedData(key, nuxtApp, { cause: (_b2 = opts.cause) != null ? _b2 : "refresh:manual" });
+        const cachedData = "cachedData" in opts ? opts.cachedData : options.getCachedData(key, nuxtApp, { cause: opts.cause ?? "refresh:manual" });
         if (cachedData !== void 0) {
           nuxtApp.payload.data[key] = asyncData.data.value = cachedData;
           asyncData.error.value = void 0;
@@ -34149,18 +33966,17 @@ function createAsyncData(nuxtApp, key, _handler, options, initialCachedData) {
       const cleanupController = new AbortController();
       const promise = new Promise(
         (resolve, reject) => {
-          var _a3, _b3;
           try {
-            const timeout = (_a3 = opts.timeout) != null ? _a3 : options.timeout;
-            const mergedSignal = mergeAbortSignals([(_b3 = asyncData._abortController) == null ? void 0 : _b3.signal, opts == null ? void 0 : opts.signal], cleanupController.signal, timeout);
+            const timeout = opts.timeout ?? options.timeout;
+            const mergedSignal = mergeAbortSignals([asyncData._abortController?.signal, opts?.signal], cleanupController.signal, timeout);
             if (mergedSignal.aborted) {
               const reason = mergedSignal.reason;
-              reject(reason instanceof Error ? reason : new DOMException(String(reason != null ? reason : "Aborted"), "AbortError"));
+              reject(reason instanceof Error ? reason : new DOMException(String(reason ?? "Aborted"), "AbortError"));
               return;
             }
             mergedSignal.addEventListener("abort", () => {
               const reason = mergedSignal.reason;
-              reject(reason instanceof Error ? reason : new DOMException(String(reason != null ? reason : "Aborted"), "AbortError"));
+              reject(reason instanceof Error ? reason : new DOMException(String(reason ?? "Aborted"), "AbortError"));
             }, { once: true, signal: cleanupController.signal });
             return Promise.resolve(handler(nuxtApp, { signal: mergedSignal })).then(resolve, reject);
           } catch (err) {
@@ -34180,11 +33996,10 @@ function createAsyncData(nuxtApp, key, _handler, options, initialCachedData) {
         asyncData.error.value = void 0;
         asyncData.status.value = "success";
       }).catch((error) => {
-        var _a3;
         if (nuxtApp._asyncDataPromises[key] && nuxtApp._asyncDataPromises[key] !== promise) {
           return nuxtApp._asyncDataPromises[key];
         }
-        if ((_a3 = asyncData._abortController) == null ? void 0 : _a3.signal.aborted) {
+        if (asyncData._abortController?.signal.aborted) {
           return nuxtApp._asyncDataPromises[key];
         }
         if (typeof DOMException !== "undefined" && error instanceof DOMException && error.name === "AbortError") {
@@ -34207,15 +34022,13 @@ function createAsyncData(nuxtApp, key, _handler, options, initialCachedData) {
     _init: true,
     _hash: void 0,
     _off: () => {
-      var _a2;
       unsubRefreshAsyncData();
-      if ((_a2 = nuxtApp._asyncData[key]) == null ? void 0 : _a2._init) {
+      if (nuxtApp._asyncData[key]?._init) {
         nuxtApp._asyncData[key]._init = false;
       }
       if (!hasCustomGetCachedData) {
         vueExports.nextTick(() => {
-          var _a3;
-          if (!((_a3 = nuxtApp._asyncData[key]) == null ? void 0 : _a3._init)) {
+          if (!nuxtApp._asyncData[key]?._init) {
             clearNuxtDataByKey(nuxtApp, key);
             asyncData.execute = () => Promise.resolve();
           }
@@ -34235,10 +34048,9 @@ const getDefaultCachedData = (key, nuxtApp, ctx) => {
   }
 };
 function mergeAbortSignals(signals, cleanupSignal, timeout) {
-  var _a, _b, _c;
   const list = signals.filter((s) => !!s);
   if (typeof timeout === "number" && timeout >= 0) {
-    const timeoutSignal = (_a = AbortSignal.timeout) == null ? void 0 : _a.call(AbortSignal, timeout);
+    const timeoutSignal = AbortSignal.timeout?.(timeout);
     if (timeoutSignal) {
       list.push(timeoutSignal);
     }
@@ -34249,7 +34061,7 @@ function mergeAbortSignals(signals, cleanupSignal, timeout) {
   const controller = new AbortController();
   for (const sig of list) {
     if (sig.aborted) {
-      const reason = (_b = sig.reason) != null ? _b : new DOMException("Aborted", "AbortError");
+      const reason = sig.reason ?? new DOMException("Aborted", "AbortError");
       try {
         controller.abort(reason);
       } catch {
@@ -34259,9 +34071,8 @@ function mergeAbortSignals(signals, cleanupSignal, timeout) {
     }
   }
   const onAbort = () => {
-    var _a2;
     const abortedSignal = list.find((s) => s.aborted);
-    const reason = (_a2 = abortedSignal == null ? void 0 : abortedSignal.reason) != null ? _a2 : new DOMException("Aborted", "AbortError");
+    const reason = abortedSignal?.reason ?? new DOMException("Aborted", "AbortError");
     try {
       controller.abort(reason);
     } catch {
@@ -34269,7 +34080,7 @@ function mergeAbortSignals(signals, cleanupSignal, timeout) {
     }
   };
   for (const sig of list) {
-    (_c = sig.addEventListener) == null ? void 0 : _c.call(sig, "abort", onAbort, { once: true, signal: cleanupSignal });
+    sig.addEventListener?.("abort", onAbort, { once: true, signal: cleanupSignal });
   }
   return controller.signal;
 }
@@ -34325,9 +34136,8 @@ function useFetch(request, arg1, arg2) {
   return asyncData;
 }
 function generateOptionSegments(opts) {
-  var _a;
   const segments = [
-    ((_a = vueExports.toValue(opts.method)) == null ? void 0 : _a.toUpperCase()) || "GET",
+    vueExports.toValue(opts.method)?.toUpperCase() || "GET",
     vueExports.toValue(opts.baseURL)
   ];
   for (const _obj of [opts.query || opts.params]) {
@@ -34370,35 +34180,31 @@ const useAdmin = () => {
   const adminInfo = vueExports.ref(null);
   const loading = vueExports.ref(false);
   const buscarAdmin = async () => {
-    var _a;
-    console.log("\u{1F4E1} [useAdmin] Buscando informa\xE7\xF5es da admin...");
+    console.log("📡 [useAdmin] Buscando informações da admin...");
     loading.value = true;
     try {
       const { data } = await useFetch("/api/admin/info", "$64lVkas657");
-      console.log("\u2705 [useAdmin] Resposta recebida:", data.value);
-      if ((_a = data.value) == null ? void 0 : _a.success) {
+      console.log("✅ [useAdmin] Resposta recebida:", data.value);
+      if (data.value?.success) {
         adminInfo.value = data.value.data;
-        console.log("\u2705 [useAdmin] Admin carregada:", adminInfo.value);
+        console.log("✅ [useAdmin] Admin carregada:", adminInfo.value);
       } else {
-        console.log("\u26A0\uFE0F [useAdmin] Resposta sem sucesso");
+        console.log("⚠️ [useAdmin] Resposta sem sucesso");
       }
     } catch (error) {
-      console.error("\u274C [useAdmin] Erro ao buscar admin:", error);
+      console.error("❌ [useAdmin] Erro ao buscar admin:", error);
     } finally {
       loading.value = false;
     }
   };
   const nomeAdmin = vueExports.computed(() => {
-    var _a;
-    return ((_a = adminInfo.value) == null ? void 0 : _a.nome) || "Silvana Qualitec";
+    return adminInfo.value?.nome || "Silvana Qualitec";
   });
   const idAdmin = vueExports.computed(() => {
-    var _a;
-    return ((_a = adminInfo.value) == null ? void 0 : _a.id) || null;
+    return adminInfo.value?.id || null;
   });
   const emailAdmin = vueExports.computed(() => {
-    var _a;
-    return ((_a = adminInfo.value) == null ? void 0 : _a.email) || "silvana@qualitec.com.br";
+    return adminInfo.value?.email || "silvana@qualitec.com.br";
   });
   return {
     adminInfo: vueExports.readonly(adminInfo),
@@ -34426,7 +34232,7 @@ const _sfc_main$6 = /* @__PURE__ */ vueExports.defineComponent({
       const _component_UiInput = __nuxt_component_4;
       const _component_UiInputPIS = __nuxt_component_1$2;
       const _component_UiSelect = __nuxt_component_6$1;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F464} Dados Pessoais</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="md:col-span-2">`);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">👤 Dados Pessoais</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="md:col-span-2">`);
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: __props.form.nome_completo,
         "onUpdate:modelValue": ($event) => __props.form.nome_completo = $event,
@@ -34508,13 +34314,13 @@ const _sfc_main$5$1 = /* @__PURE__ */ vueExports.defineComponent({
     const tipoContratoOptions = [
       { value: "CLT", label: "CLT" },
       { value: "PJ", label: "PJ" },
-      { value: "Estagio", label: "Est\xE1gio" },
-      { value: "Temporario", label: "Tempor\xE1rio" }
+      { value: "Estagio", label: "Estágio" },
+      { value: "Temporario", label: "Temporário" }
     ];
     return (_ctx, _push, _parent, _attrs) => {
       const _component_UiSelect = __nuxt_component_6$1;
       const _component_UiInput = __nuxt_component_4;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F4BC} Dados Profissionais</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">💼 Dados Profissionais</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
       if (__props.showEmpresaSelect) {
         _push(`<div class="md:col-span-2">`);
         _push(ssrRenderComponent_1(_component_UiSelect, {
@@ -34552,12 +34358,12 @@ const _sfc_main$5$1 = /* @__PURE__ */ vueExports.defineComponent({
         modelValue: __props.form.data_admissao,
         "onUpdate:modelValue": ($event) => __props.form.data_admissao = $event,
         type: "date",
-        label: "Data de Admiss\xE3o"
+        label: "Data de Admissão"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: __props.form.matricula,
         "onUpdate:modelValue": ($event) => __props.form.matricula = $event,
-        label: "Matr\xEDcula/Registro",
+        label: "Matrícula/Registro",
         placeholder: "Gerado automaticamente"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiSelect, {
@@ -34570,10 +34376,10 @@ const _sfc_main$5$1 = /* @__PURE__ */ vueExports.defineComponent({
         modelValue: __props.form.responsavel_id,
         "onUpdate:modelValue": ($event) => __props.form.responsavel_id = $event,
         options: __props.responsavelOptions,
-        label: "Respons\xE1vel Direto",
+        label: "Responsável Direto",
         placeholder: "Selecione..."
       }, null, _parent));
-      _push(`</div><div class="mt-4 p-4 bg-blue-50 rounded-xl"><p class="text-sm text-blue-700"> \u{1F469}\u200D\u{1F4BC} <strong>Respons\xE1vel Padr\xE3o:</strong> Silvana \xE9 automaticamente definida como respons\xE1vel direto de todos os funcion\xE1rios. Voc\xEA pode alterar se necess\xE1rio, mas por padr\xE3o ela supervisiona toda a equipe. </p></div></div>`);
+      _push(`</div><div class="mt-4 p-4 bg-blue-50 rounded-xl"><p class="text-sm text-blue-700"> 👩‍💼 <strong>Responsável Padrão:</strong> Silvana é automaticamente definida como responsável direto de todos os funcionários. Você pode alterar se necessário, mas por padrão ela supervisiona toda a equipe. </p></div></div>`);
     };
   }
 });
@@ -34592,7 +34398,7 @@ const _sfc_main$4$1 = /* @__PURE__ */ vueExports.defineComponent({
   },
   setup(__props) {
     const tipoAcessoOptions = [
-      { value: "funcionario", label: "Funcion\xE1rio" },
+      { value: "funcionario", label: "Funcionário" },
       { value: "admin", label: "Administrador" }
     ];
     const statusOptions = [
@@ -34602,7 +34408,7 @@ const _sfc_main$4$1 = /* @__PURE__ */ vueExports.defineComponent({
     return (_ctx, _push, _parent, _attrs) => {
       const _component_UiInput = __nuxt_component_4;
       const _component_UiSelect = __nuxt_component_6$1;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F510} Acesso ao Sistema</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">🔐 Acesso ao Sistema</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: __props.form.email_login,
         "onUpdate:modelValue": ($event) => __props.form.email_login = $event,
@@ -34619,7 +34425,7 @@ const _sfc_main$4$1 = /* @__PURE__ */ vueExports.defineComponent({
         label: "Senha",
         required: "",
         "show-password-toggle": "",
-        placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+        placeholder: "••••••••"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiSelect, {
         modelValue: __props.form.tipo_acesso,
@@ -34631,9 +34437,9 @@ const _sfc_main$4$1 = /* @__PURE__ */ vueExports.defineComponent({
         modelValue: __props.form.status,
         "onUpdate:modelValue": ($event) => __props.form.status = $event,
         options: statusOptions,
-        label: "Status do Usu\xE1rio"
+        label: "Status do Usuário"
       }, null, _parent));
-      _push(`</div><div class="mt-4 p-4 bg-blue-50 rounded-xl"><h4 class="font-semibold text-blue-800 mb-2">\u{1F4CB} Tipos de Acesso:</h4><ul class="text-sm text-blue-700 space-y-1"><li><strong>Funcion\xE1rio:</strong> Visualiza apenas seus pr\xF3prios dados</li><li><strong>Administrador:</strong> Acesso total ao sistema</li></ul></div></div>`);
+      _push(`</div><div class="mt-4 p-4 bg-blue-50 rounded-xl"><h4 class="font-semibold text-blue-800 mb-2">📋 Tipos de Acesso:</h4><ul class="text-sm text-blue-700 space-y-1"><li><strong>Funcionário:</strong> Visualiza apenas seus próprios dados</li><li><strong>Administrador:</strong> Acesso total ao sistema</li></ul></div></div>`);
     };
   }
 });
@@ -34657,32 +34463,32 @@ const _sfc_main$3$1 = /* @__PURE__ */ vueExports.defineComponent({
       { value: "horista", label: "Horista" }
     ];
     const formaPagamentoOptions = [
-      { value: "deposito", label: "Dep\xF3sito Banc\xE1rio" },
+      { value: "deposito", label: "Depósito Bancário" },
       { value: "pix", label: "PIX" }
     ];
     const tipoContaOptions = [
       { value: "corrente", label: "Conta Corrente" },
-      { value: "poupanca", label: "Conta Poupan\xE7a" },
-      { value: "salario", label: "Conta Sal\xE1rio" }
+      { value: "poupanca", label: "Conta Poupança" },
+      { value: "salario", label: "Conta Salário" }
     ];
     return (_ctx, _push, _parent, _attrs) => {
       const _component_UiInput = __nuxt_component_4;
       const _component_UiSelect = __nuxt_component_6$1;
-      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F4B0} Dados Financeiros</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
+      _push(`<div${ssrRenderAttrs_1(vueExports.mergeProps({ class: "space-y-4" }, _attrs))}><h3 class="text-lg font-bold text-gray-800 mb-4">💰 Dados Financeiros</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`);
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: __props.form.salario_base,
         "onUpdate:modelValue": ($event) => __props.form.salario_base = $event,
         type: "number",
         uppercase: false,
         step: "0.01",
-        label: "Sal\xE1rio Base (R$)",
+        label: "Salário Base (R$)",
         placeholder: "0,00"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiSelect, {
         modelValue: __props.form.tipo_salario,
         "onUpdate:modelValue": ($event) => __props.form.tipo_salario = $event,
         options: tipoSalarioOptions,
-        label: "Tipo de Sal\xE1rio"
+        label: "Tipo de Salário"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: __props.form.numero_dependentes,
@@ -34691,7 +34497,7 @@ const _sfc_main$3$1 = /* @__PURE__ */ vueExports.defineComponent({
         uppercase: false,
         min: "0",
         step: "1",
-        label: "N\xFAmero de Dependentes (IRRF)",
+        label: "Número de Dependentes (IRRF)",
         placeholder: "0"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiInput, {
@@ -34703,7 +34509,7 @@ const _sfc_main$3$1 = /* @__PURE__ */ vueExports.defineComponent({
       _push(ssrRenderComponent_1(_component_UiInput, {
         modelValue: __props.form.agencia,
         "onUpdate:modelValue": ($event) => __props.form.agencia = $event,
-        label: "Ag\xEAncia",
+        label: "Agência",
         placeholder: "0000"
       }, null, _parent));
       _push(ssrRenderComponent_1(_component_UiInput, {
@@ -34745,7 +34551,7 @@ const useDepartamentos = () => {
       const resultado = await $fetch("/api/departamentos");
       if (resultado.success && resultado.data) {
         departamentos.value = Array.isArray(resultado.data) ? resultado.data : [];
-        console.log("\u2705 Departamentos carregados:", departamentos.value.length);
+        console.log("✅ Departamentos carregados:", departamentos.value.length);
       } else {
         departamentos.value = [];
       }
@@ -34787,11 +34593,11 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
     const emit = __emit;
     const abaAtiva = vueExports.ref("pessoais");
     const tabs = [
-      { id: "pessoais", label: "Dados Pessoais", icon: "\u{1F464}" },
-      { id: "profissionais", label: "Dados Profissionais", icon: "\u{1F4BC}" },
-      { id: "acesso", label: "Acesso ao Sistema", icon: "\u{1F510}" },
-      { id: "financeiros", label: "Dados Financeiros", icon: "\u{1F4B0}" },
-      { id: "beneficios", label: "Benef\xEDcios e Descontos", icon: "\u{1F381}" }
+      { id: "pessoais", label: "Dados Pessoais", icon: "👤" },
+      { id: "profissionais", label: "Dados Profissionais", icon: "💼" },
+      { id: "acesso", label: "Acesso ao Sistema", icon: "🔐" },
+      { id: "financeiros", label: "Dados Financeiros", icon: "💰" },
+      { id: "beneficios", label: "Benefícios e Descontos", icon: "🎁" }
     ];
     const tipoDescontoOptions = [
       { value: "sem_desconto", label: "Sem Desconto" },
@@ -34801,10 +34607,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
     const planoSaudeOptions = [
       { value: "individual", label: "Individual" },
       { value: "familiar", label: "Familiar" },
-      { value: "coparticipacao", label: "Coparticipa\xE7\xE3o" }
+      { value: "coparticipacao", label: "Coparticipação" }
     ];
     const tipoBeneficioOptions = [
-      { value: "diario", label: "Valor Di\xE1rio" },
+      { value: "diario", label: "Valor Diário" },
       { value: "mensal", label: "Valor Mensal" },
       { value: "fixo", label: "Valor Fixo" }
     ];
@@ -34815,14 +34621,13 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
     const { opcoesCargos, carregarCargos } = useCargos();
     const { nomeAdmin, idAdmin } = useAdmin();
     const inicializarBeneficios = () => {
-      var _a, _b, _c, _d;
-      console.log("\u{1F527} [FuncionarioForm] Inicializando benef\xEDcios...");
+      console.log("🔧 [FuncionarioForm] Inicializando benefícios...");
       if (!props.form) {
-        console.error("\u274C [FuncionarioForm] ERRO: N\xE3o \xE9 poss\xEDvel inicializar benef\xEDcios - form \xE9 null!");
+        console.error("❌ [FuncionarioForm] ERRO: Não é possível inicializar benefícios - form é null!");
         return;
       }
       if (!props.form.beneficios) {
-        console.log("\u{1F4CB} [FuncionarioForm] Criando estrutura de benef\xEDcios");
+        console.log("📋 [FuncionarioForm] Criando estrutura de benefícios");
         props.form.beneficios = vueExports.reactive({
           vale_transporte: {
             ativo: false,
@@ -34855,13 +34660,13 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           personalizados: []
         });
       } else {
-        console.log("\u2705 [FuncionarioForm] Benef\xEDcios j\xE1 existem");
+        console.log("✅ [FuncionarioForm] Benefícios já existem");
       }
       if (!props.form.beneficios.personalizados) {
-        console.log("\u{1F4CB} [FuncionarioForm] Criando array de benef\xEDcios personalizados");
+        console.log("📋 [FuncionarioForm] Criando array de benefícios personalizados");
         props.form.beneficios.personalizados = vueExports.reactive([]);
       } else if (!vueExports.isReactive(props.form.beneficios.personalizados)) {
-        console.log("\u{1F504} [FuncionarioForm] Tornando benef\xEDcios personalizados reativos e convertendo tipos");
+        console.log("🔄 [FuncionarioForm] Tornando benefícios personalizados reativos e convertendo tipos");
         const beneficiosConvertidos = props.form.beneficios.personalizados.map((beneficio) => ({
           ...beneficio,
           valor: typeof beneficio.valor === "string" ? parseFloat(beneficio.valor) || 0 : beneficio.valor,
@@ -34883,42 +34688,39 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
         });
       }
       if (!props.form.descontos_personalizados) {
-        console.log("\u{1F4C9} [FuncionarioForm] Criando array de descontos personalizados");
+        console.log("📉 [FuncionarioForm] Criando array de descontos personalizados");
         props.form.descontos_personalizados = vueExports.reactive([]);
       } else if (!vueExports.isReactive(props.form.descontos_personalizados)) {
-        console.log("\u{1F504} [FuncionarioForm] Tornando descontos personalizados reativos");
+        console.log("🔄 [FuncionarioForm] Tornando descontos personalizados reativos");
         props.form.descontos_personalizados = vueExports.reactive([...props.form.descontos_personalizados]);
       }
-      console.log("\u2705 [FuncionarioForm] Benef\xEDcios inicializados:", {
+      console.log("✅ [FuncionarioForm] Benefícios inicializados:", {
         beneficiosExist: !!props.form.beneficios,
-        valeTransporte: !!((_a = props.form.beneficios) == null ? void 0 : _a.vale_transporte),
-        cestaBasica: !!((_b = props.form.beneficios) == null ? void 0 : _b.cesta_basica),
-        personalizadosCount: ((_d = (_c = props.form.beneficios) == null ? void 0 : _c.personalizados) == null ? void 0 : _d.length) || 0
+        valeTransporte: !!props.form.beneficios?.vale_transporte,
+        cestaBasica: !!props.form.beneficios?.cesta_basica,
+        personalizadosCount: props.form.beneficios?.personalizados?.length || 0
       });
     };
     vueExports.watch(() => props.form, (novoForm, formAnterior) => {
-      console.log("\u{1F440} [FuncionarioForm] Watch form disparado:", {
+      console.log("👀 [FuncionarioForm] Watch form disparado:", {
         novoFormExists: !!novoForm,
         formAnteriorExists: !!formAnterior,
         novoFormKeys: novoForm ? Object.keys(novoForm) : "null",
-        beneficiosExists: (novoForm == null ? void 0 : novoForm.beneficios) ? "Sim" : "N\xE3o"
+        beneficiosExists: novoForm?.beneficios ? "Sim" : "Não"
       });
       if (novoForm && !novoForm.beneficios) {
-        console.log("\u26A0\uFE0F [FuncionarioForm] Benef\xEDcios n\xE3o encontrados no watch, inicializando...");
+        console.log("⚠️ [FuncionarioForm] Benefícios não encontrados no watch, inicializando...");
         inicializarBeneficios();
-      } else if (novoForm == null ? void 0 : novoForm.beneficios) {
-        console.log("\u2705 [FuncionarioForm] Benef\xEDcios j\xE1 existem no form");
+      } else if (novoForm?.beneficios) {
+        console.log("✅ [FuncionarioForm] Benefícios já existem no form");
       }
     }, { deep: true, immediate: true });
-    vueExports.watch(() => {
-      var _a;
-      return (_a = props.form.beneficios) == null ? void 0 : _a.personalizados;
-    }, (novos, antigos) => {
+    vueExports.watch(() => props.form.beneficios?.personalizados, (novos, antigos) => {
       if (novos && novos.length > 0) {
-        console.log("\u{1F50D} Benef\xEDcios personalizados alterados:", novos);
+        console.log("🔍 Benefícios personalizados alterados:", novos);
         novos.forEach((beneficio, index) => {
           garantirValoresNumericos(beneficio);
-          console.log(`Benef\xEDcio ${index}:`, {
+          console.log(`Benefício ${index}:`, {
             nome: beneficio.nome,
             tipo_valor: beneficio.tipo_valor,
             valor: beneficio.valor,
@@ -34930,7 +34732,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
     }, { deep: true });
     vueExports.watch(() => props.form.tipo_contrato, (novoTipo, tipoAnterior) => {
       if (novoTipo === "PJ" && tipoAnterior !== "PJ") {
-        console.log("\u{1F6AB} Funcion\xE1rio alterado para PJ - removendo descontos em folha");
+        console.log("🚫 Funcionário alterado para PJ - removendo descontos em folha");
         if (props.form.beneficios) {
           if (props.form.beneficios.vale_transporte) {
             props.form.beneficios.vale_transporte.tipo_desconto = "sem_desconto";
@@ -34959,12 +34761,12 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
         if (props.form.descontos_personalizados) {
           props.form.descontos_personalizados.splice(0);
         }
-        console.log("\u2705 Descontos removidos para funcion\xE1rio PJ");
+        console.log("✅ Descontos removidos para funcionário PJ");
       }
     });
     vueExports.watch(() => props.form.nome_completo, async (novoNome, nomeAntigo) => {
       if (novoNome && !nomeAntigo || !novoNome && nomeAntigo) {
-        console.log("\u{1F504} Recarregando dados dos selects...");
+        console.log("🔄 Recarregando dados dos selects...");
         await Promise.all([
           carregarJornadas(),
           carregarEmpresas(),
@@ -34979,7 +34781,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
       const options = [];
       options.push({
         value: 1,
-        label: "Silvana (Respons\xE1vel Padr\xE3o) \u2B50"
+        label: "Silvana (Responsável Padrão) ⭐"
       });
       if (idAdmin.value && nomeAdmin.value && idAdmin.value !== 1) {
         options.push({
@@ -34989,7 +34791,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
       }
       options.push({
         value: null,
-        label: "Nenhum respons\xE1vel"
+        label: "Nenhum responsável"
       });
       return options;
     });
@@ -35015,7 +34817,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
         props.form.beneficios.personalizados = vueExports.reactive([]);
       }
       props.form.beneficios.personalizados.push({
-        icone: "\u{1F3AF}",
+        icone: "🎯",
         nome: "",
         ativo: false,
         valor: 0,
@@ -35046,20 +34848,19 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
       }
     };
     const calcularTotalBeneficios = () => {
-      var _a, _b, _c, _d, _e, _f, _g;
       let total = 0;
-      if ((_b = (_a = props.form.beneficios) == null ? void 0 : _a.vale_transporte) == null ? void 0 : _b.ativo) {
+      if (props.form.beneficios?.vale_transporte?.ativo) {
         const valorMensal = props.form.beneficios.vale_transporte.valor_mensal || (props.form.beneficios.vale_transporte.valor || 0) * 22;
         total += valorMensal;
       }
-      if ((_d = (_c = props.form.beneficios) == null ? void 0 : _c.cesta_basica) == null ? void 0 : _d.ativo) {
+      if (props.form.beneficios?.cesta_basica?.ativo) {
         const valorMensal = props.form.beneficios.cesta_basica.valor_mensal || (props.form.beneficios.cesta_basica.valor || 0) * 22;
         total += valorMensal;
       }
-      if ((_f = (_e = props.form.beneficios) == null ? void 0 : _e.plano_saude) == null ? void 0 : _f.ativo) {
+      if (props.form.beneficios?.plano_saude?.ativo) {
         total += props.form.beneficios.plano_saude.valor_empresa || 0;
       }
-      if ((_g = props.form.beneficios) == null ? void 0 : _g.personalizados) {
+      if (props.form.beneficios?.personalizados) {
         props.form.beneficios.personalizados.forEach((beneficio) => {
           if (beneficio.ativo) {
             let valorBeneficio = beneficio.valor || 0;
@@ -35073,13 +34874,12 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
       return total;
     };
     const calcularTotalDescontos = () => {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
       let total = 0;
       const salarioBase = parseFloat(props.form.salario_base) || 0;
       if (props.form.tipo_contrato === "PJ") {
         return 0;
       }
-      if ((_b = (_a = props.form.beneficios) == null ? void 0 : _a.vale_transporte) == null ? void 0 : _b.ativo) {
+      if (props.form.beneficios?.vale_transporte?.ativo) {
         const vt = props.form.beneficios.vale_transporte;
         if (vt.tipo_desconto === "percentual") {
           total += salarioBase * (vt.percentual_desconto || 0) / 100;
@@ -35087,7 +34887,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           total += vt.valor_desconto || 0;
         }
       }
-      if ((_d = (_c = props.form.beneficios) == null ? void 0 : _c.cesta_basica) == null ? void 0 : _d.ativo) {
+      if (props.form.beneficios?.cesta_basica?.ativo) {
         const cb = props.form.beneficios.cesta_basica;
         if (cb.tipo_desconto === "percentual") {
           total += salarioBase * (cb.percentual_desconto || 0) / 100;
@@ -35095,13 +34895,13 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           total += cb.valor_desconto || 0;
         }
       }
-      if ((_f = (_e = props.form.beneficios) == null ? void 0 : _e.plano_saude) == null ? void 0 : _f.ativo) {
+      if (props.form.beneficios?.plano_saude?.ativo) {
         total += props.form.beneficios.plano_saude.valor_funcionario || 0;
       }
-      if ((_h = (_g = props.form.beneficios) == null ? void 0 : _g.plano_odonto) == null ? void 0 : _h.ativo) {
+      if (props.form.beneficios?.plano_odonto?.ativo) {
         total += props.form.beneficios.plano_odonto.valor_funcionario || 0;
       }
-      if ((_i = props.form.beneficios) == null ? void 0 : _i.personalizados) {
+      if (props.form.beneficios?.personalizados) {
         props.form.beneficios.personalizados.forEach((beneficio) => {
           if (beneficio.ativo) {
             if (beneficio.tipo_desconto === "percentual") {
@@ -35112,7 +34912,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           }
         });
       }
-      (_j = props.form.descontos_personalizados) == null ? void 0 : _j.forEach((desconto) => {
+      props.form.descontos_personalizados?.forEach((desconto) => {
         if (desconto.tipo === "percentual") {
           total += salarioBase * (desconto.percentual || 0) / 100;
         } else if (desconto.tipo === "valor_fixo") {
@@ -35172,16 +34972,16 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
         _push(`<!---->`);
       }
       if (vueExports.unref(abaAtiva) === "beneficios") {
-        _push(`<div class="space-y-6"><h3 class="text-lg font-bold text-gray-800 mb-4">\u{1F381} Benef\xEDcios e Descontos</h3>`);
+        _push(`<div class="space-y-6"><h3 class="text-lg font-bold text-gray-800 mb-4">🎁 Benefícios e Descontos</h3>`);
         if (__props.form.tipo_contrato === "PJ") {
-          _push(`<div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl"><div class="flex items-center gap-2 text-yellow-700"><span class="text-xl">\u26A0\uFE0F</span><div><h4 class="font-semibold">Funcion\xE1rio PJ - Sem Descontos em Folha</h4><p class="text-sm">Funcion\xE1rios PJ n\xE3o podem ter descontos em folha de pagamento. Apenas benef\xEDcios sem desconto s\xE3o permitidos.</p></div></div></div>`);
+          _push(`<div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl"><div class="flex items-center gap-2 text-yellow-700"><span class="text-xl">⚠️</span><div><h4 class="font-semibold">Funcionário PJ - Sem Descontos em Folha</h4><p class="text-sm">Funcionários PJ não podem ter descontos em folha de pagamento. Apenas benefícios sem desconto são permitidos.</p></div></div></div>`);
         } else {
           _push(`<!---->`);
         }
         if (__props.form.beneficios) {
-          _push(`<div class="space-y-4"><h4 class="text-md font-semibold text-gray-700 mb-3">\u{1F4CB} Benef\xEDcios Padr\xE3o</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-6">`);
+          _push(`<div class="space-y-4"><h4 class="text-md font-semibold text-gray-700 mb-3">📋 Benefícios Padrão</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-6">`);
           if (__props.form.beneficios.vale_transporte) {
-            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">\u{1F68C}</span><h5 class="font-semibold text-gray-800">Vale Transporte</h5></div>`);
+            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">🚌</span><h5 class="font-semibold text-gray-800">Vale Transporte</h5></div>`);
             _push(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: __props.form.beneficios.vale_transporte.ativo,
               "onUpdate:modelValue": ($event) => __props.form.beneficios.vale_transporte.ativo = $event,
@@ -35195,7 +34995,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 "onUpdate:modelValue": ($event) => __props.form.beneficios.vale_transporte.valor = $event,
                 type: "number",
                 step: "0.01",
-                label: "Valor Di\xE1rio (R$)",
+                label: "Valor Diário (R$)",
                 placeholder: "0,00"
               }, null, _parent));
               if (__props.form.tipo_contrato !== "PJ") {
@@ -35232,7 +35032,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 }
                 _push(`</div>`);
               } else {
-                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> \u{1F4BC} <strong>Funcion\xE1rio PJ:</strong> Benef\xEDcio sem desconto em folha </p></div>`);
+                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> 💼 <strong>Funcionário PJ:</strong> Benefício sem desconto em folha </p></div>`);
               }
               _push(`</div>`);
             } else {
@@ -35243,7 +35043,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
             _push(`<!---->`);
           }
           if (__props.form.beneficios.cesta_basica) {
-            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">\u{1F6D2}</span><h5 class="font-semibold text-gray-800">Cesta B\xE1sica</h5></div>`);
+            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">🛒</span><h5 class="font-semibold text-gray-800">Cesta Básica</h5></div>`);
             _push(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: __props.form.beneficios.cesta_basica.ativo,
               "onUpdate:modelValue": ($event) => __props.form.beneficios.cesta_basica.ativo = $event,
@@ -35257,7 +35057,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 "onUpdate:modelValue": ($event) => __props.form.beneficios.cesta_basica.valor = $event,
                 type: "number",
                 step: "0.01",
-                label: "Valor Di\xE1rio (R$)",
+                label: "Valor Diário (R$)",
                 placeholder: "0,00"
               }, null, _parent));
               if (__props.form.tipo_contrato !== "PJ") {
@@ -35294,7 +35094,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 }
                 _push(`</div>`);
               } else {
-                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> \u{1F4BC} <strong>Funcion\xE1rio PJ:</strong> Benef\xEDcio sem desconto em folha </p></div>`);
+                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> 💼 <strong>Funcionário PJ:</strong> Benefício sem desconto em folha </p></div>`);
               }
               _push(`</div>`);
             } else {
@@ -35305,7 +35105,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
             _push(`<!---->`);
           }
           if (__props.form.beneficios.plano_saude) {
-            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">\u{1F3E5}</span><h5 class="font-semibold text-gray-800">Plano de Sa\xFAde</h5></div>`);
+            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">🏥</span><h5 class="font-semibold text-gray-800">Plano de Saúde</h5></div>`);
             _push(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: __props.form.beneficios.plano_saude.ativo,
               "onUpdate:modelValue": ($event) => __props.form.beneficios.plano_saude.ativo = $event,
@@ -35335,18 +35135,18 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                   "onUpdate:modelValue": ($event) => __props.form.beneficios.plano_saude.valor_funcionario = $event,
                   type: "number",
                   step: "0.01",
-                  label: "Valor Descontado do Funcion\xE1rio (R$)",
+                  label: "Valor Descontado do Funcionário (R$)",
                   placeholder: "0,00"
                 }, null, _parent));
                 _push(`</div>`);
               } else {
-                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> \u{1F4BC} <strong>Funcion\xE1rio PJ:</strong> Sem desconto em folha para plano de sa\xFAde </p></div>`);
+                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> 💼 <strong>Funcionário PJ:</strong> Sem desconto em folha para plano de saúde </p></div>`);
               }
               _push(ssrRenderComponent_1(_component_UiInput, {
                 modelValue: __props.form.beneficios.plano_saude.dependentes,
                 "onUpdate:modelValue": ($event) => __props.form.beneficios.plano_saude.dependentes = $event,
                 type: "number",
-                label: "N\xFAmero de Dependentes",
+                label: "Número de Dependentes",
                 placeholder: "0"
               }, null, _parent));
               _push(`</div>`);
@@ -35358,7 +35158,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
             _push(`<!---->`);
           }
           if (__props.form.beneficios.plano_odonto) {
-            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">\u{1F9B7}</span><h5 class="font-semibold text-gray-800">Plano Odontol\xF3gico</h5></div>`);
+            _push(`<div class="p-4 border border-gray-200 rounded-xl"><div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><span class="text-2xl">🦷</span><h5 class="font-semibold text-gray-800">Plano Odontológico</h5></div>`);
             _push(ssrRenderComponent_1(_component_UiCheckbox, {
               modelValue: __props.form.beneficios.plano_odonto.ativo,
               "onUpdate:modelValue": ($event) => __props.form.beneficios.plano_odonto.ativo = $event,
@@ -35379,13 +35179,13 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 }, null, _parent));
                 _push(`</div>`);
               } else {
-                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> \u{1F4BC} <strong>Funcion\xE1rio PJ:</strong> Sem desconto em folha para plano odontol\xF3gico </p></div>`);
+                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> 💼 <strong>Funcionário PJ:</strong> Sem desconto em folha para plano odontológico </p></div>`);
               }
               _push(ssrRenderComponent_1(_component_UiInput, {
                 modelValue: __props.form.beneficios.plano_odonto.dependentes,
                 "onUpdate:modelValue": ($event) => __props.form.beneficios.plano_odonto.dependentes = $event,
                 type: "number",
-                label: "N\xFAmero de Dependentes",
+                label: "Número de Dependentes",
                 placeholder: "0"
               }, null, _parent));
               _push(`</div>`);
@@ -35398,10 +35198,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           }
           _push(`</div></div>`);
         } else {
-          _push(`<div class="p-4 bg-red-50 border border-red-200 rounded-xl"><div class="flex items-center gap-2 text-red-700"><span class="text-xl">\u26A0\uFE0F</span><div><h4 class="font-semibold">Benef\xEDcios n\xE3o inicializados</h4><p class="text-sm">Clique no bot\xE3o abaixo para inicializar os benef\xEDcios.</p><button class="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"> \u{1F527} Inicializar Benef\xEDcios </button></div></div></div>`);
+          _push(`<div class="p-4 bg-red-50 border border-red-200 rounded-xl"><div class="flex items-center gap-2 text-red-700"><span class="text-xl">⚠️</span><div><h4 class="font-semibold">Benefícios não inicializados</h4><p class="text-sm">Clique no botão abaixo para inicializar os benefícios.</p><button class="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"> 🔧 Inicializar Benefícios </button></div></div></div>`);
         }
         if (__props.form.beneficios) {
-          _push(`<div class="space-y-4"><div class="flex items-center justify-between"><h4 class="text-md font-semibold text-gray-700 mb-3">\u2728 Benef\xEDcios Personalizados</h4>`);
+          _push(`<div class="space-y-4"><div class="flex items-center justify-between"><h4 class="text-md font-semibold text-gray-700 mb-3">✨ Benefícios Personalizados</h4>`);
           _push(ssrRenderComponent_1(_component_UiButton, {
             variant: "secondary",
             size: "sm",
@@ -35409,10 +35209,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u2795 Adicionar Benef\xEDcio `);
+                _push2(` ➕ Adicionar Benefício `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u2795 Adicionar Benef\xEDcio ")
+                  vueExports.createTextVNode(" ➕ Adicionar Benefício ")
                 ];
               }
             }),
@@ -35425,14 +35225,14 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
               modelValue: beneficio.icone,
               "onUpdate:modelValue": ($event) => beneficio.icone = $event,
               label: "",
-              placeholder: "\u{1F3AF}",
+              placeholder: "🎯",
               class: "w-12 text-center text-xl"
             }, null, _parent));
             _push(ssrRenderComponent_1(_component_UiInput, {
               modelValue: beneficio.nome,
               "onUpdate:modelValue": ($event) => beneficio.nome = $event,
               label: "",
-              placeholder: "Nome do benef\xEDcio",
+              placeholder: "Nome do benefício",
               class: "font-semibold"
             }, null, _parent));
             _push(`</div><div class="flex items-center gap-2">`);
@@ -35448,10 +35248,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
             }, {
               default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
                 if (_push2) {
-                  _push2(` \u{1F5D1}\uFE0F `);
+                  _push2(` 🗑️ `);
                 } else {
                   return [
-                    vueExports.createTextVNode(" \u{1F5D1}\uFE0F ")
+                    vueExports.createTextVNode(" 🗑️ ")
                   ];
                 }
               }),
@@ -35465,7 +35265,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 "onUpdate:modelValue": ($event) => beneficio.valor = $event,
                 type: "number",
                 step: "0.01",
-                label: "Valor do Benef\xEDcio (R$)",
+                label: "Valor do Benefício (R$)",
                 placeholder: "0,00"
               }, null, _parent));
               _push(ssrRenderComponent_1(_component_UiSelect, {
@@ -35509,13 +35309,13 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 }
                 _push(`</div>`);
               } else {
-                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> \u{1F4BC} <strong>Funcion\xE1rio PJ:</strong> Benef\xEDcio sem desconto em folha </p></div>`);
+                _push(`<div class="p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-sm text-blue-700"> 💼 <strong>Funcionário PJ:</strong> Benefício sem desconto em folha </p></div>`);
               }
               _push(ssrRenderComponent_1(_component_UiInput, {
                 modelValue: beneficio.descricao,
                 "onUpdate:modelValue": ($event) => beneficio.descricao = $event,
-                label: "Descri\xE7\xE3o (opcional)",
-                placeholder: "Ex: Aux\xEDlio creche, seguro de vida, etc."
+                label: "Descrição (opcional)",
+                placeholder: "Ex: Auxílio creche, seguro de vida, etc."
               }, null, _parent));
               _push(`</div>`);
             } else {
@@ -35525,7 +35325,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           });
           _push(`<!--]-->`);
           if (!__props.form.beneficios.personalizados || __props.form.beneficios.personalizados.length === 0) {
-            _push(`<div class="p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl"><span class="text-2xl">\u2728</span><p class="mt-2">Nenhum benef\xEDcio personalizado adicionado</p><p class="text-sm">Clique em &quot;Adicionar Benef\xEDcio&quot; para criar um novo</p></div>`);
+            _push(`<div class="p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl"><span class="text-2xl">✨</span><p class="mt-2">Nenhum benefício personalizado adicionado</p><p class="text-sm">Clique em &quot;Adicionar Benefício&quot; para criar um novo</p></div>`);
           } else {
             _push(`<!---->`);
           }
@@ -35534,7 +35334,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           _push(`<!---->`);
         }
         if (__props.form.descontos_personalizados && __props.form.tipo_contrato !== "PJ") {
-          _push(`<div class="space-y-4"><div class="flex items-center justify-between"><h4 class="text-md font-semibold text-gray-700">\u{1F4C9} Descontos Personalizados</h4>`);
+          _push(`<div class="space-y-4"><div class="flex items-center justify-between"><h4 class="text-md font-semibold text-gray-700">📉 Descontos Personalizados</h4>`);
           _push(ssrRenderComponent_1(_component_UiButton, {
             variant: "secondary",
             size: "sm",
@@ -35542,10 +35342,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           }, {
             default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
               if (_push2) {
-                _push2(` \u2795 Adicionar Desconto `);
+                _push2(` ➕ Adicionar Desconto `);
               } else {
                 return [
-                  vueExports.createTextVNode(" \u2795 Adicionar Desconto ")
+                  vueExports.createTextVNode(" ➕ Adicionar Desconto ")
                 ];
               }
             }),
@@ -35557,8 +35357,8 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
             _push(ssrRenderComponent_1(_component_UiInput, {
               modelValue: desconto.descricao,
               "onUpdate:modelValue": ($event) => desconto.descricao = $event,
-              label: "Descri\xE7\xE3o",
-              placeholder: "Ex: Empr\xE9stimo, Seguro de Vida"
+              label: "Descrição",
+              placeholder: "Ex: Empréstimo, Seguro de Vida"
             }, null, _parent));
             _push(ssrRenderComponent_1(_component_UiSelect, {
               modelValue: desconto.tipo,
@@ -35598,10 +35398,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
             }, {
               default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
                 if (_push2) {
-                  _push2(` \u{1F5D1}\uFE0F Remover `);
+                  _push2(` 🗑️ Remover `);
                 } else {
                   return [
-                    vueExports.createTextVNode(" \u{1F5D1}\uFE0F Remover ")
+                    vueExports.createTextVNode(" 🗑️ Remover ")
                   ];
                 }
               }),
@@ -35618,7 +35418,7 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
                 modelValue: desconto.parcelas,
                 "onUpdate:modelValue": ($event) => desconto.parcelas = $event,
                 type: "number",
-                label: "N\xFAmero de parcelas",
+                label: "Número de parcelas",
                 placeholder: "1",
                 class: "w-32"
               }, null, _parent));
@@ -35629,21 +35429,21 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
           });
           _push(`<!--]-->`);
           if (__props.form.descontos_personalizados.length === 0) {
-            _push(`<div class="p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl"><span class="text-2xl">\u{1F4DD}</span><p class="mt-2">Nenhum desconto personalizado adicionado</p><p class="text-sm">Clique em &quot;Adicionar Desconto&quot; para criar um novo</p></div>`);
+            _push(`<div class="p-4 text-center text-gray-500 border-2 border-dashed border-gray-200 rounded-xl"><span class="text-2xl">📝</span><p class="mt-2">Nenhum desconto personalizado adicionado</p><p class="text-sm">Clique em &quot;Adicionar Desconto&quot; para criar um novo</p></div>`);
           } else {
             _push(`<!---->`);
           }
           _push(`</div></div>`);
         } else if (__props.form.tipo_contrato === "PJ") {
-          _push(`<div class="p-4 bg-gray-50 border border-gray-200 rounded-xl"><div class="flex items-center gap-2 text-gray-600"><span class="text-xl">\u{1F4BC}</span><div><h4 class="font-semibold">Funcion\xE1rio PJ - Descontos N\xE3o Aplic\xE1veis</h4><p class="text-sm">Funcion\xE1rios PJ n\xE3o podem ter descontos personalizados em folha de pagamento.</p></div></div></div>`);
+          _push(`<div class="p-4 bg-gray-50 border border-gray-200 rounded-xl"><div class="flex items-center gap-2 text-gray-600"><span class="text-xl">💼</span><div><h4 class="font-semibold">Funcionário PJ - Descontos Não Aplicáveis</h4><p class="text-sm">Funcionários PJ não podem ter descontos personalizados em folha de pagamento.</p></div></div></div>`);
         } else {
-          _push(`<div class="p-4 bg-orange-50 border border-orange-200 rounded-xl"><div class="flex items-center gap-2 text-orange-700"><span class="text-xl">\u26A0\uFE0F</span><div><h4 class="font-semibold">Descontos personalizados n\xE3o inicializados</h4><p class="text-sm">Clique no bot\xE3o abaixo para inicializar os descontos.</p><button class="mt-2 px-3 py-1 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"> \u{1F527} Inicializar Descontos </button></div></div></div>`);
+          _push(`<div class="p-4 bg-orange-50 border border-orange-200 rounded-xl"><div class="flex items-center gap-2 text-orange-700"><span class="text-xl">⚠️</span><div><h4 class="font-semibold">Descontos personalizados não inicializados</h4><p class="text-sm">Clique no botão abaixo para inicializar os descontos.</p><button class="mt-2 px-3 py-1 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"> 🔧 Inicializar Descontos </button></div></div></div>`);
         }
-        _push(`<div class="p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200"><h4 class="text-lg font-bold text-gray-800 mb-4">\u{1F4CA} Resumo dos Benef\xEDcios</h4>`);
+        _push(`<div class="p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200"><h4 class="text-lg font-bold text-gray-800 mb-4">📊 Resumo dos Benefícios</h4>`);
         if (__props.form.tipo_contrato === "PJ") {
-          _push(`<div class="text-center"><div class="text-xl font-bold text-blue-600 mb-2"> R$ ${ssrInterpolate_1(calcularTotalBeneficios().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600 mb-4">Total de Benef\xEDcios (Sem Descontos)</div><div class="p-3 bg-blue-100 rounded-lg"><p class="text-sm text-blue-700"> \u{1F4BC} <strong>Funcion\xE1rio PJ:</strong> Recebe benef\xEDcios integralmente, sem descontos em folha </p></div></div>`);
+          _push(`<div class="text-center"><div class="text-xl font-bold text-blue-600 mb-2"> R$ ${ssrInterpolate_1(calcularTotalBeneficios().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600 mb-4">Total de Benefícios (Sem Descontos)</div><div class="p-3 bg-blue-100 rounded-lg"><p class="text-sm text-blue-700"> 💼 <strong>Funcionário PJ:</strong> Recebe benefícios integralmente, sem descontos em folha </p></div></div>`);
         } else {
-          _push(`<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center"><div><div class="text-xl font-bold text-green-600"> R$ ${ssrInterpolate_1(calcularTotalBeneficios().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600">Total de Benef\xEDcios</div></div><div><div class="text-xl font-bold text-red-600"> R$ ${ssrInterpolate_1(calcularTotalDescontos().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600">Total de Descontos</div></div><div><div class="text-xl font-bold text-blue-600"> R$ ${ssrInterpolate_1(calcularSaldoLiquido().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600">Impacto no Sal\xE1rio</div></div></div>`);
+          _push(`<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center"><div><div class="text-xl font-bold text-green-600"> R$ ${ssrInterpolate_1(calcularTotalBeneficios().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600">Total de Benefícios</div></div><div><div class="text-xl font-bold text-red-600"> R$ ${ssrInterpolate_1(calcularTotalDescontos().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600">Total de Descontos</div></div><div><div class="text-xl font-bold text-blue-600"> R$ ${ssrInterpolate_1(calcularSaldoLiquido().toFixed(2).replace(".", ","))}</div><div class="text-sm text-gray-600">Impacto no Salário</div></div></div>`);
         }
         _push(`</div></div>`);
       } else {
@@ -35672,10 +35472,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F4BE} Salvar e Enviar Acesso `);
+            _push2(` 💾 Salvar e Enviar Acesso `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F4BE} Salvar e Enviar Acesso ")
+              vueExports.createTextVNode(" 💾 Salvar e Enviar Acesso ")
             ];
           }
         }),
@@ -35687,10 +35487,10 @@ const _sfc_main$2$1 = /* @__PURE__ */ vueExports.defineComponent({
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(` \u{1F4BE} ${ssrInterpolate_1(__props.isEditing ? "Atualizar" : "Salvar")} Funcion\xE1rio `);
+            _push2(` 💾 ${ssrInterpolate_1(__props.isEditing ? "Atualizar" : "Salvar")} Funcionário `);
           } else {
             return [
-              vueExports.createTextVNode(" \u{1F4BE} " + vueExports.toDisplayString(__props.isEditing ? "Atualizar" : "Salvar") + " Funcion\xE1rio ", 1)
+              vueExports.createTextVNode(" 💾 " + vueExports.toDisplayString(__props.isEditing ? "Atualizar" : "Salvar") + " Funcionário ", 1)
             ];
           }
         }),
@@ -35722,7 +35522,6 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
       navigateTo("/admin/holerites");
     };
     const enviarCredenciais = async () => {
-      var _a;
       if (enviandoEmail.value) return;
       enviandoEmail.value = true;
       try {
@@ -35734,7 +35533,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
         });
         emit("email-enviado", `Credenciais enviadas com sucesso para ${props.funcionario.email_login}!`);
       } catch (error) {
-        emit("email-erro", ((_a = error.data) == null ? void 0 : _a.message) || "Erro ao enviar credenciais. Verifique se o funcion\xE1rio possui email cadastrado.");
+        emit("email-erro", error.data?.message || "Erro ao enviar credenciais. Verifique se o funcionário possui email cadastrado.");
       } finally {
         enviandoEmail.value = false;
       }
@@ -35744,7 +35543,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
       try {
         return new Date(data).toLocaleDateString("pt-BR");
       } catch (error) {
-        return "Data inv\xE1lida";
+        return "Data inválida";
       }
     };
     const formatarMoeda = (valor) => {
@@ -35773,13 +35572,13 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                 "avatar-type": __props.funcionario.avatar,
                 size: "lg"
               }, null, _parent2, _scopeId));
-              _push2(`<div${_scopeId}><h3 class="text-xl font-bold text-gray-800"${_scopeId}>${ssrInterpolate_1(__props.funcionario.nome_completo)}</h3><p class="text-lg text-gray-600"${_scopeId}>${ssrInterpolate_1(__props.funcionario.cargo)} - ${ssrInterpolate_1(__props.funcionario.departamento)}</p><p class="text-gray-500"${_scopeId}>${ssrInterpolate_1(__props.funcionario.email_login)}</p><p class="text-sm text-gray-400"${_scopeId}>CPF: ${ssrInterpolate_1(__props.funcionario.cpf)}</p><p class="text-sm text-gray-400"${_scopeId}>Admiss\xE3o: ${ssrInterpolate_1(formatarData(__props.funcionario.data_admissao))}</p><div class="mt-1 p-2 bg-blue-50 rounded-lg border border-blue-200"${_scopeId}><p class="text-sm text-blue-700"${_scopeId}> \u{1F464} <strong${_scopeId}>Cadastrado por:</strong> ${ssrInterpolate_1(__props.funcionario.responsavel_cadastro_nome)} `);
+              _push2(`<div${_scopeId}><h3 class="text-xl font-bold text-gray-800"${_scopeId}>${ssrInterpolate_1(__props.funcionario.nome_completo)}</h3><p class="text-lg text-gray-600"${_scopeId}>${ssrInterpolate_1(__props.funcionario.cargo)} - ${ssrInterpolate_1(__props.funcionario.departamento)}</p><p class="text-gray-500"${_scopeId}>${ssrInterpolate_1(__props.funcionario.email_login)}</p><p class="text-sm text-gray-400"${_scopeId}>CPF: ${ssrInterpolate_1(__props.funcionario.cpf)}</p><p class="text-sm text-gray-400"${_scopeId}>Admissão: ${ssrInterpolate_1(formatarData(__props.funcionario.data_admissao))}</p><div class="mt-1 p-2 bg-blue-50 rounded-lg border border-blue-200"${_scopeId}><p class="text-sm text-blue-700"${_scopeId}> 👤 <strong${_scopeId}>Cadastrado por:</strong> ${ssrInterpolate_1(__props.funcionario.responsavel_cadastro_nome)} `);
               if (__props.funcionario.responsavel_cadastro_email) {
                 _push2(`<span class="text-blue-600"${_scopeId}> (${ssrInterpolate_1(__props.funcionario.responsavel_cadastro_email)}) </span>`);
               } else {
                 _push2(`<!---->`);
               }
-              _push2(`</p></div><div class="mt-2 p-2 bg-green-50 rounded-lg border border-green-200"${_scopeId}><p class="text-lg font-bold text-green-700"${_scopeId}> \u{1F4B0} Sal\xE1rio: ${ssrInterpolate_1(formatarMoeda(__props.funcionario.salario_base))}</p></div><div class="flex gap-2 mt-2"${_scopeId}>`);
+              _push2(`</p></div><div class="mt-2 p-2 bg-green-50 rounded-lg border border-green-200"${_scopeId}><p class="text-lg font-bold text-green-700"${_scopeId}> 💰 Salário: ${ssrInterpolate_1(formatarMoeda(__props.funcionario.salario_base))}</p></div><div class="flex gap-2 mt-2"${_scopeId}>`);
               _push2(ssrRenderComponent_1(_component_UiBadge, {
                 variant: __props.funcionario.status === "ativo" ? "success" : "gray"
               }, {
@@ -35799,10 +35598,10 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`${ssrInterpolate_1(__props.funcionario.tipo_acesso === "admin" ? "Administrador" : "Funcion\xE1rio")}`);
+                    _push3(`${ssrInterpolate_1(__props.funcionario.tipo_acesso === "admin" ? "Administrador" : "Funcionário")}`);
                   } else {
                     return [
-                      vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.tipo_acesso === "admin" ? "Administrador" : "Funcion\xE1rio"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.tipo_acesso === "admin" ? "Administrador" : "Funcionário"), 1)
                     ];
                   }
                 }),
@@ -35827,10 +35626,10 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u270F\uFE0F Editar `);
+                    _push3(` ✏️ Editar `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u270F\uFE0F Editar ")
+                      vueExports.createTextVNode(" ✏️ Editar ")
                     ];
                   }
                 }),
@@ -35842,10 +35641,10 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(` \u{1F4C4} Holerites `);
+                    _push3(` 📄 Holerites `);
                   } else {
                     return [
-                      vueExports.createTextVNode(" \u{1F4C4} Holerites ")
+                      vueExports.createTextVNode(" 📄 Holerites ")
                     ];
                   }
                 }),
@@ -35858,10 +35657,10 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`${ssrInterpolate_1(vueExports.unref(enviandoEmail) ? "\u{1F4E7} Enviando..." : "\u{1F511} Login")}`);
+                    _push3(`${ssrInterpolate_1(vueExports.unref(enviandoEmail) ? "📧 Enviando..." : "🔑 Login")}`);
                   } else {
                     return [
-                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(enviandoEmail) ? "\u{1F4E7} Enviando..." : "\u{1F511} Login"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(enviandoEmail) ? "📧 Enviando..." : "🔑 Login"), 1)
                     ];
                   }
                 }),
@@ -35873,10 +35672,10 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
               }, {
                 default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                   if (_push3) {
-                    _push3(`${ssrInterpolate_1(__props.funcionario.status === "ativo" ? "\u{1F6AB} Inativar" : "\u2713 Ativar")}`);
+                    _push3(`${ssrInterpolate_1(__props.funcionario.status === "ativo" ? "🚫 Inativar" : "✓ Ativar")}`);
                   } else {
                     return [
-                      vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.status === "ativo" ? "\u{1F6AB} Inativar" : "\u2713 Ativar"), 1)
+                      vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.status === "ativo" ? "🚫 Inativar" : "✓ Ativar"), 1)
                     ];
                   }
                 }),
@@ -35897,10 +35696,10 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                       vueExports.createVNode("p", { class: "text-lg text-gray-600" }, vueExports.toDisplayString(__props.funcionario.cargo) + " - " + vueExports.toDisplayString(__props.funcionario.departamento), 1),
                       vueExports.createVNode("p", { class: "text-gray-500" }, vueExports.toDisplayString(__props.funcionario.email_login), 1),
                       vueExports.createVNode("p", { class: "text-sm text-gray-400" }, "CPF: " + vueExports.toDisplayString(__props.funcionario.cpf), 1),
-                      vueExports.createVNode("p", { class: "text-sm text-gray-400" }, "Admiss\xE3o: " + vueExports.toDisplayString(formatarData(__props.funcionario.data_admissao)), 1),
+                      vueExports.createVNode("p", { class: "text-sm text-gray-400" }, "Admissão: " + vueExports.toDisplayString(formatarData(__props.funcionario.data_admissao)), 1),
                       vueExports.createVNode("div", { class: "mt-1 p-2 bg-blue-50 rounded-lg border border-blue-200" }, [
                         vueExports.createVNode("p", { class: "text-sm text-blue-700" }, [
-                          vueExports.createTextVNode(" \u{1F464} "),
+                          vueExports.createTextVNode(" 👤 "),
                           vueExports.createVNode("strong", null, "Cadastrado por:"),
                           vueExports.createTextVNode(" " + vueExports.toDisplayString(__props.funcionario.responsavel_cadastro_nome) + " ", 1),
                           __props.funcionario.responsavel_cadastro_email ? (vueExports.openBlock(), vueExports.createBlock("span", {
@@ -35910,7 +35709,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                         ])
                       ]),
                       vueExports.createVNode("div", { class: "mt-2 p-2 bg-green-50 rounded-lg border border-green-200" }, [
-                        vueExports.createVNode("p", { class: "text-lg font-bold text-green-700" }, " \u{1F4B0} Sal\xE1rio: " + vueExports.toDisplayString(formatarMoeda(__props.funcionario.salario_base)), 1)
+                        vueExports.createVNode("p", { class: "text-lg font-bold text-green-700" }, " 💰 Salário: " + vueExports.toDisplayString(formatarMoeda(__props.funcionario.salario_base)), 1)
                       ]),
                       vueExports.createVNode("div", { class: "flex gap-2 mt-2" }, [
                         vueExports.createVNode(_component_UiBadge, {
@@ -35925,7 +35724,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                           variant: __props.funcionario.tipo_acesso === "admin" ? "warning" : "info"
                         }, {
                           default: vueExports.withCtx(() => [
-                            vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.tipo_acesso === "admin" ? "Administrador" : "Funcion\xE1rio"), 1)
+                            vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.tipo_acesso === "admin" ? "Administrador" : "Funcionário"), 1)
                           ]),
                           _: 1
                         }, 8, ["variant"]),
@@ -35944,7 +35743,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => _ctx.$emit("edit", __props.funcionario)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u270F\uFE0F Editar ")
+                        vueExports.createTextVNode(" ✏️ Editar ")
                       ]),
                       _: 1
                     }, 8, ["onClick"]),
@@ -35953,7 +35752,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: verHolerites
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(" \u{1F4C4} Holerites ")
+                        vueExports.createTextVNode(" 📄 Holerites ")
                       ]),
                       _: 1
                     }),
@@ -35963,7 +35762,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                       disabled: vueExports.unref(enviandoEmail)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(enviandoEmail) ? "\u{1F4E7} Enviando..." : "\u{1F511} Login"), 1)
+                        vueExports.createTextVNode(vueExports.toDisplayString(vueExports.unref(enviandoEmail) ? "📧 Enviando..." : "🔑 Login"), 1)
                       ]),
                       _: 1
                     }, 8, ["disabled"]),
@@ -35972,7 +35771,7 @@ const _sfc_main$1$2 = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => _ctx.$emit("toggle-status", __props.funcionario)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.status === "ativo" ? "\u{1F6AB} Inativar" : "\u2713 Ativar"), 1)
+                        vueExports.createTextVNode(vueExports.toDisplayString(__props.funcionario.status === "ativo" ? "🚫 Inativar" : "✓ Ativar"), 1)
                       ]),
                       _: 1
                     }, 8, ["variant", "onClick"])
@@ -36096,19 +35895,16 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
       try {
         const data = await $fetch("/api/funcionarios");
         if (data) {
-          funcionarios.value = data.map((f) => {
-            var _a, _b, _c, _d;
-            return {
-              ...f,
-              // Extrair nomes dos objetos relacionados
-              cargo: ((_a = f.cargos) == null ? void 0 : _a.nome) || "Cargo n\xE3o definido",
-              departamento: ((_b = f.departamentos) == null ? void 0 : _b.nome) || "Departamento n\xE3o definido",
-              empresa: ((_c = f.empresas) == null ? void 0 : _c.nome_fantasia) || ((_d = f.empresas) == null ? void 0 : _d.nome) || "Empresa n\xE3o definida"
-            };
-          });
+          funcionarios.value = data.map((f) => ({
+            ...f,
+            // Extrair nomes dos objetos relacionados
+            cargo: f.cargos?.nome || "Cargo não definido",
+            departamento: f.departamentos?.nome || "Departamento não definido",
+            empresa: f.empresas?.nome_fantasia || f.empresas?.nome || "Empresa não definida"
+          }));
         }
       } catch (error) {
-        console.error("Erro ao carregar funcion\xE1rios:", error);
+        console.error("Erro ao carregar funcionários:", error);
       }
     };
     const funcionariosFiltrados = vueExports.computed(() => {
@@ -36117,8 +35913,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
       }
       const termo = busca.value.toLowerCase();
       return funcionarios.value.filter((f) => {
-        var _a, _b, _c, _d;
-        return ((_a = f.nome_completo) == null ? void 0 : _a.toLowerCase().includes(termo)) || ((_b = f.cargo) == null ? void 0 : _b.toLowerCase().includes(termo)) || ((_c = f.departamento) == null ? void 0 : _c.toLowerCase().includes(termo)) || ((_d = f.email_login) == null ? void 0 : _d.toLowerCase().includes(termo));
+        return f.nome_completo?.toLowerCase().includes(termo) || f.cargo?.toLowerCase().includes(termo) || f.departamento?.toLowerCase().includes(termo) || f.email_login?.toLowerCase().includes(termo);
       });
     });
     const abrirModal = async (func) => {
@@ -36170,10 +35965,10 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
             descontos_personalizados: Array.isArray(funcionarioCompleto.descontos_personalizados) ? funcionarioCompleto.descontos_personalizados : []
           };
         } catch (error) {
-          console.error("Erro ao buscar funcion\xE1rio:", error);
+          console.error("Erro ao buscar funcionário:", error);
           notificacao.value = {
             title: "Erro!",
-            message: "Erro ao carregar dados do funcion\xE1rio",
+            message: "Erro ao carregar dados do funcionário",
             variant: "error"
           };
           mostrarNotificacao.value = true;
@@ -36284,7 +36079,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
         }
         notificacao.value = {
           title: "Sucesso!",
-          message: `Funcion\xE1rio ${funcionarioEditando.value ? "atualizado" : "cadastrado"} com sucesso!`,
+          message: `Funcionário ${funcionarioEditando.value ? "atualizado" : "cadastrado"} com sucesso!`,
           variant: "success"
         };
         mostrarNotificacao.value = true;
@@ -36294,7 +36089,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
         console.error("Erro ao salvar:", error);
         notificacao.value = {
           title: "Erro!",
-          message: error.message || "Erro ao salvar funcion\xE1rio. Tente novamente.",
+          message: error.message || "Erro ao salvar funcionário. Tente novamente.",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -36312,13 +36107,13 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
           method: "POST",
           body: form.value
         });
-        const funcionarioCriado = response == null ? void 0 : response.data;
+        const funcionarioCriado = response?.data;
         if (!funcionarioCriado || !funcionarioCriado.id) {
-          throw new Error("Funcion\xE1rio criado mas dados n\xE3o retornados");
+          throw new Error("Funcionário criado mas dados não retornados");
         }
-        console.log("\u2705 Funcion\xE1rio criado:", funcionarioCriado.id);
+        console.log("✅ Funcionário criado:", funcionarioCriado.id);
         if (form.value.email_login) {
-          console.log("\u{1F4E7} Enviando email para:", form.value.email_login);
+          console.log("📧 Enviando email para:", form.value.email_login);
           try {
             await $fetch("/api/funcionarios/enviar-acesso", {
               method: "POST",
@@ -36328,21 +36123,21 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
             });
             notificacao.value = {
               title: "Sucesso!",
-              message: `Funcion\xE1rio cadastrado e email enviado para ${form.value.email_login}! \u2709\uFE0F`,
+              message: `Funcionário cadastrado e email enviado para ${form.value.email_login}! ✉️`,
               variant: "success"
             };
           } catch (erroEmail) {
-            console.warn("\u26A0\uFE0F Funcion\xE1rio criado mas erro ao enviar email:", erroEmail);
+            console.warn("⚠️ Funcionário criado mas erro ao enviar email:", erroEmail);
             notificacao.value = {
-              title: "Aten\xE7\xE3o!",
-              message: `Funcion\xE1rio cadastrado, mas n\xE3o foi poss\xEDvel enviar o email para ${form.value.email_login}. Envie manualmente.`,
+              title: "Atenção!",
+              message: `Funcionário cadastrado, mas não foi possível enviar o email para ${form.value.email_login}. Envie manualmente.`,
               variant: "warning"
             };
           }
         } else {
           notificacao.value = {
             title: "Sucesso!",
-            message: "Funcion\xE1rio cadastrado! Configure o email de login para enviar acesso.",
+            message: "Funcionário cadastrado! Configure o email de login para enviar acesso.",
             variant: "success"
           };
         }
@@ -36353,7 +36148,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
         console.error("Erro ao salvar:", error);
         notificacao.value = {
           title: "Erro!",
-          message: error.message || "Erro ao salvar funcion\xE1rio.",
+          message: error.message || "Erro ao salvar funcionário.",
           variant: "error"
         };
         mostrarNotificacao.value = true;
@@ -36365,7 +36160,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
       func.status = func.status === "ativo" ? "inativo" : "ativo";
       notificacao.value = {
         title: "Status Atualizado!",
-        message: `Funcion\xE1rio ${func.nome_completo} ${func.status === "ativo" ? "ativado" : "inativado"} com sucesso!`,
+        message: `Funcionário ${func.nome_completo} ${func.status === "ativo" ? "ativado" : "inativado"} com sucesso!`,
         variant: "success"
       };
       mostrarNotificacao.value = true;
@@ -36394,22 +36189,22 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
       const _component_UiNotification = __nuxt_component_7;
       _push(`<div${ssrRenderAttrs_1(_attrs)}>`);
       _push(ssrRenderComponent_1(_component_UiPageHeader, {
-        title: "Funcion\xE1rios",
+        title: "Funcionários",
         description: "Gerencie todos os colaboradores da empresa"
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
             _push2(ssrRenderComponent_1(_component_UiButton, {
               size: "lg",
-              icon: "\u2795",
+              icon: "➕",
               onClick: ($event) => abrirModal()
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(` Novo Funcion\xE1rio `);
+                  _push3(` Novo Funcionário `);
                 } else {
                   return [
-                    vueExports.createTextVNode(" Novo Funcion\xE1rio ")
+                    vueExports.createTextVNode(" Novo Funcionário ")
                   ];
                 }
               }),
@@ -36419,11 +36214,11 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
             return [
               vueExports.createVNode(_component_UiButton, {
                 size: "lg",
-                icon: "\u2795",
+                icon: "➕",
                 onClick: ($event) => abrirModal()
               }, {
                 default: vueExports.withCtx(() => [
-                  vueExports.createTextVNode(" Novo Funcion\xE1rio ")
+                  vueExports.createTextVNode(" Novo Funcionário ")
                 ]),
                 _: 1
               }, 8, ["onClick"])
@@ -36438,7 +36233,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(`<div class="relative"${_scopeId}><svg class="w-6 h-6 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"${_scopeId}></path></svg><input${ssrRenderAttr_1("value", vueExports.unref(busca))} type="text" placeholder="Buscar funcion\xE1rio por nome, cargo ou departamento..." class="w-full pl-14 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-primary-500 outline-none"${_scopeId}></div>`);
+            _push2(`<div class="relative"${_scopeId}><svg class="w-6 h-6 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"${_scopeId}></path></svg><input${ssrRenderAttr_1("value", vueExports.unref(busca))} type="text" placeholder="Buscar funcionário por nome, cargo ou departamento..." class="w-full pl-14 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-primary-500 outline-none"${_scopeId}></div>`);
           } else {
             return [
               vueExports.createVNode("div", { class: "relative" }, [
@@ -36458,7 +36253,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.withDirectives(vueExports.createVNode("input", {
                   "onUpdate:modelValue": ($event) => vueExports.isRef(busca) ? busca.value = $event : null,
                   type: "text",
-                  placeholder: "Buscar funcion\xE1rio por nome, cargo ou departamento...",
+                  placeholder: "Buscar funcionário por nome, cargo ou departamento...",
                   class: "w-full pl-14 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-primary-500 outline-none"
                 }, null, 8, ["onUpdate:modelValue"]), [
                   [vueExports.vModelText, vueExports.unref(busca)]
@@ -36483,7 +36278,7 @@ const _sfc_main$7 = /* @__PURE__ */ vueExports.defineComponent({
       _push(ssrRenderComponent_1(_component_UiModal, {
         modelValue: vueExports.unref(modalAberto),
         "onUpdate:modelValue": ($event) => vueExports.isRef(modalAberto) ? modalAberto.value = $event : null,
-        title: vueExports.unref(funcionarioEditando) ? "Editar Funcion\xE1rio" : "Novo Funcion\xE1rio",
+        title: vueExports.unref(funcionarioEditando) ? "Editar Funcionário" : "Novo Funcionário",
         "max-width": "max-w-6xl",
         "content-max-height": "calc(90vh - 120px)",
         "close-on-backdrop": false
@@ -36556,7 +36351,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
     });
     const departamentos = vueExports.ref([]);
     const responsaveisOptions = vueExports.computed(() => [
-      { value: nomeAdmin.value, label: `${nomeAdmin.value} (Admin) \u2B50` }
+      { value: nomeAdmin.value, label: `${nomeAdmin.value} (Admin) ⭐` }
       // Outros responsáveis serão carregados da API
     ]);
     const carregarDepartamentos = async () => {
@@ -36572,7 +36367,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
         }
       } catch (error) {
         console.error("Erro ao carregar departamentos:", error);
-        mostrarMensagem("Erro!", "N\xE3o foi poss\xEDvel carregar departamentos", "error");
+        mostrarMensagem("Erro!", "Não foi possível carregar departamentos", "error");
       } finally {
         carregando.value = false;
       }
@@ -36583,7 +36378,6 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
       modalAberto.value = true;
     };
     const salvar = async () => {
-      var _a;
       salvando.value = true;
       try {
         const dados = editando.value ? { ...form.value, id: editando.value.id } : form.value;
@@ -36598,7 +36392,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
         }
       } catch (error) {
         console.error("Erro ao salvar departamento:", error);
-        mostrarMensagem("Erro!", ((_a = error.data) == null ? void 0 : _a.message) || "N\xE3o foi poss\xEDvel salvar o departamento", "error");
+        mostrarMensagem("Erro!", error.data?.message || "Não foi possível salvar o departamento", "error");
       } finally {
         salvando.value = false;
       }
@@ -36628,7 +36422,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
           if (_push2) {
             _push2(ssrRenderComponent_1(_component_UiButton, {
               size: "lg",
-              icon: "\u2795",
+              icon: "➕",
               onClick: ($event) => abrirModal()
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
@@ -36646,7 +36440,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
             return [
               vueExports.createVNode(_component_UiButton, {
                 size: "lg",
-                icon: "\u2795",
+                icon: "➕",
                 onClick: ($event) => abrirModal()
               }, {
                 default: vueExports.withCtx(() => [
@@ -36668,10 +36462,10 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(`\u2795 Criar Primeiro Departamento`);
+              _push2(`➕ Criar Primeiro Departamento`);
             } else {
               return [
-                vueExports.createTextVNode("\u2795 Criar Primeiro Departamento")
+                vueExports.createTextVNode("➕ Criar Primeiro Departamento")
               ];
             }
           }),
@@ -36695,16 +36489,16 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
                 }, {
                   default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
                     if (_push3) {
-                      _push3(`\u270F\uFE0F Editar`);
+                      _push3(`✏️ Editar`);
                     } else {
                       return [
-                        vueExports.createTextVNode("\u270F\uFE0F Editar")
+                        vueExports.createTextVNode("✏️ Editar")
                       ];
                     }
                   }),
                   _: 2
                 }, _parent2, _scopeId));
-                _push2(`</div><h3 class="text-xl font-bold text-gray-800 mb-1"${_scopeId}>${ssrInterpolate_1(dept.nome)}</h3><p class="text-gray-500 mb-3"${_scopeId}>${ssrInterpolate_1(dept.descricao)}</p><div class="flex items-center gap-2 text-sm text-gray-600"${_scopeId}><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"${_scopeId}></path></svg> Respons\xE1vel: ${ssrInterpolate_1(dept.responsavel)}</div><div class="mt-3 pt-3 border-t border-gray-100"${_scopeId}><span class="text-sm text-gray-500"${_scopeId}>${ssrInterpolate_1(dept.funcionarios)} funcion\xE1rios</span></div>`);
+                _push2(`</div><h3 class="text-xl font-bold text-gray-800 mb-1"${_scopeId}>${ssrInterpolate_1(dept.nome)}</h3><p class="text-gray-500 mb-3"${_scopeId}>${ssrInterpolate_1(dept.descricao)}</p><div class="flex items-center gap-2 text-sm text-gray-600"${_scopeId}><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"${_scopeId}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"${_scopeId}></path></svg> Responsável: ${ssrInterpolate_1(dept.responsavel)}</div><div class="mt-3 pt-3 border-t border-gray-100"${_scopeId}><span class="text-sm text-gray-500"${_scopeId}>${ssrInterpolate_1(dept.funcionarios)} funcionários</span></div>`);
               } else {
                 return [
                   vueExports.createVNode("div", { class: "flex items-start justify-between mb-4" }, [
@@ -36729,7 +36523,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
                       onClick: ($event) => abrirModal(dept)
                     }, {
                       default: vueExports.withCtx(() => [
-                        vueExports.createTextVNode("\u270F\uFE0F Editar")
+                        vueExports.createTextVNode("✏️ Editar")
                       ]),
                       _: 1
                     }, 8, ["onClick"])
@@ -36750,10 +36544,10 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
                         d: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       })
                     ])),
-                    vueExports.createTextVNode(" Respons\xE1vel: " + vueExports.toDisplayString(dept.responsavel), 1)
+                    vueExports.createTextVNode(" Responsável: " + vueExports.toDisplayString(dept.responsavel), 1)
                   ]),
                   vueExports.createVNode("div", { class: "mt-3 pt-3 border-t border-gray-100" }, [
-                    vueExports.createVNode("span", { class: "text-sm text-gray-500" }, vueExports.toDisplayString(dept.funcionarios) + " funcion\xE1rios", 1)
+                    vueExports.createVNode("span", { class: "text-sm text-gray-500" }, vueExports.toDisplayString(dept.funcionarios) + " funcionários", 1)
                   ])
                 ];
               }
@@ -36780,13 +36574,13 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
             _push2(ssrRenderComponent_1(_component_UiTextarea, {
               modelValue: vueExports.unref(form).descricao,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).descricao = $event,
-              label: "Descri\xE7\xE3o"
+              label: "Descrição"
             }, null, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiSelect, {
               modelValue: vueExports.unref(form).responsavel,
               "onUpdate:modelValue": ($event) => vueExports.unref(form).responsavel = $event,
               options: vueExports.unref(responsaveisOptions),
-              label: "Respons\xE1vel",
+              label: "Responsável",
               placeholder: "Selecione..."
             }, null, _parent2, _scopeId));
             _push2(`<div class="flex justify-end gap-3 pt-4"${_scopeId}>`);
@@ -36807,7 +36601,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
             }, _parent2, _scopeId));
             _push2(ssrRenderComponent_1(_component_UiButton, {
               type: "submit",
-              icon: "\u{1F4BE}",
+              icon: "💾",
               disabled: vueExports.unref(salvando)
             }, {
               default: vueExports.withCtx((_2, _push3, _parent3, _scopeId2) => {
@@ -36837,13 +36631,13 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
                 vueExports.createVNode(_component_UiTextarea, {
                   modelValue: vueExports.unref(form).descricao,
                   "onUpdate:modelValue": ($event) => vueExports.unref(form).descricao = $event,
-                  label: "Descri\xE7\xE3o"
+                  label: "Descrição"
                 }, null, 8, ["modelValue", "onUpdate:modelValue"]),
                 vueExports.createVNode(_component_UiSelect, {
                   modelValue: vueExports.unref(form).responsavel,
                   "onUpdate:modelValue": ($event) => vueExports.unref(form).responsavel = $event,
                   options: vueExports.unref(responsaveisOptions),
-                  label: "Respons\xE1vel",
+                  label: "Responsável",
                   placeholder: "Selecione..."
                 }, null, 8, ["modelValue", "onUpdate:modelValue", "options"]),
                 vueExports.createVNode("div", { class: "flex justify-end gap-3 pt-4" }, [
@@ -36858,7 +36652,7 @@ const _sfc_main$5 = /* @__PURE__ */ vueExports.defineComponent({
                   }, 8, ["onClick"]),
                   vueExports.createVNode(_component_UiButton, {
                     type: "submit",
-                    icon: "\u{1F4BE}",
+                    icon: "💾",
                     disabled: vueExports.unref(salvando)
                   }, {
                     default: vueExports.withCtx(() => [
@@ -37011,25 +36805,24 @@ const _sfc_main$2 = /* @__PURE__ */ vueExports.defineComponent({
     useAuth();
     const cargosMap = vueExports.ref({});
     const obterNomeCargo = (id) => {
-      if (!id) return "N\xE3o informado";
-      const idStr = id == null ? void 0 : id.toString();
+      if (!id) return "Não informado";
+      const idStr = id?.toString();
       return cargosMap.value[idStr] || "Carregando...";
     };
     return (_ctx, _push, _parent, _attrs) => {
-      var _a, _b, _c, _d;
       const _component_LayoutNavLink = __nuxt_component_0$1;
       const _component_UiAvatar = __nuxt_component_1$3;
-      _push(`<aside${ssrRenderAttrs_1(vueExports.mergeProps({ class: "hidden lg:flex lg:flex-col lg:w-72 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200 shadow-sm" }, _attrs))}><div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100"><div class="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center"><span class="text-white font-bold text-xl">RH</span></div><div><h1 class="text-xl font-bold text-gray-800">Sistema RH</h1><p class="text-sm text-gray-500">Gest\xE3o de Pessoas</p></div></div><nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">`);
+      _push(`<aside${ssrRenderAttrs_1(vueExports.mergeProps({ class: "hidden lg:flex lg:flex-col lg:w-72 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200 shadow-sm" }, _attrs))}><div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100"><div class="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center"><span class="text-white font-bold text-xl">RH</span></div><div><h1 class="text-xl font-bold text-gray-800">Sistema RH</h1><p class="text-sm text-gray-500">Gestão de Pessoas</p></div></div><nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">`);
       _push(ssrRenderComponent_1(_component_LayoutNavLink, {
         to: "/dashboard",
         icon: "home"
       }, {
         default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
           if (_push2) {
-            _push2(`In\xEDcio`);
+            _push2(`Início`);
           } else {
             return [
-              vueExports.createTextVNode("In\xEDcio")
+              vueExports.createTextVNode("Início")
             ];
           }
         }),
@@ -37070,17 +36863,17 @@ const _sfc_main$2 = /* @__PURE__ */ vueExports.defineComponent({
         _: 1
       }, _parent));
       if (__props.isAdmin) {
-        _push(`<!--[--><div class="pt-4 mt-4 border-t border-gray-200"><p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3"> Administra\xE7\xE3o </p></div>`);
+        _push(`<!--[--><div class="pt-4 mt-4 border-t border-gray-200"><p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3"> Administração </p></div>`);
         _push(ssrRenderComponent_1(_component_LayoutNavLink, {
           to: "/admin/funcionarios",
           icon: "users"
         }, {
           default: vueExports.withCtx((_, _push2, _parent2, _scopeId) => {
             if (_push2) {
-              _push2(`Funcion\xE1rios`);
+              _push2(`Funcionários`);
             } else {
               return [
-                vueExports.createTextVNode("Funcion\xE1rios")
+                vueExports.createTextVNode("Funcionários")
               ];
             }
           }),
@@ -37167,10 +36960,10 @@ const _sfc_main$2 = /* @__PURE__ */ vueExports.defineComponent({
       }
       _push(`</nav><div class="p-4 border-t border-gray-200"><div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">`);
       _push(ssrRenderComponent_1(_component_UiAvatar, {
-        name: ((_a = __props.user) == null ? void 0 : _a.nome) || "",
-        "avatar-type": (_b = __props.user) == null ? void 0 : _b.avatar
+        name: __props.user?.nome || "",
+        "avatar-type": __props.user?.avatar
       }, null, _parent));
-      _push(`<div class="flex-1 min-w-0"><p class="text-base font-semibold text-gray-800 truncate">${ssrInterpolate_1((_c = __props.user) == null ? void 0 : _c.nome)}</p><p class="text-sm text-gray-500 truncate">${ssrInterpolate_1(obterNomeCargo((_d = __props.user) == null ? void 0 : _d.cargo))}</p></div></div><button class="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg> Sair do Sistema </button></div></aside>`);
+      _push(`<div class="flex-1 min-w-0"><p class="text-base font-semibold text-gray-800 truncate">${ssrInterpolate_1(__props.user?.nome)}</p><p class="text-sm text-gray-500 truncate">${ssrInterpolate_1(obterNomeCargo(__props.user?.cargo))}</p></div></div><button class="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg> Sair do Sistema </button></div></aside>`);
     };
   }
 });
@@ -37194,15 +36987,14 @@ const _sfc_main$1$1 = /* @__PURE__ */ vueExports.defineComponent({
     useAuth();
     const cargosMap = vueExports.ref({});
     const obterNomeCargo = (id) => {
-      if (!id) return "N\xE3o informado";
-      const idStr = id == null ? void 0 : id.toString();
+      if (!id) return "Não informado";
+      const idStr = id?.toString();
       return cargosMap.value[idStr] || "Carregando...";
     };
     return (_ctx, _push, _parent, _attrs) => {
       const _component_LayoutNavLink = __nuxt_component_0$1;
       const _component_UiAvatar = __nuxt_component_1$3;
       ssrRenderTeleport_1(_push, (_push2) => {
-        var _a, _b, _c, _d;
         if (__props.open) {
           _push2(`<div class="lg:hidden fixed inset-0 z-50 bg-black/50" data-v-a39f9b9e></div>`);
         } else {
@@ -37217,10 +37009,10 @@ const _sfc_main$1$1 = /* @__PURE__ */ vueExports.defineComponent({
           }, {
             default: vueExports.withCtx((_, _push3, _parent2, _scopeId) => {
               if (_push3) {
-                _push3(`In\xEDcio`);
+                _push3(`Início`);
               } else {
                 return [
-                  vueExports.createTextVNode("In\xEDcio")
+                  vueExports.createTextVNode("Início")
                 ];
               }
             }),
@@ -37263,7 +37055,7 @@ const _sfc_main$1$1 = /* @__PURE__ */ vueExports.defineComponent({
             _push2(`<!---->`);
           }
           if (__props.isAdmin) {
-            _push2(`<!--[--><div class="pt-4 mt-4 border-t border-gray-200" data-v-a39f9b9e><p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3" data-v-a39f9b9e> Administra\xE7\xE3o </p></div>`);
+            _push2(`<!--[--><div class="pt-4 mt-4 border-t border-gray-200" data-v-a39f9b9e><p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3" data-v-a39f9b9e> Administração </p></div>`);
             _push2(ssrRenderComponent_1(_component_LayoutNavLink, {
               to: "/admin/funcionarios",
               icon: "users",
@@ -37271,10 +37063,10 @@ const _sfc_main$1$1 = /* @__PURE__ */ vueExports.defineComponent({
             }, {
               default: vueExports.withCtx((_, _push3, _parent2, _scopeId) => {
                 if (_push3) {
-                  _push3(`Funcion\xE1rios`);
+                  _push3(`Funcionários`);
                 } else {
                   return [
-                    vueExports.createTextVNode("Funcion\xE1rios")
+                    vueExports.createTextVNode("Funcionários")
                   ];
                 }
               }),
@@ -37350,11 +37142,11 @@ const _sfc_main$1$1 = /* @__PURE__ */ vueExports.defineComponent({
           }
           _push2(`</nav><div class="absolute bottom-0 left-0 right-0 p-4 border-t bg-white" data-v-a39f9b9e><div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 mb-3" data-v-a39f9b9e>`);
           _push2(ssrRenderComponent_1(_component_UiAvatar, {
-            name: ((_a = __props.user) == null ? void 0 : _a.nome) || "",
-            "avatar-type": (_b = __props.user) == null ? void 0 : _b.avatar,
+            name: __props.user?.nome || "",
+            "avatar-type": __props.user?.avatar,
             size: "sm"
           }, null, _parent));
-          _push2(`<div class="flex-1 min-w-0" data-v-a39f9b9e><p class="text-sm font-semibold text-gray-800 truncate" data-v-a39f9b9e>${ssrInterpolate_1((_c = __props.user) == null ? void 0 : _c.nome)}</p><p class="text-xs text-gray-500 truncate" data-v-a39f9b9e>${ssrInterpolate_1(obterNomeCargo((_d = __props.user) == null ? void 0 : _d.cargo))}</p></div></div><button class="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100" data-v-a39f9b9e><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a39f9b9e><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" data-v-a39f9b9e></path></svg> Sair </button></div></div>`);
+          _push2(`<div class="flex-1 min-w-0" data-v-a39f9b9e><p class="text-sm font-semibold text-gray-800 truncate" data-v-a39f9b9e>${ssrInterpolate_1(__props.user?.nome)}</p><p class="text-xs text-gray-500 truncate" data-v-a39f9b9e>${ssrInterpolate_1(obterNomeCargo(__props.user?.cargo))}</p></div></div><button class="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100" data-v-a39f9b9e><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-v-a39f9b9e><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" data-v-a39f9b9e></path></svg> Sair </button></div></div>`);
         } else {
           _push2(`<!---->`);
         }
@@ -37409,9 +37201,8 @@ const defaultBkCi9lIN = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePro
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function injectHead(nuxtApp) {
-  var _a;
   const nuxt = nuxtApp || useNuxtApp();
-  return ((_a = nuxt.ssrContext) == null ? void 0 : _a.head) || nuxt.runWithContext(() => {
+  return nuxt.ssrContext?.head || nuxt.runWithContext(() => {
     if (vueExports.hasInjectionContext()) {
       const head = vueExports.inject(headSymbol);
       if (!head) {
@@ -37570,17 +37361,6 @@ const loginStyles_b2cz1sfn$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.de
   default: loginStyles_b2cz1sfn
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const error404_vue_vue_type_style_index_0_scoped_cd31e6b7_lang = ".grid[data-v-cd31e6b7]{display:grid}.mb-2[data-v-cd31e6b7]{margin-bottom:.5rem}.mb-4[data-v-cd31e6b7]{margin-bottom:1rem}.max-w-520px[data-v-cd31e6b7]{max-width:520px}.min-h-screen[data-v-cd31e6b7]{min-height:100vh}.w-full[data-v-cd31e6b7]{width:100%}.flex[data-v-cd31e6b7]{display:flex}.place-content-center[data-v-cd31e6b7]{place-content:center}.items-center[data-v-cd31e6b7]{align-items:center}.justify-center[data-v-cd31e6b7]{justify-content:center}.overflow-hidden[data-v-cd31e6b7]{overflow:hidden}.bg-white[data-v-cd31e6b7]{--un-bg-opacity:1;background-color:rgb(255 255 255/var(--un-bg-opacity))}.px-2[data-v-cd31e6b7]{padding-left:.5rem;padding-right:.5rem}.text-center[data-v-cd31e6b7]{text-align:center}.text-\\[80px\\][data-v-cd31e6b7]{font-size:80px}.text-2xl[data-v-cd31e6b7]{font-size:1.5rem;line-height:2rem}.text-sm[data-v-cd31e6b7]{font-size:.875rem;line-height:1.25rem}.text-\\[\\#020420\\][data-v-cd31e6b7]{--un-text-opacity:1;color:rgb(2 4 32/var(--un-text-opacity))}.text-\\[\\#64748B\\][data-v-cd31e6b7]{--un-text-opacity:1;color:rgb(100 116 139/var(--un-text-opacity))}.hover\\:text-\\[\\#00DC82\\][data-v-cd31e6b7]:hover{--un-text-opacity:1;color:rgb(0 220 130/var(--un-text-opacity))}.font-medium[data-v-cd31e6b7]{font-weight:500}.font-semibold[data-v-cd31e6b7]{font-weight:600}.leading-none[data-v-cd31e6b7]{line-height:1}.tracking-wide[data-v-cd31e6b7]{letter-spacing:.025em}.font-sans[data-v-cd31e6b7]{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji}.tabular-nums[data-v-cd31e6b7]{--un-numeric-spacing:tabular-nums;font-variant-numeric:var(--un-ordinal) var(--un-slashed-zero) var(--un-numeric-figure) var(--un-numeric-spacing) var(--un-numeric-fraction)}.underline[data-v-cd31e6b7]{text-decoration-line:underline}.underline-offset-3[data-v-cd31e6b7]{text-underline-offset:3px}.antialiased[data-v-cd31e6b7]{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}@media(prefers-color-scheme:dark){.dark\\:bg-\\[\\#020420\\][data-v-cd31e6b7]{--un-bg-opacity:1;background-color:rgb(2 4 32/var(--un-bg-opacity))}.dark\\:text-white[data-v-cd31e6b7]{--un-text-opacity:1;color:rgb(255 255 255/var(--un-text-opacity))}}@media(min-width:640px){.sm\\:text-\\[110px\\][data-v-cd31e6b7]{font-size:110px}.sm\\:text-3xl[data-v-cd31e6b7]{font-size:1.875rem;line-height:2.25rem}}";
-
-const error404Styles_SO9LtFGn = [
-  error404_vue_vue_type_style_index_0_scoped_cd31e6b7_lang
-];
-
-const error404Styles_SO9LtFGn$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-  __proto__: null,
-  default: error404Styles_SO9LtFGn
-}, Symbol.toStringTag, { value: 'Module' }));
-
 const error500_vue_vue_type_style_index_0_scoped_8851f357_lang = ".grid[data-v-8851f357]{display:grid}.mb-2[data-v-8851f357]{margin-bottom:.5rem}.mb-4[data-v-8851f357]{margin-bottom:1rem}.max-w-520px[data-v-8851f357]{max-width:520px}.min-h-screen[data-v-8851f357]{min-height:100vh}.place-content-center[data-v-8851f357]{place-content:center}.overflow-hidden[data-v-8851f357]{overflow:hidden}.bg-white[data-v-8851f357]{--un-bg-opacity:1;background-color:rgb(255 255 255/var(--un-bg-opacity))}.px-2[data-v-8851f357]{padding-left:.5rem;padding-right:.5rem}.text-center[data-v-8851f357]{text-align:center}.text-\\[80px\\][data-v-8851f357]{font-size:80px}.text-2xl[data-v-8851f357]{font-size:1.5rem;line-height:2rem}.text-\\[\\#020420\\][data-v-8851f357]{--un-text-opacity:1;color:rgb(2 4 32/var(--un-text-opacity))}.text-\\[\\#64748B\\][data-v-8851f357]{--un-text-opacity:1;color:rgb(100 116 139/var(--un-text-opacity))}.font-semibold[data-v-8851f357]{font-weight:600}.leading-none[data-v-8851f357]{line-height:1}.tracking-wide[data-v-8851f357]{letter-spacing:.025em}.font-sans[data-v-8851f357]{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji}.tabular-nums[data-v-8851f357]{--un-numeric-spacing:tabular-nums;font-variant-numeric:var(--un-ordinal) var(--un-slashed-zero) var(--un-numeric-figure) var(--un-numeric-spacing) var(--un-numeric-fraction)}.antialiased[data-v-8851f357]{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}@media(prefers-color-scheme:dark){.dark\\:bg-\\[\\#020420\\][data-v-8851f357]{--un-bg-opacity:1;background-color:rgb(2 4 32/var(--un-bg-opacity))}.dark\\:text-white[data-v-8851f357]{--un-text-opacity:1;color:rgb(255 255 255/var(--un-text-opacity))}}@media(min-width:640px){.sm\\:text-\\[110px\\][data-v-8851f357]{font-size:110px}.sm\\:text-3xl[data-v-8851f357]{font-size:1.875rem;line-height:2.25rem}}";
 
 const error500Styles_Dw4YpQp = [
@@ -37590,6 +37370,17 @@ const error500Styles_Dw4YpQp = [
 const error500Styles_Dw4YpQp$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: error500Styles_Dw4YpQp
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const error404_vue_vue_type_style_index_0_scoped_cd31e6b7_lang = ".grid[data-v-cd31e6b7]{display:grid}.mb-2[data-v-cd31e6b7]{margin-bottom:.5rem}.mb-4[data-v-cd31e6b7]{margin-bottom:1rem}.max-w-520px[data-v-cd31e6b7]{max-width:520px}.min-h-screen[data-v-cd31e6b7]{min-height:100vh}.w-full[data-v-cd31e6b7]{width:100%}.flex[data-v-cd31e6b7]{display:flex}.place-content-center[data-v-cd31e6b7]{place-content:center}.items-center[data-v-cd31e6b7]{align-items:center}.justify-center[data-v-cd31e6b7]{justify-content:center}.overflow-hidden[data-v-cd31e6b7]{overflow:hidden}.bg-white[data-v-cd31e6b7]{--un-bg-opacity:1;background-color:rgb(255 255 255/var(--un-bg-opacity))}.px-2[data-v-cd31e6b7]{padding-left:.5rem;padding-right:.5rem}.text-center[data-v-cd31e6b7]{text-align:center}.text-\\[80px\\][data-v-cd31e6b7]{font-size:80px}.text-2xl[data-v-cd31e6b7]{font-size:1.5rem;line-height:2rem}.text-sm[data-v-cd31e6b7]{font-size:.875rem;line-height:1.25rem}.text-\\[\\#020420\\][data-v-cd31e6b7]{--un-text-opacity:1;color:rgb(2 4 32/var(--un-text-opacity))}.text-\\[\\#64748B\\][data-v-cd31e6b7]{--un-text-opacity:1;color:rgb(100 116 139/var(--un-text-opacity))}.hover\\:text-\\[\\#00DC82\\][data-v-cd31e6b7]:hover{--un-text-opacity:1;color:rgb(0 220 130/var(--un-text-opacity))}.font-medium[data-v-cd31e6b7]{font-weight:500}.font-semibold[data-v-cd31e6b7]{font-weight:600}.leading-none[data-v-cd31e6b7]{line-height:1}.tracking-wide[data-v-cd31e6b7]{letter-spacing:.025em}.font-sans[data-v-cd31e6b7]{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji}.tabular-nums[data-v-cd31e6b7]{--un-numeric-spacing:tabular-nums;font-variant-numeric:var(--un-ordinal) var(--un-slashed-zero) var(--un-numeric-figure) var(--un-numeric-spacing) var(--un-numeric-fraction)}.underline[data-v-cd31e6b7]{text-decoration-line:underline}.underline-offset-3[data-v-cd31e6b7]{text-underline-offset:3px}.antialiased[data-v-cd31e6b7]{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}@media(prefers-color-scheme:dark){.dark\\:bg-\\[\\#020420\\][data-v-cd31e6b7]{--un-bg-opacity:1;background-color:rgb(2 4 32/var(--un-bg-opacity))}.dark\\:text-white[data-v-cd31e6b7]{--un-text-opacity:1;color:rgb(255 255 255/var(--un-text-opacity))}}@media(min-width:640px){.sm\\:text-\\[110px\\][data-v-cd31e6b7]{font-size:110px}.sm\\:text-3xl[data-v-cd31e6b7]{font-size:1.875rem;line-height:2.25rem}}";
+
+const error404Styles_SO9LtFGn = [
+  error404_vue_vue_type_style_index_0_scoped_cd31e6b7_lang
+];
+
+const error404Styles_SO9LtFGn$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: error404Styles_SO9LtFGn
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const UiNotification_vue_vue_type_style_index_0_scoped_09772c10_lang = ".notification-enter-active[data-v-09772c10],.notification-leave-active[data-v-09772c10]{transition:all .3s ease}.notification-enter-from[data-v-09772c10],.notification-leave-to[data-v-09772c10]{opacity:0;transform:translate(100%)}";
