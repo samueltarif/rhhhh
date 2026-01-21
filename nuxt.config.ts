@@ -4,7 +4,21 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   
   nitro: {
-    preset: 'vercel'
+    preset: 'vercel',
+    // Configurações específicas para resolver problemas SSR no Vercel
+    experimental: {
+      wasm: false
+    },
+    // Forçar bundling de dependências problemáticas
+    bundledStorage: ['redis'],
+    // Garantir que vue-bundle-renderer seja incluído
+    externals: {
+      inline: ['vue-bundle-renderer', '@vue/shared', '@vue/server-renderer']
+    },
+    // Configurações de rollup para SSR
+    rollupConfig: {
+      external: []
+    }
   },
   
   modules: [
@@ -47,10 +61,19 @@ export default defineNuxtConfig({
   },
   
   build: {
-    transpile: ['@headlessui/vue']
+    transpile: ['@headlessui/vue', 'vue-bundle-renderer', '@vue/shared']
   },
   
   css: [
     '~/assets/css/main.css'
-  ]
+  ],
+
+  // Configurações específicas para SSR
+  ssr: true,
+  
+  // Otimizações para Vercel
+  experimental: {
+    payloadExtraction: false,
+    renderJsonPayloads: true
+  }
 })
