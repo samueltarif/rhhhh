@@ -15,9 +15,19 @@ export default defineNuxtConfig({
     externals: {
       inline: ['vue-bundle-renderer', '@vue/shared', '@vue/server-renderer']
     },
-    // Configurações de rollup para SSR
+    // CRÍTICO: Garantir que todos os chunks sejam incluídos no Vercel
     rollupConfig: {
-      external: []
+      external: [],
+      output: {
+        manualChunks: undefined,  // Evita chunking que pode causar problemas no Vercel
+        inlineDynamicImports: true  // SOLUÇÃO: Força bundling inline para evitar imports relativos
+      }
+    },
+    // Configuração específica para Vercel incluir todos os chunks
+    vercel: {
+      functions: {
+        maxDuration: 30
+      }
     }
   },
   
@@ -61,7 +71,7 @@ export default defineNuxtConfig({
   },
   
   build: {
-    transpile: ['@headlessui/vue', 'vue-bundle-renderer', '@vue/shared']
+    transpile: ['@headlessui/vue']
   },
   
   css: [
