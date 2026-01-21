@@ -1,1 +1,0 @@
-import{a2 as r,n as a}from"./CHjXoEIz.js";import{u}from"./fnrum3wV.js";const n=r(e=>{const{isAuthenticated:t}=u();if(e.path==="/login")return t.value?a("/dashboard"):void 0;if(!t.value)return a("/login")});export{n as default};

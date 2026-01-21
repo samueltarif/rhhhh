@@ -1,1 +1,0 @@
-import{a2 as i,n as a}from"./CHjXoEIz.js";import{u as n}from"./fnrum3wV.js";const u=i(()=>{const{isAdmin:e,isAuthenticated:t}=n();if(!t.value)return a("/login");if(!e.value)return a("/dashboard")});export{u as default};
