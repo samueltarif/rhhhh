@@ -1,0 +1,1 @@
+{"version":3,"file":"serverSupabaseServiceRole.mjs","sources":["../../../../../../node_modules/@nuxtjs/supabase/dist/runtime/utils/fetch-retry.js","../../../../../../node_modules/@supabase/supabase-js/dist/index.mjs","../../../../../../node_modules/@nuxtjs/supabase/dist/runtime/server/services/serverSupabaseServiceRole.js"],"names":[],"mappings":"","x_google_ignoreList":[0,1,2]}
