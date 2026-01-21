@@ -7,14 +7,20 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const funcionarioId = query.funcionarioId
 
+  console.log('🔍 [MEUS-HOLERITES] Requisição recebida')
+  console.log('🔍 [MEUS-HOLERITES] Query params:', query)
+  console.log('🔍 [MEUS-HOLERITES] Funcionário ID:', funcionarioId)
+  console.log('🔍 [MEUS-HOLERITES] Headers da requisição:', getHeaders(event))
+
   if (!funcionarioId) {
+    console.error('❌ [MEUS-HOLERITES] Funcionário não identificado')
     throw createError({
       statusCode: 401,
       message: 'Funcionário não identificado'
     })
   }
 
-  console.log('🔍 Buscando holerites do funcionário ID:', funcionarioId)
+  console.log('🔍 [MEUS-HOLERITES] Buscando holerites para funcionário ID:', funcionarioId)
 
   try {
     // Buscar holerites usando SERVICE ROLE KEY para bypassar RLS
@@ -31,19 +37,24 @@ export default defineEventHandler(async (event) => {
       }
     )
 
+    console.log('📊 [MEUS-HOLERITES] Status da resposta Supabase:', response.status)
+    console.log('📊 [MEUS-HOLERITES] Headers da resposta Supabase:', Object.fromEntries(response.headers.entries()))
+
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ Erro ao buscar holerites:', errorText)
+      console.error('❌ [MEUS-HOLERITES] Erro ao buscar holerites:', errorText)
       throw new Error('Erro ao buscar holerites')
     }
 
     const holerites = await response.json()
-    console.log('📦 Holerites disponíveis para o funcionário:', holerites.length)
+    console.log('📦 [MEUS-HOLERITES] Holerites encontrados:', holerites.length)
+    console.log('📦 [MEUS-HOLERITES] Dados dos holerites:', JSON.stringify(holerites, null, 2))
     console.log('   (Holerites com status "gerado" não são exibidos)')
 
     return holerites || []
   } catch (error: any) {
-    console.error('💥 Erro ao buscar holerites:', error)
+    console.error('💥 [MEUS-HOLERITES] Erro ao buscar holerites:', error)
+    console.error('💥 [MEUS-HOLERITES] Stack trace:', error.stack)
     throw createError({
       statusCode: 500,
       message: error.message || 'Erro ao buscar holerites'

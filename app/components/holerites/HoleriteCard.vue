@@ -154,7 +154,14 @@ const isDisponivel = computed(() => {
 
 // Função para formatar moeda
 const formatarMoeda = (valor: number): string => {
-  return valor?.toFixed(2).replace('.', ',') || '0,00'
+  if (valor === undefined || valor === null) {
+    return '0,00'
+  }
+  try {
+    return valor.toFixed(2).replace('.', ',')
+  } catch (error) {
+    return '0,00'
+  }
 }
 
 // Função para obter cor do status
@@ -175,6 +182,14 @@ const getStatusColor = (status?: string) => {
     'Cancelado': {
       bg: 'bg-red-100',
       badge: 'bg-red-100 text-red-800'
+    },
+    'enviado': {
+      bg: 'bg-green-100',
+      badge: 'bg-green-100 text-green-800'
+    },
+    'gerado': {
+      bg: 'bg-blue-100',
+      badge: 'bg-blue-100 text-blue-800'
     }
   }
   
@@ -187,7 +202,9 @@ const getStatusIcon = (status?: string): string => {
     'Pago': '✅',
     'Pendente': '⏳',
     'Programado': '📅',
-    'Cancelado': '❌'
+    'Cancelado': '❌',
+    'enviado': '✅',
+    'gerado': '📄'
   }
   
   return icons[status || 'Pendente'] || '📄'

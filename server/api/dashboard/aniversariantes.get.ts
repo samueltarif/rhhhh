@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
         data_nascimento,
         avatar
       `)
-      .eq('ativo', true)
+      .eq('status', 'ativo')
       .not('data_nascimento', 'is', null)
     
     if (error) {

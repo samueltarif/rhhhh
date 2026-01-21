@@ -1,5 +1,5 @@
 <template>
-  <UiCard padding="p-6">
+  <UiCard v-if="funcionario && funcionario.id" padding="p-6">
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <!-- Avatar -->
@@ -123,8 +123,6 @@ const enviarCredenciais = async () => {
   enviandoEmail.value = true
   
   try {
-    console.log('📧 Enviando credenciais para funcionário ID:', props.funcionario.id)
-    
     await $fetch('/api/funcionarios/enviar-acesso', {
       method: 'POST',
       body: {
@@ -134,7 +132,6 @@ const enviarCredenciais = async () => {
     
     emit('email-enviado', `Credenciais enviadas com sucesso para ${props.funcionario.email_login}!`)
   } catch (error: any) {
-    console.error('❌ Erro ao enviar credenciais:', error)
     emit('email-erro', error.data?.message || 'Erro ao enviar credenciais. Verifique se o funcionário possui email cadastrado.')
   } finally {
     enviandoEmail.value = false
@@ -143,14 +140,22 @@ const enviarCredenciais = async () => {
 
 const formatarData = (data: string) => {
   if (!data) return ''
-  return new Date(data).toLocaleDateString('pt-BR')
+  try {
+    return new Date(data).toLocaleDateString('pt-BR')
+  } catch (error) {
+    return 'Data inválida'
+  }
 }
 
 const formatarMoeda = (valor: number) => {
   if (!valor) return 'R$ 0,00'
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(valor)
+  try {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(valor)
+  } catch (error) {
+    return 'R$ 0,00'
+  }
 }
 </script>

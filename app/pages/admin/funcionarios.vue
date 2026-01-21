@@ -23,15 +23,15 @@
 
     <!-- Lista de Funcionários -->
     <div class="space-y-4">
-      <FuncionarioCard 
-        v-for="func in funcionariosFiltrados" 
-        :key="func.id"
-        :funcionario="func"
-        @edit="abrirModal"
-        @toggle-status="toggleStatus"
-        @email-enviado="handleEmailEnviado"
-        @email-erro="handleEmailErro"
-      />
+      <template v-for="(func, index) in funcionariosFiltrados" :key="func.id">
+        <FuncionarioCard 
+          :funcionario="func"
+          @edit="abrirModal"
+          @toggle-status="toggleStatus"
+          @email-enviado="handleEmailEnviado"
+          @email-erro="handleEmailErro"
+        />
+      </template>
     </div>
 
     <!-- Modal de Cadastro/Edição -->
@@ -179,7 +179,14 @@ const carregarFuncionarios = async () => {
     const data = await $fetch('/api/funcionarios')
     
     if (data) {
-      funcionarios.value = data
+      // Transformar dados da API para formato esperado pelo frontend
+      funcionarios.value = data.map(f => ({
+        ...f,
+        // Extrair nomes dos objetos relacionados
+        cargo: f.cargos?.nome || 'Cargo não definido',
+        departamento: f.departamentos?.nome || 'Departamento não definido',
+        empresa: f.empresas?.nome_fantasia || f.empresas?.nome || 'Empresa não definida'
+      }))
     }
   } catch (error) {
     console.error('Erro ao carregar funcionários:', error)
@@ -192,38 +199,24 @@ onMounted(() => {
 })
 
 const funcionariosFiltrados = computed(() => {
-  if (!busca.value) return funcionarios.value
+  if (!busca.value) {
+    return funcionarios.value
+  }
+  
   const termo = busca.value.toLowerCase()
-  return funcionarios.value.filter(f => 
-    f.nome_completo.toLowerCase().includes(termo) ||
-    f.cargo.toLowerCase().includes(termo) ||
-    f.departamento.toLowerCase().includes(termo) ||
-    f.email_login.toLowerCase().includes(termo)
-  )
+  return funcionarios.value.filter(f => {
+    return f.nome_completo?.toLowerCase().includes(termo) ||
+           f.cargo?.toLowerCase().includes(termo) ||
+           f.departamento?.toLowerCase().includes(termo) ||
+           f.email_login?.toLowerCase().includes(termo)
+  })
 })
 
 const abrirModal = async (func?: any) => {
-  console.log('🔍 [Funcionarios] Abrindo modal:', { 
-    isEditing: !!func, 
-    funcionarioId: func?.id,
-    funcionarioNome: func?.nome_completo 
-  })
-  
   if (func) {
-    // 🔧 CORREÇÃO: Buscar dados completos do funcionário da API
+    // Buscar dados completos do funcionário da API
     try {
-      console.log('🔍 [Funcionarios] Buscando dados completos do funcionário ID:', func.id)
-      
       const funcionarioCompleto: any = await $fetch(`/api/funcionarios/${func.id}`)
-      
-      console.log('✅ [Funcionarios] Dados completos recebidos:', {
-        id: funcionarioCompleto.id,
-        nome: funcionarioCompleto.nome_completo,
-        beneficios: funcionarioCompleto.beneficios ? 'Existe' : 'Null',
-        beneficiosType: typeof funcionarioCompleto.beneficios,
-        keys: Object.keys(funcionarioCompleto)
-      })
-      
       funcionarioEditando.value = funcionarioCompleto
       
       // Garantir que benefícios existam com estrutura correta
@@ -279,16 +272,8 @@ const abrirModal = async (func?: any) => {
           : []
       }
       
-      console.log('📋 [Funcionarios] Form atualizado:', {
-        nome: form.value.nome_completo,
-        cpf: form.value.cpf,
-        email: form.value.email_login,
-        beneficios: form.value.beneficios ? 'Estruturado' : 'Null',
-        beneficiosKeys: form.value.beneficios ? Object.keys(form.value.beneficios) : 'null'
-      })
-      
     } catch (error) {
-      console.error('❌ [Funcionarios] Erro ao buscar funcionário:', error)
+      console.error('Erro ao buscar funcionário:', error)
       notificacao.value = {
         title: 'Erro!',
         message: 'Erro ao carregar dados do funcionário',
@@ -298,7 +283,6 @@ const abrirModal = async (func?: any) => {
       return
     }
   } else {
-    console.log('➕ [Funcionarios] Criando novo funcionário')
     funcionarioEditando.value = null
     form.value = {
       // Dados Pessoais
@@ -388,11 +372,8 @@ const abrirModal = async (func?: any) => {
       // Observações
       observacoes_internas: ''
     }
-    
-    console.log('📝 [Funcionarios] Form novo funcionário criado')
   }
   
-  console.log('🚀 [Funcionarios] Abrindo modal...')
   modalAberto.value = true
 }
 

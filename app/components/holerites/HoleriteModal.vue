@@ -1,17 +1,25 @@
 <template>
-  <div v-if="holerite" class="space-y-6">
-    <!-- Debug -->
-    <div v-if="!holerite.funcionario" class="bg-red-50 p-4 rounded">
-      <p class="text-red-600">Erro: Dados do funcionário não encontrados</p>
-      <pre class="text-xs mt-2">{{ JSON.stringify(holerite, null, 2) }}</pre>
-    </div>
-
-    <!-- Dados do Funcionário -->
-    <div v-if="holerite.funcionario" class="bg-gray-50 rounded-xl p-4">
-      <p class="font-semibold text-gray-800">{{ holerite.funcionario.nome_completo }}</p>
-      <p class="text-gray-500">{{ holerite.funcionario.cargo }} - {{ holerite.funcionario.empresa }}</p>
-      <p class="text-sm text-gray-400 mt-1">Período: {{ formatarPeriodo(holerite.periodo_inicio, holerite.periodo_fim) }}</p>
-    </div>
+  <UiModal 
+    v-if="holerite"
+    :model-value="true"
+    title="Detalhes do Holerite"
+    max-width="max-w-4xl"
+    @update:model-value="$emit('close')"
+  >
+    <div class="space-y-6">
+      <!-- Dados do Funcionário -->
+      <div class="bg-gray-50 rounded-xl p-4">
+        <p class="font-semibold text-gray-800">
+          {{ holerite?.funcionario?.nome_completo || userName || 'Funcionário' }}
+        </p>
+        <p class="text-gray-500">
+          {{ holerite?.funcionario?.cargo || userCargo || 'Cargo não informado' }} - 
+          {{ holerite?.funcionario?.empresa || 'Empresa' }}
+        </p>
+        <p class="text-sm text-gray-400 mt-1">
+          Período: {{ formatarPeriodo(holerite?.periodo_inicio, holerite?.periodo_fim) }}
+        </p>
+      </div>
 
     <!-- Proventos -->
     <div>
@@ -123,35 +131,44 @@
         📄 Baixar PDF
       </UiButton>
     </div>
-  </div>
-  
-  <div v-else class="p-8 text-center">
-    <p class="text-gray-500">Carregando dados do holerite...</p>
-  </div>
+    </div>
+  </UiModal>
 </template>
 
 <script setup lang="ts">
 const props = defineProps<{
   holerite: any
+  userName?: string
+  userCargo?: string
+  userDepartamento?: string
 }>()
 
 const emit = defineEmits<{
   close: []
+  download: [holerite: any]
 }>()
 
 const formatarMoeda = (valor: number | undefined | null) => {
   if (!valor) return 'R$ 0,00'
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(valor)
+  try {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(valor)
+  } catch (error) {
+    return 'R$ 0,00'
+  }
 }
 
 const formatarPeriodo = (inicio: string | undefined, fim: string | undefined) => {
   if (!inicio || !fim) return 'Período não definido'
-  const dataInicio = new Date(inicio).toLocaleDateString('pt-BR')
-  const dataFim = new Date(fim).toLocaleDateString('pt-BR')
-  return `${dataInicio} - ${dataFim}`
+  try {
+    const dataInicio = new Date(inicio).toLocaleDateString('pt-BR')
+    const dataFim = new Date(fim).toLocaleDateString('pt-BR')
+    return `${dataInicio} - ${dataFim}`
+  } catch (error) {
+    return 'Período inválido'
+  }
 }
 
 const baixarHTML = async () => {
@@ -168,7 +185,13 @@ const baixarHTML = async () => {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `holerite-${props.holerite.funcionario.nome_completo.replace(/\s+/g, '-')}.html`
+    
+    // Nome do arquivo baseado no funcionário
+    const nomeArquivo = props.holerite?.funcionario?.nome_completo?.replace(/\s+/g, '-') || 
+                       props.userName?.replace(/\s+/g, '-') || 
+                       'funcionario'
+    a.download = `holerite-${nomeArquivo}.html`
+    
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -181,23 +204,8 @@ const baixarHTML = async () => {
 
 const baixarPDF = async () => {
   try {
-    // Fazer download do PDF
-    const response = await fetch(`/api/holerites/${props.holerite.id}/pdf`)
-    
-    if (!response.ok) {
-      throw new Error('Erro ao gerar PDF')
-    }
-    
-    // Criar blob e fazer download
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `holerite-${props.holerite.funcionario.nome_completo.replace(/\s+/g, '-')}.pdf`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+    // Emitir evento para o componente pai
+    emit('download', props.holerite)
   } catch (error) {
     console.error('Erro ao baixar PDF:', error)
     alert('Erro ao baixar PDF do holerite')

@@ -15,7 +15,20 @@ export default defineEventHandler(async (event) => {
         funcionarios!inner (
           id,
           nome_completo,
-          cpf
+          cpf,
+          cargos (
+            id,
+            nome
+          ),
+          departamentos (
+            id,
+            nome
+          ),
+          empresas (
+            id,
+            nome,
+            nome_fantasia
+          )
         )
       `)
       .order('created_at', { ascending: false })
@@ -28,7 +41,21 @@ export default defineEventHandler(async (event) => {
     
     console.log('[HOLERITES] Holerites encontrados:', holerites?.length || 0)
     
-    return holerites || []
+    // Transformar dados para o formato esperado pelo frontend
+    const holeritesTratados = holerites?.map(h => ({
+      ...h,
+      funcionario: {
+        id: h.funcionarios.id,
+        nome_completo: h.funcionarios.nome_completo,
+        cpf: h.funcionarios.cpf,
+        cargo: h.funcionarios.cargos?.nome || 'Cargo não definido',
+        empresa: h.funcionarios.empresas?.nome_fantasia || h.funcionarios.empresas?.nome || 'Empresa não definida'
+      }
+    })) || []
+    
+    console.log('[HOLERITES] Holerites tratados:', holeritesTratados.length)
+    
+    return holeritesTratados
     
   } catch (error: any) {
     console.error('[HOLERITES] Erro completo:', {

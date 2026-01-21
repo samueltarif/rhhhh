@@ -60,13 +60,14 @@
     </div>
 
     <div v-else class="space-y-4">
-      <HoleriteCard 
-        v-for="holerite in holeritesFiltrados" 
-        :key="holerite.id"
-        :holerite="holerite"
-        @view="visualizarHolerite"
-        @download="baixarPDF"
-      />
+      <template v-for="holerite in holeritesFiltrados" :key="holerite?.id || Math.random()">
+        <HoleriteCard 
+          v-if="holerite && holerite.id"
+          :holerite="holerite"
+          @view="visualizarHolerite"
+          @download="baixarPDF"
+        />
+      </template>
 
       <UiEmptyState 
         v-if="holeritesFiltrados.length === 0"
@@ -77,6 +78,7 @@
 
     <!-- Modal de Visualização -->
     <HoleriteModal 
+      v-if="holeriteVisualizado"
       :holerite="holeriteVisualizado"
       :user-name="user?.nome || ''"
       :user-cargo="user?.cargo || ''"
@@ -149,10 +151,8 @@ const carregarHolerites = async () => {
   try {
     // Aguardar o user estar disponível
     if (!user.value) {
-      console.log('⏳ Aguardando user...')
       await new Promise(resolve => setTimeout(resolve, 500))
       if (!user.value) {
-        console.error('❌ User não disponível após espera')
         holerites.value = []
         carregando.value = false
         return
@@ -162,29 +162,32 @@ const carregarHolerites = async () => {
     // Pegar o ID do funcionário do usuário logado
     const funcionarioId = (user.value as any)?.id
     
-    console.log('🔍 User value:', user.value)
-    console.log('🔍 Funcionario ID:', funcionarioId)
-    
     if (!funcionarioId) {
-      console.error('❌ ID do funcionário não encontrado no user')
       holerites.value = []
       carregando.value = false
       return
     }
     
-    console.log('📡 Buscando holerites para funcionário:', funcionarioId)
-    
     const data = await $fetch('/api/holerites/meus-holerites', {
       query: { funcionarioId }
     })
     
-    console.log('📦 Dados recebidos da API:', data)
-    console.log('📊 Quantidade de holerites:', (data as any[]).length)
+    // Verificar se data é um array válido
+    if (!Array.isArray(data)) {
+      holerites.value = []
+      carregando.value = false
+      return
+    }
     
     // Formatar holerites para o formato esperado pelo componente
-    holerites.value = (data as any[]).map(h => {
-      const periodoInicio = new Date(h.periodo_inicio)
-      const periodoFim = new Date(h.periodo_fim)
+    holerites.value = (data as any[]).map((h, index) => {
+      // Verificar se h é um objeto válido
+      if (!h || typeof h !== 'object') {
+        return null
+      }
+      
+      const periodoInicio = h.periodo_inicio ? new Date(h.periodo_inicio) : new Date()
+      const periodoFim = h.periodo_fim ? new Date(h.periodo_fim) : new Date()
       const mes = String(periodoInicio.getMonth() + 1).padStart(2, '0')
       const ano = String(periodoInicio.getFullYear())
       
@@ -207,8 +210,8 @@ const carregarHolerites = async () => {
         referencia += ' - 2ª Quinzena'
       }
       
-      return {
-        id: h.id,
+      const holeriteFormatado = {
+        id: h.id || 0,
         referencia,
         competencia: `${mes}/${ano}`,
         mes,
@@ -224,31 +227,30 @@ const carregarHolerites = async () => {
         valeTransporte: h.vale_transporte || 0,
         totalDescontos: h.total_descontos || 0,
         liquido: h.salario_liquido || 0,
-        periodoInicio: periodoInicio, // Já é Date
-        periodoFim: periodoFim, // Já é Date
+        periodoInicio: periodoInicio,
+        periodoFim: periodoFim,
         dataDisponibilizacao: h.data_pagamento ? new Date(h.data_pagamento) : null,
         // Campos adicionais para edição
-        horas_trabalhadas: h.horas_trabalhadas,
-        horas_extras: h.horas_extras,
-        adicional_noturno: h.adicional_noturno,
-        adicional_periculosidade: h.adicional_periculosidade,
-        adicional_insalubridade: h.adicional_insalubridade,
-        comissoes: h.comissoes,
-        vale_refeicao_desconto: h.vale_refeicao_desconto,
-        plano_saude: h.plano_saude,
-        plano_odontologico: h.plano_odontologico,
-        adiantamento: h.adiantamento,
-        faltas: h.faltas,
-        data_pagamento: h.data_pagamento,
-        observacoes: h.observacoes
+        horas_trabalhadas: h.horas_trabalhadas || null,
+        horas_extras: h.horas_extras || 0,
+        adicional_noturno: h.adicional_noturno || 0,
+        adicional_periculosidade: h.adicional_periculosidade || 0,
+        adicional_insalubridade: h.adicional_insalubridade || 0,
+        comissoes: h.comissoes || 0,
+        vale_refeicao_desconto: h.vale_refeicao_desconto || 0,
+        plano_saude: h.plano_saude || 0,
+        plano_odontologico: h.plano_odontologico || 0,
+        adiantamento: h.adiantamento || 0,
+        faltas: h.faltas || 0,
+        data_pagamento: h.data_pagamento || null,
+        observacoes: h.observacoes || ''
       }
-    })
-    
-    console.log('✅ Holerites formatados:', holerites.value)
-    console.log('📊 Total de holerites após formatação:', holerites.value.length)
+      
+      return holeriteFormatado
+    }).filter(h => h !== null) // Remover holerites inválidos
     
   } catch (error) {
-    console.error('❌ Erro ao carregar holerites:', error)
+    console.error('Erro ao carregar holerites:', error)
     // Se não houver holerites, manter array vazio
     holerites.value = []
   } finally {
@@ -262,10 +264,7 @@ onMounted(() => {
 })
 
 const holeritesFiltrados = computed(() => {
-  console.log('🔍 Filtrando holerites. Total:', holerites.value.length)
-  console.log('🔍 Filtros ativos:', { mes: filtroMes.value, ano: filtroAno.value, tipo: filtroTipo.value })
-  
-  const filtrados = holerites.value.filter(h => {
+  return holerites.value.filter(h => {
     if (filtroMes.value && h.mes !== filtroMes.value) return false
     if (filtroAno.value && h.ano !== filtroAno.value) return false
     if (filtroTipo.value) {
@@ -275,9 +274,6 @@ const holeritesFiltrados = computed(() => {
     }
     return true
   })
-  
-  console.log('✅ Holerites filtrados:', filtrados.length)
-  return filtrados
 })
 
 const limparFiltros = () => { 
@@ -287,29 +283,40 @@ const limparFiltros = () => {
 }
 
 const visualizarHolerite = async (holerite: any) => { 
+  // Garantir que sempre temos dados básicos do funcionário
+  let dadosFuncionario = {
+    nome_completo: user.value?.nome || 'Funcionário',
+    cargo: user.value?.cargo || 'Não definido',
+    empresa: 'Empresa'
+  }
+  
   // Buscar nome da empresa
-  let nomeEmpresa = 'Empresa'
   try {
     if (user.value) {
       const funcionarioCompleto: any = await $fetch(`/api/funcionarios/${user.value.id}`)
+      
+      // Atualizar dados do funcionário com informações completas
+      dadosFuncionario = {
+        nome_completo: funcionarioCompleto.nome_completo || user.value?.nome || 'Funcionário',
+        cargo: funcionarioCompleto.cargo || user.value?.cargo || 'Não definido',
+        empresa: 'Empresa'
+      }
+      
       if (funcionarioCompleto.empresa_id) {
         const empresaResponse: any = await $fetch(`/api/empresas/${funcionarioCompleto.empresa_id}`)
         const empresa = empresaResponse.data || empresaResponse
-        nomeEmpresa = empresa.nome_fantasia || empresa.nome || 'Empresa'
+        dadosFuncionario.empresa = empresa.nome_fantasia || empresa.nome || 'Empresa'
       }
     }
   } catch (error) {
     console.error('Erro ao buscar empresa:', error)
+    // Manter dados padrão em caso de erro
   }
   
   // Adicionar dados do funcionário ao holerite
-  holeriteVisualizado.value = {
+  const holeriteCompleto = {
     ...holerite,
-    funcionario: {
-      nome_completo: user.value?.nome || '',
-      cargo: user.value?.cargo || 'Não definido',
-      empresa: nomeEmpresa
-    },
+    funcionario: dadosFuncionario,
     // Garantir que as datas e valores estejam no formato correto
     periodo_inicio: holerite.periodoInicio,
     periodo_fim: holerite.periodoFim,
@@ -318,6 +325,8 @@ const visualizarHolerite = async (holerite: any) => {
     total_proventos: holerite.totalProventos,
     total_descontos: holerite.totalDescontos
   }
+  
+  holeriteVisualizado.value = holeriteCompleto
 }
 
 const baixarPDF = (holerite: any) => { 

@@ -43,7 +43,6 @@ export default defineEventHandler(async (event) => {
     const { data: empresas, error: errorEmpresas } = await supabase
       .from('empresas')
       .select('id', { count: 'exact' })
-      .eq('ativa', true)
     
     if (errorEmpresas) {
       console.error('[STATS] Erro ao buscar empresas:', errorEmpresas)
@@ -52,10 +51,40 @@ export default defineEventHandler(async (event) => {
     
     console.log('[STATS] Empresas encontradas:', empresas?.length || 0)
     
+    // Buscar total de departamentos
+    const { data: departamentos, error: errorDepartamentos } = await supabase
+      .from('departamentos')
+      .select('id', { count: 'exact' })
+    
+    if (errorDepartamentos) {
+      console.error('[STATS] Erro ao buscar departamentos:', errorDepartamentos)
+      throw errorDepartamentos
+    }
+    
+    console.log('[STATS] Departamentos encontrados:', departamentos?.length || 0)
+    
+    // Buscar aniversariantes do mês
+    const mesAtual = hoje.getMonth() + 1
+    const { data: aniversariantes, error: errorAniversariantes } = await supabase
+      .from('funcionarios')
+      .select('id')
+      .eq('status', 'ativo')
+      .not('data_nascimento', 'is', null)
+      .filter('data_nascimento', 'like', `%-${mesAtual.toString().padStart(2, '0')}-%`)
+    
+    if (errorAniversariantes) {
+      console.error('[STATS] Erro ao buscar aniversariantes:', errorAniversariantes)
+    }
+    
+    console.log('[STATS] Aniversariantes encontrados:', aniversariantes?.length || 0)
+    
     const stats = {
       totalFuncionarios: funcionarios?.length || 0,
       holeritesMes: holerites?.length || 0,
       totalEmpresas: empresas?.length || 0,
+      totalDepartamentos: departamentos?.length || 0,
+      totalAniversariantes: aniversariantes?.length || 0,
+      folhaMensal: 0, // Será calculado se necessário
       mesAtual: hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
     }
     

@@ -88,21 +88,21 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <DashboardStatCard 
           to="/admin/funcionarios"
-          :value="loading ? '...' : stats.totalFuncionarios.toString()"
+          :value="loading ? '...' : (stats.totalFuncionarios || 0).toString()"
           label="Funcionários"
           color="blue"
           icon-path="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
         />
         <DashboardStatCard 
           to="/admin/departamentos"
-          :value="loading ? '...' : stats.totalDepartamentos.toString()"
+          :value="loading ? '...' : (stats.totalDepartamentos || 0).toString()"
           label="Departamentos"
           color="purple"
           icon-path="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
         />
         <DashboardStatCard 
           to="/admin/holerites"
-          :value="loading ? '...' : formatarMoeda(stats.folhaMensal)"
+          :value="loading ? '...' : formatarMoeda(stats.folhaMensal || 0)"
           label="Folha Mensal"
           color="green"
           icon-path="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
@@ -111,7 +111,7 @@
           <svg class="w-10 h-10 mb-3 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/>
           </svg>
-          <p class="text-3xl font-bold">{{ loading ? '...' : stats.totalAniversariantes }}</p>
+          <p class="text-3xl font-bold">{{ loading ? '...' : (stats.totalAniversariantes || 0) }}</p>
           <p class="text-white/80">Aniversariantes</p>
         </div>
       </div>
@@ -243,13 +243,32 @@ const carregarDados = async () => {
     
     // Buscar estatísticas apenas para admin
     if (isAdmin.value) {
-      const [statsData, aniversariantesData] = await Promise.all([
-        $fetch('/api/dashboard/stats'),
-        $fetch('/api/dashboard/aniversariantes')
-      ])
+      try {
+        const [statsData, aniversariantesData] = await Promise.all([
+          $fetch('/api/dashboard/stats'),
+          $fetch('/api/dashboard/aniversariantes')
+        ])
 
-      stats.value = statsData as any
-      aniversariantes.value = aniversariantesData as any[]
+        // Garantir que os valores sejam números válidos
+        stats.value = {
+          totalFuncionarios: Number(statsData?.totalFuncionarios) || 0,
+          totalDepartamentos: Number(statsData?.totalDepartamentos) || 0,
+          folhaMensal: Number(statsData?.folhaMensal) || 0,
+          totalAniversariantes: Number(statsData?.totalAniversariantes) || 0
+        }
+        
+        aniversariantes.value = Array.isArray(aniversariantesData) ? aniversariantesData : []
+      } catch (error) {
+        console.error('Erro ao carregar dados do admin:', error)
+        // Manter valores padrão em caso de erro
+        stats.value = {
+          totalFuncionarios: 0,
+          totalDepartamentos: 0,
+          folhaMensal: 0,
+          totalAniversariantes: 0
+        }
+        aniversariantes.value = []
+      }
     }
   } catch (error) {
     console.error('Erro ao carregar dados do dashboard:', error)

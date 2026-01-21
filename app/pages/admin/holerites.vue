@@ -106,13 +106,13 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <span class="text-blue-600 font-semibold">{{ holerite.funcionario.nome_completo.charAt(0) }}</span>
+                <span class="text-blue-600 font-semibold">{{ holerite.funcionario?.nome_completo?.charAt(0) || '?' }}</span>
               </div>
               
               <div>
-                <h3 class="font-semibold text-gray-900">{{ holerite.funcionario.nome_completo }}</h3>
-                <p class="text-sm text-gray-600">{{ holerite.funcionario.cargo || 'Cargo não definido' }}</p>
-                <p class="text-xs text-gray-500">{{ holerite.funcionario.empresa || 'Empresa não definida' }}</p>
+                <h3 class="font-semibold text-gray-900">{{ holerite.funcionario?.nome_completo || 'Nome não disponível' }}</h3>
+                <p class="text-sm text-gray-600">{{ holerite.funcionario?.cargo || 'Cargo não definido' }}</p>
+                <p class="text-xs text-gray-500">{{ holerite.funcionario?.empresa || 'Empresa não definida' }}</p>
               </div>
             </div>
             
@@ -857,7 +857,7 @@ const enviarHolerite = async (holerite: Holerite) => {
     
     notificacao.value = {
       title: 'Enviado!',
-      message: `Holerite enviado para ${holerite.funcionario.nome_completo} (${resultado.email})`,
+      message: `Holerite enviado para ${holerite.funcionario?.nome_completo || 'funcionário'} (${resultado.email})`,
       variant: 'success'
     }
     mostrarNotificacao.value = true
@@ -918,7 +918,7 @@ const aplicarFiltros = () => {
 
 const excluirHolerite = async (holerite: Holerite) => {
   // Confirmar exclusão
-  if (!confirm(`Tem certeza que deseja excluir o holerite de ${holerite.funcionario.nome_completo}?\n\nEsta ação não pode ser desfeita.`)) {
+  if (!confirm(`Tem certeza que deseja excluir o holerite de ${holerite.funcionario?.nome_completo || 'funcionário'}?\n\nEsta ação não pode ser desfeita.`)) {
     return
   }
   
@@ -932,7 +932,7 @@ const excluirHolerite = async (holerite: Holerite) => {
     
     notificacao.value = {
       title: 'Excluído!',
-      message: `Holerite de ${holerite.funcionario.nome_completo} excluído com sucesso`,
+      message: `Holerite de ${holerite.funcionario?.nome_completo || 'funcionário'} excluído com sucesso`,
       variant: 'success'
     }
     mostrarNotificacao.value = true

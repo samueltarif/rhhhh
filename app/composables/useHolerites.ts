@@ -179,6 +179,28 @@ export const useHolerites = () => {
     return salarioMensal / 2
   }
 
+  // Função para verificar se é adiantamento
+  const isAdiantamento = (holerite: any): boolean => {
+    if (!holerite) return false
+    
+    // Verificar se é quinzena 1 ou se tem "adiantamento" no nome/observações
+    return holerite.quinzena === 1 || 
+           holerite.tipo?.toLowerCase().includes('adiantamento') ||
+           holerite.referencia?.toLowerCase().includes('adiantamento') ||
+           holerite.observacoes?.toLowerCase().includes('adiantamento')
+  }
+
+  // Função para obter tipo do holerite
+  const getTipoHolerite = (holerite: any): string => {
+    if (!holerite) return 'folha_mensal'
+    
+    if (isAdiantamento(holerite)) {
+      return 'adiantamento'
+    } else {
+      return 'folha_mensal'
+    }
+  }
+
   return {
     isFeriado,
     isFimDeSemana,
@@ -191,6 +213,8 @@ export const useHolerites = () => {
     formatarDataHora,
     calcularPeriodoQuinzenal,
     isSalarioQuinzenal,
-    calcularValorQuinzenal
+    calcularValorQuinzenal,
+    isAdiantamento,
+    getTipoHolerite
   }
 }
